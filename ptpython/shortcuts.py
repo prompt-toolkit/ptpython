@@ -3,13 +3,13 @@ Useful shortcuts.
 """
 from __future__ import unicode_literals
 
-from .. import CommandLineInterface, AbortAction
-from ..key_bindings.emacs import emacs_bindings
-from ..key_bindings.vi import vi_bindings
-from ..line import Line
-from ..layout import Layout
-from ..layout.processors import PasswordProcessor
-from ..layout.prompt import DefaultPrompt
+from prompt_toolkit import CommandLineInterface, AbortAction
+from prompt_toolkit.key_bindings.emacs import emacs_bindings
+from prompt_toolkit.key_bindings.vi import vi_bindings
+from prompt_toolkit.line import Line
+from prompt_toolkit.layout import Layout
+from prompt_toolkit.layout.processors import PasswordProcessor
+from prompt_toolkit.layout.prompt import DefaultPrompt
 
 
 def get_input(message, raise_exception_on_abort=False, multiline=False,

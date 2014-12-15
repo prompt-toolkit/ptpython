@@ -29,10 +29,9 @@ from prompt_toolkit.line import Line
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.validation import Validator, ValidationError
 from prompt_toolkit.layout.margins import LeftMarginWithLineNumbers
-
-from .regular_languages.compiler import compile as compile_grammar
-from .regular_languages.completion import GrammarCompleter
-from .completers import PathCompleter
+from prompt_toolkit.contrib.regular_languages.compiler import compile as compile_grammar
+from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
+from prompt_toolkit.contrib.completers import PathCompleter
 
 import jedi
 import platform
