@@ -1,6 +1,10 @@
 ptpython: a better Python REPL
 ==============================
 
+.. image:: https://pypip.in/version/ptpython/badge.svg
+    :target: https://pypi.python.org/pypi/ptpython/
+    :alt: Latest Version
+
 ``ptpython`` is an advanced Python REPL built on top of the `prompt_toolkit
 <http://github.com/jonathanslenders/python-prompt-toolkit>`_ library.
 
