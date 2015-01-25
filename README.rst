@@ -24,7 +24,7 @@ The REPL
 Run ``ptpython`` to get an interactive Python prompt with syntax highlighting,
 code completion, etc...
 
-.. image :: docs/images/example1.png
+.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/example1.png
 
 By default, you will have Emacs key bindings, but if you prefer Vi bindings
 (like in the above screenshot) then run ``ptpython --vi``.
@@ -45,7 +45,7 @@ In Vi-mode, you can also use ``Ctrl+N`` and ``Ctrl+P``.
 
 There is even completion on file names inside strings:
 
-.. image :: docs/images/file-completion.png
+.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/file-completion.png
 
 
 Multiline editing
@@ -60,7 +60,7 @@ terminal, you have to check the "Use option as meta key" checkbox in your
 terminal settings. For iTerm2, you have to check "Left option acts as +Esc" in
 the options.)
 
-.. image :: docs/images/multiline.png
+.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/multiline.png
 
 
 Syntax validation
@@ -81,7 +81,7 @@ want to test something else in between in the same shell and go back. We have
 tab pages for this. Each tab has its own input buffer, but they are all
 evaluated in the same environment (sharing locals/globals).
 
-.. image :: docs/images/tab-pages.png
+.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/tab-pages.png
 
 The shortcuts:
 
@@ -116,7 +116,7 @@ with all the power that IPython has to offer, like magic functions and shell
 integration. Make sure that IPython has been installed. (``pip install
 ipython``)
 
-.. image :: docs/images/ipython.png
+.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/ipython.png
 
 
 You are using Django?
@@ -142,7 +142,7 @@ than on Windows, but it certainly is usable. One thing that still needs
 attention is the colorscheme. Windows terminals don't support all colors, so we
 have to create another colorscheme for Windows.
 
-.. image :: docs/images/windows.png
+.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/windows.png
 
 
 FAQ
