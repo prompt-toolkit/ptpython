@@ -63,6 +63,16 @@ the options.)
 .. image :: docs/images/multiline.png
 
 
+Syntax validation
+*****************
+
+Before execution, ``ptpython`` will see whether the input is syntactically
+correct Python code. If not, it will show a warning, and move the cursor to the
+the error.
+
+.. image :: docs/images/validation.png
+
+
 Tab pages
 *********
 
