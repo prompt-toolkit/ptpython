@@ -28,7 +28,7 @@ The REPL
 Run ``ptpython`` to get an interactive Python prompt with syntax highlighting,
 code completion, etc...
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/example1.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/example1.png
 
 By default, you will have Emacs key bindings, but if you prefer Vi bindings
 (like in the above screenshot) then run ``ptpython --vi``.
@@ -49,7 +49,7 @@ In Vi-mode, you can also use ``Ctrl+N`` and ``Ctrl+P``.
 
 There is even completion on file names inside strings:
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/file-completion.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/file-completion.png
 
 
 Multiline editing
@@ -64,7 +64,7 @@ terminal, you have to check the "Use option as meta key" checkbox in your
 terminal settings. For iTerm2, you have to check "Left option acts as +Esc" in
 the options.)
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/multiline.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/multiline.png
 
 
 Syntax validation
@@ -74,7 +74,7 @@ Before execution, ``ptpython`` will see whether the input is syntactically
 correct Python code. If not, it will show a warning, and move the cursor to the
 the error.
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/validation.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
 
 
 Tab pages
@@ -85,7 +85,7 @@ want to test something else in between in the same shell and go back. We have
 tab pages for this. Each tab has its own input buffer, but they are all
 evaluated in the same environment (sharing locals/globals).
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/tab-pages.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/tab-pages.png
 
 The shortcuts:
 
@@ -120,7 +120,7 @@ with all the power that IPython has to offer, like magic functions and shell
 integration. Make sure that IPython has been installed. (``pip install
 ipython``)
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/ipython.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ipython.png
 
 
 You are using Django?
@@ -146,7 +146,7 @@ than on Windows, but it certainly is usable. One thing that still needs
 attention is the colorscheme. Windows terminals don't support all colors, so we
 have to create another colorscheme for Windows.
 
-.. image :: https://github.com/jonathanslenders/ptpython/blob/master/docs/images/windows.png
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/windows.png
 
 
 FAQ
