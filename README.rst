@@ -1,7 +1,7 @@
 ptpython: a better Python REPL
 ==============================
 
-``ptpython`` is an advanced Python REPL build on top of the `prompt_toolkit
+``ptpython`` is an advanced Python REPL built on top of the `prompt_toolkit
 <http://github.com/jonathanslenders/python-prompt-toolkit>`_ library.
 
 It works best on all Posix systems like Linux, BSD and OS X. But it should work
