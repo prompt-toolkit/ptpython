@@ -1,0 +1,13 @@
+CHANGELOG
+=========
+
+0.2: 2015-01-25
+---------------
+
+Moved ptpython code from prompt-toolkit inside this repository.
+
+0.1: 2014-09-29
+---------------
+
+Initial ptpython version. (Source code was still in the
+prompt-toolkit repository itself.)
