@@ -8,7 +8,6 @@ setup(
     version='0.3',
     url='https://github.com/jonathanslenders/ptpython',
     description='Python REPL build on top of prompt_toolkit',
-    long_description='',
     packages=find_packages('.'),
     install_requires = [
         'prompt_toolkit==0.28',
