@@ -1,5 +1,13 @@
 #!/usr/bin/env python
+import os
 from setuptools import setup, find_packages
+
+long_description = open(
+    os.path.join(
+        os.path.dirname(__file__),
+        'README.rst'
+    )
+).read()
 
 
 setup(
@@ -8,6 +16,7 @@ setup(
     version='0.3',
     url='https://github.com/jonathanslenders/ptpython',
     description='Python REPL build on top of prompt_toolkit',
+    long_description=long_description,
     packages=find_packages('.'),
     install_requires = [
         'prompt_toolkit==0.28',
