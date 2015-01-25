@@ -96,7 +96,9 @@ class PythonCommandLineInterface(object):
         self._extra_sidebars = _extra_sidebars or []
 
         # Use a KeyBindingManager for loading the key bindings.
-        self.key_bindings_manager = KeyBindingManager(enable_vi_mode=vi_mode, enable_system_prompt=True)
+        self.key_bindings_manager = KeyBindingManager(enable_vi_mode=vi_mode,
+                                                      enable_open_in_editor=True,
+                                                      enable_system_prompt=True)
         load_python_bindings(self.key_bindings_manager, self.settings,
                              add_buffer=self.add_new_python_buffer,
                              close_current_buffer=self.close_current_python_buffer)
