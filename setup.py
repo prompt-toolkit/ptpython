@@ -5,13 +5,13 @@ from setuptools import setup, find_packages
 setup(
     name='ptpython',
     author='Jonathan Slenders',
-    version='0.2',
+    version='0.3',
     url='https://github.com/jonathanslenders/ptpython',
     description='Python REPL build on top of prompt_toolkit',
     long_description='',
     packages=find_packages('.'),
     install_requires = [
-        'prompt_toolkit==0.27',
+        'prompt_toolkit==0.28',
         'jedi>=0.8.1',
         'docopt',
     ],
