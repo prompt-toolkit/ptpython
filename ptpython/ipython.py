@@ -9,9 +9,14 @@ offer.
 
 """
 from __future__ import unicode_literals
+
 from prompt_toolkit import AbortAction
-from prompt_toolkit.completion import Completion
 from prompt_toolkit import Exit
+from prompt_toolkit.completion import Completion, Completer
+from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
+from prompt_toolkit.contrib.regular_languages.compiler import compile
+from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
+from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.layout.controls import TokenListControl
 
@@ -22,8 +27,12 @@ from IPython.terminal.ipapp import load_default_config
 from IPython import utils as ipy_utils
 from IPython.core.inputsplitter import IPythonInputSplitter
 
-#from pygments.lexers import PythonLexer, BashLexer, TextLexer
+from pygments.lexers import PythonLexer, BashLexer
 from pygments.token import Token
+
+__all__ = (
+    'embed',
+)
 
 
 class IPythonPrompt(TokenListControl):
@@ -48,38 +57,69 @@ class IPythonValidator(PythonValidator):
         super(IPythonValidator, self).validate(document)
 
 
-class IPythonCompleter(PythonCompleter):
-    def __init__(self, get_globals, get_locals, magics_manager):
-        super(IPythonCompleter, self).__init__(get_globals, get_locals)
-        self._magics_manager = magics_manager
+def create_ipython_grammar():
+    """
+    Return compiled IPython grammar.
+    """
+    return compile(r"""
+        \s*
+        (
+            (?P<percent>%)(
+                (?P<magic>pycat|run|loadpy|load)  \s+ (?P<filename>[^\s]+)     |
+                (?P<magic>pushd|cd|ls)            \s+ (?P<directory>[^\s]+)    |
+                (?P<magic>pdb)                    \s+ (?P<pdb_arg>[^\s]+)      |
+                (?P<magic>autocall)               \s+ (?P<autocall_arg>[^\s]+) |
+                (?P<magic>time|timeit|prun)       \s+ (?P<python>.+)           |
+                (?P<magic>psource|pfile|pinfo|pinfo2) \s+ (?P<python>.+)       |
+                (?P<magic>system)                 \s+ (?P<system>.+) |
+                (?P<magic>[^\s]+)   .* |
+            ) .*
+            !(?P<system>.+) |
+            (?![%!]) (?P<python>.+)
+        )
+        \s*
+    """)
+
+
+def create_completer(get_globals, get_locals, magics_manager):
+    g = create_ipython_grammar()
+
+    return GrammarCompleter(g, {
+        'python': PythonCompleter(get_globals, get_locals),
+        'magic': MagicsCompleter(magics_manager),
+        'pdb_arg': WordCompleter(['on', 'off'], ignore_case=True),
+        'autocall_arg': WordCompleter(['0', '1', '2'], ignore_case=True),
+        'filename': PathCompleter(include_files=True, file_filter=lambda name: name.endswith('.py')),
+        'directory': PathCompleter(include_files=False),
+    })
+
+
+def create_lexer():
+    g = create_ipython_grammar()
+
+    return GrammarLexer(
+        g,
+        tokens={
+            'percent': Token.Operator,
+            'magic': Token.Keyword,
+            'filename': Token.Name,
+        },
+        lexers={
+            'python': PythonLexer,
+            'system': BashLexer,
+        })
+
+
+class MagicsCompleter(Completer):
+    def __init__(self, magics_manager):
+        self.magics_manager = magics_manager
 
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor.lstrip()
 
-        # Don't complete in shell mode.
-        if text.startswith('!'):
-            return
-
-        if text.startswith('%'):
-            # Complete magic functions.
-            for m in self._magics_manager.magics['line']:
-                if m.startswith(text[1:]):
-                    yield Completion('%%%s' % m, -len(text))
-        else:
-            # Complete as normal Python code.
-            for c in super(IPythonCompleter, self).get_completions(document, complete_event):
-                yield c
-
-
-# TODO: Use alternate lexers in layout, if we have a ! prefix or ? suffix.
-#    @property
-#    def lexer(self):
-#        if self.text.lstrip().startswith('!'):
-#            return BashLexer
-#        elif self.text.rstrip().endswith('?'):
-#            return TextLexer
-#        else:
-#            return PythonLexer
+        for m in self.magics_manager.magics['line']:
+            if m.startswith(text):
+                yield Completion('%s' % m, -len(text))
 
 
 class IPythonCommandLineInterface(PythonCommandLineInterface):
@@ -87,7 +127,9 @@ class IPythonCommandLineInterface(PythonCommandLineInterface):
     Override our `PythonCommandLineInterface` to add IPython specific stuff.
     """
     def __init__(self, ipython_shell, *a, **kw):
-        kw['_completer'] = IPythonCompleter(kw['get_globals'], kw['get_globals'], ipython_shell.magics_manager)
+        kw['_completer'] = create_completer(kw['get_globals'], kw['get_globals'],
+                                            ipython_shell.magics_manager)
+        kw['_lexer'] = create_lexer()
         kw['_validator'] = IPythonValidator()
         kw['_python_prompt_control'] = IPythonPrompt(ipython_shell.prompt_manager)
 

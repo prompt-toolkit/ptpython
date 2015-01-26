@@ -27,6 +27,8 @@ from ptpython.style import PythonStyle
 from ptpython.utils import current_python_buffer, get_jedi_script_from_document, document_is_multiline_python
 from ptpython.validator import PythonValidator
 
+from pygments.lexers import PythonLexer
+
 import six
 
 __all__ = (
@@ -80,6 +82,7 @@ class PythonCommandLineInterface(object):
                  # For internal use.
                  _completer=None,
                  _validator=None,
+                 _lexer=None,
                  _python_prompt_control=None,
                  _extra_buffers=None,
                  _extra_sidebars=None):
@@ -94,6 +97,7 @@ class PythonCommandLineInterface(object):
         self.history = FileHistory(history_filename) if history_filename else History()
         self.python_prompt_control = _python_prompt_control or PythonPrompt(self.settings)
         self._extra_sidebars = _extra_sidebars or []
+        self._lexer = _lexer or PythonLexer
 
         # Use a KeyBindingManager for loading the key bindings.
         self.key_bindings_manager = KeyBindingManager(enable_vi_mode=vi_mode,
@@ -187,6 +191,7 @@ class PythonCommandLineInterface(object):
         """
         self.cli.layout = create_layout(
             self.cli.buffers, self.settings, self.key_bindings_manager, self.python_prompt_control,
+            lexer=self._lexer,
             extra_sidebars=self._extra_sidebars)
 
     def add_new_python_buffer(self):
