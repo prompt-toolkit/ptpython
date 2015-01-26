@@ -72,7 +72,7 @@ Syntax validation
 
 Before execution, ``ptpython`` will see whether the input is syntactically
 correct Python code. If not, it will show a warning, and move the cursor to the
-the error.
+error.
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
 
@@ -90,7 +90,7 @@ evaluated in the same environment (sharing locals/globals).
 The shortcuts:
 
 +------------------------+-----------------------+
-| Create a new tab page  | Control-N             |
+| Create a new tab page  | Control-T             |
 +------------------------+-----------------------+
 | Close current tab page | Control-D             |
 +------------------------+-----------------------+
