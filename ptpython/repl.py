@@ -98,9 +98,13 @@ class PythonRepl(PythonCommandLineInterface):
         """
         if startup_paths:
             for path in startup_paths:
-                with open(path, 'r') as f:
-                    code = compile(f.read(), path, 'exec')
-                    exec_(code, self.get_globals(), self.get_locals())
+                if os.path.exists(path):
+                    with open(path, 'r') as f:
+                        code = compile(f.read(), path, 'exec')
+                        exec_(code, self.get_globals(), self.get_locals())
+                else:
+                    stdout = self.cli.stdout
+                    stdout.write('WARNING | File not found: {}\n\n'.format(path))
 
     def _execute(self, line):
         """
