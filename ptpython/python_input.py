@@ -85,6 +85,7 @@ class PythonCommandLineInterface(object):
                  _lexer=None,
                  _python_prompt_control=None,
                  _extra_buffers=None,
+                 _extra_buffer_processors=None,
                  _extra_sidebars=None):
 
         self.settings = PythonCLISettings()
@@ -97,6 +98,7 @@ class PythonCommandLineInterface(object):
         self.history = FileHistory(history_filename) if history_filename else History()
         self.python_prompt_control = _python_prompt_control or PythonPrompt(self.settings)
         self._extra_sidebars = _extra_sidebars or []
+        self._extra_buffer_processors = _extra_buffer_processors or []
         self._lexer = _lexer or PythonLexer
 
         # Use a KeyBindingManager for loading the key bindings.
@@ -192,6 +194,7 @@ class PythonCommandLineInterface(object):
         self.cli.layout = create_layout(
             self.cli.buffers, self.settings, self.key_bindings_manager, self.python_prompt_control,
             lexer=self._lexer,
+            extra_buffer_processors=self._extra_buffer_processors,
             extra_sidebars=self._extra_sidebars)
 
     def add_new_python_buffer(self):

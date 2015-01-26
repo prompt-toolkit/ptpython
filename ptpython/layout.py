@@ -290,10 +290,12 @@ class ShowSidebarButtonInfo(Window):
 
 
 def create_layout(buffers, settings, key_bindings_manager,
-                  python_prompt_control=None, lexer=PythonLexer, extra_sidebars=None):
+                  python_prompt_control=None, lexer=PythonLexer, extra_sidebars=None,
+                  extra_buffer_processors=None):
     D = LayoutDimension
     show_all_buffers = Condition(lambda cli: settings.show_all_buffers)
     extra_sidebars = extra_sidebars or []
+    extra_buffer_processors = extra_buffer_processors or []
 
     def create_buffer_window(buffer_name):
         def menu_position(cli):
@@ -313,7 +315,7 @@ def create_layout(buffers, settings, key_bindings_manager,
                 buffer_name=buffer_name,
                 lexer=lexer,
                 show_line_numbers=ShowLineNumbersFilter(settings, buffer_name),
-                input_processors=[BracketsMismatchProcessor()],
+                input_processors=[BracketsMismatchProcessor()] + extra_buffer_processors,
                 menu_position=menu_position,
             ),
             # As long as we're editing, prefer a minimal height of 8.
