@@ -2,7 +2,7 @@
 """
 ptpython: Interactive Python shell.
 Usage:
-    ptpython [ --vi ] [ --history=<filename> ] [ --no-colors ]
+    ptpython [ --vi ] [ --history=<filename> ] [ --no-colors ] [ --style=<stylename> ]
              [ --autocompletion=<type> ] [ --always-multiline ]
              [ --interactive=<filename> ] [--] [ <file> <arg>... ]
     ptpython -h | --help
@@ -40,6 +40,11 @@ def run():
     else:
         history_filename = os.path.expanduser('~/.ptpython_history')
 
+    if a['--style']:
+        stylename = a['--style']
+    else:
+        stylename = None
+
     # Startup path
     startup_paths = []
     if 'PYTHONSTARTUP' in os.environ:
@@ -59,7 +64,7 @@ def run():
     else:
         # Run interactive shell.
         embed(globals_, locals_, vi_mode=vi_mode, history_filename=history_filename,
-              no_colors=no_colors, startup_paths=startup_paths)
+              no_colors=no_colors, startup_paths=startup_paths, style=stylename)
 
 if __name__ == '__main__':
     run()

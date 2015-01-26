@@ -13,6 +13,7 @@ Utility for creating a Python repl.
 from __future__ import unicode_literals
 
 from pygments import highlight
+from pygments.styles import get_style_by_name
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
 
@@ -169,7 +170,7 @@ class PythonRepl(PythonCommandLineInterface):
 
 
 def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_colors=False,
-          startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
+          startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False, style=None):
     """
     Call this to embed  Python shell at the current point in your program.
     It's similar to `IPython.embed` and `bpython.embed`. ::
@@ -188,8 +189,15 @@ def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_co
     def get_locals():
         return locals
 
+    if no_colors:
+        _style = None
+    elif style is not None:
+        _style = get_style_by_name(style)
+    else:
+        _style = PythonStyle
+
     repl = PythonRepl(get_globals, get_locals, vi_mode=vi_mode, history_filename=history_filename,
-                      style=(None if no_colors else PythonStyle))
+                      style=_style)
 
     patch_context = repl.cli.patch_stdout_context() if patch_stdout else DummyContext()
 
