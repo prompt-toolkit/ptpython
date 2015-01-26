@@ -138,11 +138,15 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
         """
         When the 'tab' key is pressed with only whitespace character before the
         cursor, do autocompletion. Otherwise, insert indentation.
+
+        Except for the first character at the first line. Then always do a
+        completion. It doesn't make sense to start the first line with
+        indentation.
         """
         buffer = event.cli.current_buffer
         current_char = buffer.document.current_line_before_cursor
 
-        if not current_char or current_char.isspace():
+        if buffer.text and (not current_char or current_char.isspace()):
             buffer.insert_text('    ')
         else:
             buffer.complete_next()
