@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 from prompt_toolkit import AbortAction
 from prompt_toolkit import Exit
 from prompt_toolkit.completion import Completion, Completer
-from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter
+from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter, SystemCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
@@ -71,9 +71,10 @@ def create_ipython_grammar():
                 (?P<magic>autocall)               \s+ (?P<autocall_arg>[^\s]+) |
                 (?P<magic>time|timeit|prun)       \s+ (?P<python>.+)           |
                 (?P<magic>psource|pfile|pinfo|pinfo2) \s+ (?P<python>.+)       |
-                (?P<magic>system)                 \s+ (?P<system>.+) |
+                (?P<magic>system)                 \s+ (?P<system>.+)           |
+                (?P<magic>unalias)                \s+ (?P<alias_name>.+)       |
                 (?P<magic>[^\s]+)   .* |
-            ) .*
+            ) .*            |
             !(?P<system>.+) |
             (?![%!]) (?P<python>.+)
         )
@@ -81,16 +82,18 @@ def create_ipython_grammar():
     """)
 
 
-def create_completer(get_globals, get_locals, magics_manager):
+def create_completer(get_globals, get_locals, magics_manager, alias_manager):
     g = create_ipython_grammar()
 
     return GrammarCompleter(g, {
         'python': PythonCompleter(get_globals, get_locals),
         'magic': MagicsCompleter(magics_manager),
+        'alias_name': AliasCompleter(alias_manager),
         'pdb_arg': WordCompleter(['on', 'off'], ignore_case=True),
         'autocall_arg': WordCompleter(['0', '1', '2'], ignore_case=True),
-        'filename': PathCompleter(include_files=True, file_filter=lambda name: name.endswith('.py')),
-        'directory': PathCompleter(include_files=False),
+        'filename': PathCompleter(only_directories=False, file_filter=lambda name: name.endswith('.py')),
+        'directory': PathCompleter(only_directories=True),
+        'system': SystemCompleter(),
     })
 
 
@@ -117,9 +120,24 @@ class MagicsCompleter(Completer):
     def get_completions(self, document, complete_event):
         text = document.text_before_cursor.lstrip()
 
-        for m in self.magics_manager.magics['line']:
+        for m in sorted(self.magics_manager.magics['line']):
             if m.startswith(text):
                 yield Completion('%s' % m, -len(text))
+
+
+class AliasCompleter(Completer):
+    def __init__(self, alias_manager):
+        self.alias_manager = alias_manager
+
+    def get_completions(self, document, complete_event):
+        text = document.text_before_cursor.lstrip()
+        #aliases = [a for a, _ in self.alias_manager.aliases]
+        aliases = self.alias_manager.aliases
+
+        for a, cmd in sorted(aliases, key=lambda a: a[0]):
+            if a.startswith(text):
+                yield Completion('%s' % a, -len(text),
+                                 display_meta=cmd)
 
 
 class IPythonCommandLineInterface(PythonCommandLineInterface):
@@ -128,7 +146,8 @@ class IPythonCommandLineInterface(PythonCommandLineInterface):
     """
     def __init__(self, ipython_shell, *a, **kw):
         kw['_completer'] = create_completer(kw['get_globals'], kw['get_globals'],
-                                            ipython_shell.magics_manager)
+                                            ipython_shell.magics_manager,
+                                            ipython_shell.alias_manager)
         kw['_lexer'] = create_lexer()
         kw['_validator'] = IPythonValidator()
         kw['_python_prompt_control'] = IPythonPrompt(ipython_shell.prompt_manager)

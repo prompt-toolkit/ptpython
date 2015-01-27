@@ -42,7 +42,8 @@ class ShowCompletionsMenu(Filter):
         self.settings = settings
 
     def __call__(self, cli):
-        return self.settings.show_completions_menu
+        return self.settings.show_completions_menu and \
+            cli.focus_stack.current.startswith('python-')
 
 
 class ShowSidebar(Filter):
