@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+0.5: 2015-01-30
+---------------
+
+Fixed:
+- Tab autocompletion on first line.
+- Upgrade to prompt-toolkit 0.31
+
+New features:
+- Simple autocompletion for IPython magics.
+
 0.4: 2015-01-26
 ---------------
 
