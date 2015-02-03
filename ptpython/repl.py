@@ -16,7 +16,7 @@ from pygments import highlight
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
 
-from prompt_toolkit import AbortAction, Exit
+from prompt_toolkit import AbortAction
 from prompt_toolkit.utils import DummyContext
 
 from ptpython.python_input import PythonCommandLineInterface, PythonStyle
@@ -50,7 +50,7 @@ class PythonRepl(PythonCommandLineInterface):
                     on_abort=AbortAction.RETRY,
                     on_exit=AbortAction.RAISE_EXCEPTION)
                 self._process_document(document)
-        except Exit:
+        except EOFError:
             pass
 
     def asyncio_start_repl(self):
@@ -75,7 +75,7 @@ class PythonRepl(PythonCommandLineInterface):
                 except StopIteration as e:
                     document = e.args[0]
                     self._process_document(document)
-        except Exit:
+        except EOFError:
             pass
 
     def _process_document(self, document):
