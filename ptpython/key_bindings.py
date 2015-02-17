@@ -157,13 +157,26 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
             IsPythonBufferFocussed() & IsMultiline())
     def _(event):
         """
+        Behaviour of the Enter key.
+
         Auto indent after newline/Enter.
         (When not in Vi navigaton mode, and when multiline is enabled.)
         """
         buffer = event.current_buffer
 
         if settings.paste_mode:
+            # In paste mode, always insert text.
             buffer.insert_text('\n')
+
+        elif buffer.document.is_cursor_at_the_end and \
+                buffer.document.text.replace(' ', '').endswith('\n'):
+            # When the cursor is at the end, and we have an empty line:
+            # drop the empty lines, but return the value.
+            buffer.text = buffer.text.rstrip()
+            buffer.cursor_position = len(buffer.text)
+
+            buffer.add_to_history()
+            event.cli.set_return_value(buffer.document)
         else:
             auto_newline(buffer)
 
