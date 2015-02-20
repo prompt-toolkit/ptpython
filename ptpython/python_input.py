@@ -17,7 +17,7 @@ from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.document import Document
 from prompt_toolkit.key_binding.bindings.utils import focus_next_buffer
-from prompt_toolkit.filters import AlwaysOff
+from prompt_toolkit.filters import AlwaysOff, AlwaysOn
 
 from ptpython.completer import PythonCompleter
 from ptpython.filters import HasSignature, ShowDocstring
@@ -122,7 +122,7 @@ class PythonCommandLineInterface(object):
             style=style,
             key_bindings_registry=self.key_bindings_manager.registry,
             buffers=buffers,
-            create_async_autocompleters=True)
+            complete_while_typing=AlwaysOn())
 
         def on_input_timeout():
             """
