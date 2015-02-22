@@ -162,23 +162,29 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
         Auto indent after newline/Enter.
         (When not in Vi navigaton mode, and when multiline is enabled.)
         """
-        buffer = event.current_buffer
+        b = event.current_buffer
+
+        def at_the_end(b):
+            """ we consider the cursor at the end when there is no text after
+            the cursor, or only whitespace. """
+            text = b.document.text_after_cursor
+            return text == '' or (text.isspace() and not '\n' in text)
 
         if settings.paste_mode:
             # In paste mode, always insert text.
-            buffer.insert_text('\n')
+            b.insert_text('\n')
 
-        elif buffer.document.is_cursor_at_the_end and \
-                buffer.document.text.replace(' ', '').endswith('\n'):
-            # When the cursor is at the end, and we have an empty line:
-            # drop the empty lines, but return the value.
-            buffer.text = buffer.text.rstrip()
-            buffer.cursor_position = len(buffer.text)
+        elif at_the_end(b) and b.document.text.replace(' ', '').endswith('\n'):
+            if b.validate():
+                # When the cursor is at the end, and we have an empty line:
+                # drop the empty lines, but return the value.
+                b.text = b.text.rstrip()
+                b.cursor_position = len(b.text)
 
-            buffer.add_to_history()
-            event.cli.set_return_value(buffer.document)
+                b.add_to_history()
+                event.cli.set_return_value(b.document)
         else:
-            auto_newline(buffer)
+            auto_newline(b)
 
 
 def auto_newline(buffer):
@@ -188,6 +194,7 @@ def auto_newline(buffer):
     insert_text = buffer.insert_text
 
     if buffer.document.current_line_after_cursor:
+        # When we are in the middle of a line. Always insert a newline.
         insert_text('\n')
     else:
         # Go to new line, but also add indentation.
