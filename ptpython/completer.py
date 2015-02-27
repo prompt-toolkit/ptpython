@@ -40,9 +40,9 @@ class PythonCompleter(Completer):
                 # Text before the current string.
                 (
                     [^'"#]            |  # Not quoted characters.
-                    '''.*'''          |  # Inside single quoted triple strings
-                    "" ".*"" "        |  # Inside double quoted triple strings
-                    \#[^\n]*          |  # Comment.
+                    '''.*?'''         |  # Inside single quoted triple strings
+                    "" ".*?"" "       |  # Inside double quoted triple strings
+                    \#[^\n]*(\n|$)    |  # Comment.
                     "([^"\\]|\\.)*"   |  # Inside double quoted strings.
                     '([^'\\]|\\.)*'      # Inside single quoted strings.
                 )*
