@@ -11,13 +11,14 @@ This can be used for creation of Python REPLs.
 """
 from __future__ import unicode_literals
 
+from prompt_toolkit import AbortAction
 from prompt_toolkit import CommandLineInterface
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.history import FileHistory, History
-from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.document import Document
+from prompt_toolkit.filters import Never, Always
+from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.key_binding.bindings.utils import focus_next_buffer
-from prompt_toolkit.filters import AlwaysOff, AlwaysOn
+from prompt_toolkit.key_binding.manager import KeyBindingManager
 
 from ptpython.completer import PythonCompleter
 from ptpython.filters import HasSignature, ShowDocstring
@@ -112,7 +113,7 @@ class PythonCommandLineInterface(object):
         self.get_signatures_thread_running = False
 
         buffers = {
-            'default': Buffer(focussable=AlwaysOff()),  # Never use or focus the default buffer.
+            'default': Buffer(focussable=Never()),  # Never use or focus the default buffer.
             'docstring': Buffer(focussable=HasSignature(self.settings) & ShowDocstring(self.settings)),
                                 # XXX: also make docstring read only.
         }
@@ -122,7 +123,9 @@ class PythonCommandLineInterface(object):
             style=style,
             key_bindings_registry=self.key_bindings_manager.registry,
             buffers=buffers,
-            complete_while_typing=AlwaysOn())
+            complete_while_typing=Always(),
+            on_abort=AbortAction.RETRY,
+            on_exit=AbortAction.RAISE_EXCEPTION)
 
         def on_input_timeout():
             """
@@ -179,7 +182,7 @@ class PythonCommandLineInterface(object):
                 else:
                     on_input_timeout()
 
-            self.cli.run_in_executor(run)
+            self.cli.eventloop.run_in_executor(run)
 
         self.cli.onInputTimeout += on_input_timeout
         self.cli.onReset += self.key_bindings_manager.reset

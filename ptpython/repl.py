@@ -16,7 +16,6 @@ from pygments import highlight
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
 
-from prompt_toolkit import AbortAction
 from prompt_toolkit.utils import DummyContext
 
 from ptpython.python_input import PythonCommandLineInterface, PythonStyle
@@ -46,9 +45,7 @@ class PythonRepl(PythonCommandLineInterface):
         try:
             while True:
                 # Read
-                document = self.cli.read_input(
-                    on_abort=AbortAction.RETRY,
-                    on_exit=AbortAction.RAISE_EXCEPTION)
+                document = self.cli.read_input()
                 self._process_document(document)
         except EOFError:
             pass
@@ -63,9 +60,7 @@ class PythonRepl(PythonCommandLineInterface):
         try:
             while True:
                 # Read
-                g = self.cli.read_input_async(
-                    on_abort=AbortAction.RETRY,
-                    on_exit=AbortAction.RAISE_EXCEPTION)
+                g = self.cli.read_input_async()
 
                 # We use Python 2 syntax for delegating the coroutine and
                 # catching the returned document.
