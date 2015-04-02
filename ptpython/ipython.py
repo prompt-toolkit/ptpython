@@ -10,7 +10,6 @@ offer.
 """
 from __future__ import unicode_literals
 
-from prompt_toolkit import AbortAction
 from prompt_toolkit.completion import Completion, Completer
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter, SystemCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile
