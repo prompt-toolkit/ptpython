@@ -88,4 +88,7 @@ class PythonStyle(Style):
         Token.Sidebar.Shortcut:                       'bg:#bbbbbb #000011 bold',
         Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
         Token.Sidebar.Status:                         'bg:#bbbbbb #000011 bold',
+
+        # Matching bracket.
+        Token.MatchingBracket:                        'bg:#aaaaff #000000',
     }

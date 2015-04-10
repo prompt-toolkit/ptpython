@@ -15,7 +15,7 @@ from prompt_toolkit import AbortAction
 from prompt_toolkit import CommandLineInterface
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
-from prompt_toolkit.filters import Never, Always
+from prompt_toolkit.filters import Never, Always, Condition
 from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.key_binding.bindings.utils import focus_next_buffer
 from prompt_toolkit.key_binding.manager import KeyBindingManager
@@ -224,14 +224,15 @@ class PythonCommandLineInterface(object):
                 self.cli.set_exit()
 
     def _create_buffer(self):
-        def is_buffer_multiline(document):
+        def is_buffer_multiline(cli):
             return (self.settings.paste_mode or
                     self.settings.currently_multiline or
-                    document_is_multiline_python(document))
+                    document_is_multiline_python(b.document))
 
-        return PythonBuffer(
-            is_multiline=is_buffer_multiline,
+        b = PythonBuffer(
+            is_multiline=Condition(is_buffer_multiline),
             tempfile_suffix='.py',
             history=self.history,
             completer=self.completer,
             validator=self.validator)
+        return b

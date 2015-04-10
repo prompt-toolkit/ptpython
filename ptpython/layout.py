@@ -6,7 +6,7 @@ from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.menus import CompletionsMenu
-from prompt_toolkit.layout.processors import BracketsMismatchProcessor, HighlightSearchProcessor, HighlightSelectionProcessor
+from prompt_toolkit.layout.processors import BracketsMismatchProcessor, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
@@ -214,7 +214,7 @@ class PythonToolbar(TokenListToolbar):
                 else:
                     append((TB.Off, '[F6] Paste mode (off)  '))
 
-                if python_buffer.is_multiline:
+                if python_buffer.is_multiline(cli):
                     append((TB, ' [Meta+Enter] Execute'))
 
             return result
@@ -315,7 +315,9 @@ def create_layout(buffers, settings, key_bindings_manager,
                 buffer_name=buffer_name,
                 lexer=lexer,
                 show_line_numbers=ShowLineNumbersFilter(settings, buffer_name),
-                input_processors=[BracketsMismatchProcessor(), HighlightSearchProcessor(),
+                input_processors=[BracketsMismatchProcessor(),
+                                  HighlightMatchingBracketProcessor(chars='[](){}'),
+                                  HighlightSearchProcessor(),
                                   HighlightSelectionProcessor()] + extra_buffer_processors,
                 menu_position=menu_position,
             ),
