@@ -129,9 +129,14 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
     @handle(Keys.ControlD, filter=IsPythonBufferFocussed())
     def _(event):
         """
-        Close Python buffer.
+        When there is text in the buffer, delete the character under the
+        cursor, otherwise close Python buffer.
         """
-        close_current_buffer()
+        b = event.current_buffer
+        if b.text:
+            b.delete()
+        else:
+            close_current_buffer()
 
     @handle(Keys.Tab, filter= ~has_selection)
     def _(event):
