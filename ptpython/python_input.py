@@ -124,6 +124,7 @@ class PythonCommandLineInterface(object):
             key_bindings_registry=self.key_bindings_manager.registry,
             buffers=buffers,
             complete_while_typing=Always(),
+            paste_mode=Condition(lambda cli: self.settings.paste_mode),
             on_abort=AbortAction.RETRY,
             on_exit=AbortAction.RAISE_EXCEPTION)
 
