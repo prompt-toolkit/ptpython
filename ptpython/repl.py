@@ -17,6 +17,7 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
 
 from prompt_toolkit.utils import DummyContext
+from prompt_toolkit.contrib.shortcuts import create_eventloop, create_asyncio_eventloop
 
 from ptpython.python_input import PythonCommandLineInterface, PythonStyle
 
@@ -54,7 +55,7 @@ class PythonRepl(PythonCommandLineInterface):
         """
         (coroutine) Start a Read-Eval-print Loop for usage in asyncio. E.g.::
 
-            repl = PythonRepl(get_globals=lambda:globals())
+            repl = PythonRepl(eventloop, get_globals=lambda:globals())
             yield from repl.asyncio_start_repl()
         """
         try:
@@ -187,9 +188,18 @@ def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_co
     def get_locals():
         return locals
 
-    repl = PythonRepl(get_globals, get_locals, vi_mode=vi_mode, history_filename=history_filename,
+    # Create eventloop.
+    if return_asyncio_coroutine:
+        eventloop = create_asyncio_eventloop()
+    else:
+        eventloop = create_eventloop()
+
+    # Create REPL.
+    repl = PythonRepl(eventloop, get_globals, get_locals, vi_mode=vi_mode,
+                      history_filename=history_filename,
                       style=(None if no_colors else PythonStyle))
 
+    # Start repl.
     patch_context = repl.cli.patch_stdout_context() if patch_stdout else DummyContext()
 
     if return_asyncio_coroutine:

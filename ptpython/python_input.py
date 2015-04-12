@@ -75,6 +75,7 @@ class PythonCLISettings(object):
 
 class PythonCommandLineInterface(object):
     def __init__(self,
+                 eventloop,
                  get_globals=None, get_locals=None,
                  stdin=None, stdout=None,
                  vi_mode=False, history_filename=None,
@@ -120,6 +121,7 @@ class PythonCommandLineInterface(object):
         buffers.update(_extra_buffers or {})
 
         self.cli = CommandLineInterface(
+            eventloop=eventloop,
             style=style,
             key_bindings_registry=self.key_bindings_manager.registry,
             buffers=buffers,
