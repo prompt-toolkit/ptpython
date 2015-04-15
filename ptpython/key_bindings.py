@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from prompt_toolkit.filters import HasSelection, IsMultiline
+from prompt_toolkit.filters import HasSelection, IsMultiline, Filter
 from prompt_toolkit.key_binding.bindings.utils import focus_next_buffer, focus_previous_buffer
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.key_binding.manager import ViModeEnabled
@@ -12,6 +12,22 @@ from ptpython.filters import IsPythonBufferFocussed
 __all__ = (
     'load_python_bindings',
 )
+
+
+class TabShouldInsertWhitespaceFilter(Filter):
+    """
+    When the 'tab' key is pressed with only whitespace character before the
+    cursor, do autocompletion. Otherwise, insert indentation.
+
+    Except for the first character at the first line. Then always do a
+    completion. It doesn't make sense to start the first line with
+    indentation.
+    """
+    def __call__(self, cli):
+        b = cli.current_buffer
+        before_cursor = b.document.current_line_before_cursor
+
+        return bool(b.text and (not before_cursor or before_cursor.isspace()))
 
 
 def load_python_bindings(key_bindings_manager, settings, add_buffer, close_current_buffer):
@@ -138,23 +154,12 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
         else:
             close_current_buffer()
 
-    @handle(Keys.Tab, filter= ~has_selection)
+    @handle(Keys.Tab, filter= ~has_selection & TabShouldInsertWhitespaceFilter())
     def _(event):
         """
-        When the 'tab' key is pressed with only whitespace character before the
-        cursor, do autocompletion. Otherwise, insert indentation.
-
-        Except for the first character at the first line. Then always do a
-        completion. It doesn't make sense to start the first line with
-        indentation.
+        When tab should insert whitespace, do that instead of completion.
         """
-        buffer = event.cli.current_buffer
-        current_char = buffer.document.current_line_before_cursor
-
-        if buffer.text and (not current_char or current_char.isspace()):
-            buffer.insert_text('    ')
-        else:
-            buffer.complete_next()
+        event.cli.current_buffer.insert_text('    ')
 
     @handle(Keys.ControlJ, filter= ~has_selection &
             ~(ViModeEnabled(key_bindings_manager) &
