@@ -39,12 +39,20 @@ class PythonCompleter(Completer):
         grammar = r"""
                 # Text before the current string.
                 (
-                    [^'"#]            |  # Not quoted characters.
-                    '''.*?'''         |  # Inside single quoted triple strings
-                    "" ".*?"" "       |  # Inside double quoted triple strings
-                    \#[^\n]*(\n|$)    |  # Comment.
-                    "([^"\\]|\\.)*"   |  # Inside double quoted strings.
-                    '([^'\\]|\\.)*'      # Inside single quoted strings.
+                    [^'"#]                             |  # Not quoted characters.
+                    '''  ([^']|'[^']|''[^']|\\.)*  ''' |  # Inside single quoted triple strings
+                    "" " ([^"]|"[^"]|""[^"]|\\.)* "" " |  # Inside double quoted triple strings
+
+                    \#[^\n]*(\n|$)           |  # Comment.
+                    "(?!"") ([^"\\]|\\.)*"   |  # Inside double quoted strings.
+                    '(?!'') ([^'\\]|\\.)*'      # Inside single quoted strings.
+
+                        # Warning: The negative lookahead in the above two
+                        #          statements is important. If we drop that,
+                        #          then the regex will try to interpret every
+                        #          triple quoted string also as a single quoted
+                        #          string, making this exponentially expensive to
+                        #          execute!
                 )*
                 # The current string that we're completing.
                 (
@@ -88,7 +96,7 @@ class PythonCompleter(Completer):
                 yield c
 
         # If we are inside a string, Don't do Jedi completion.
-        if self._path_completer_grammar.match(document.text):
+        if self._path_completer_grammar.match(document.text_before_cursor):
             return
 
         # Do Jedi Python completions.
