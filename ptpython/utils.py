@@ -9,7 +9,6 @@ import re
 __all__ = (
     'has_unclosed_brackets',
     'get_jedi_script_from_document',
-    'current_python_buffer',
     'document_is_multiline_python',
 )
 
@@ -67,18 +66,6 @@ def get_jedi_script_from_document(document, locals, globals):
     except KeyError:
         # Workaroud for a crash when the input is "u'", the start of a unicode string.
         return None
-
-
-def current_python_buffer(cli, python_settings):
-    """
-    Return the name of the current Python input buffer.
-
-    Returns (name, buffer_instance) tuple.
-    """
-    for name in [cli.focus_stack.current, cli.focus_stack.previous]:
-        if name is not None and name.startswith('python-'):
-            return name, cli.buffers[name]
-    return None, None
 
 
 _multiline_string_delims = re.compile('''[']{3}|["]{3}''')

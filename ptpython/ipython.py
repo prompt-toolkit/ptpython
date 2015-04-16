@@ -8,7 +8,7 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
-from __future__ import unicode_literals
+from __future__ import unicode_literals, print_function
 
 from prompt_toolkit.completion import Completion, Completer
 from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter, SystemCompleter

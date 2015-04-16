@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
 
-from prompt_toolkit.filters import HasSelection, IsMultiline, Filter
-from prompt_toolkit.key_binding.bindings.utils import focus_next_buffer, focus_previous_buffer
+from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.key_binding.manager import ViModeEnabled
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.keys import Keys
-
-from ptpython.filters import IsPythonBufferFocussed
 
 __all__ = (
     'load_python_bindings',
@@ -30,15 +27,12 @@ class TabShouldInsertWhitespaceFilter(Filter):
         return bool(b.text and (not before_cursor or before_cursor.isspace()))
 
 
-def load_python_bindings(key_bindings_manager, settings, add_buffer, close_current_buffer):
+def load_python_bindings(key_bindings_manager, settings):
     """
     Custom key bindings.
     """
     handle = key_bindings_manager.registry.add_binding
     has_selection = HasSelection()
-
-    vi_navigation_mode = ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION) & \
-        ~ HasSelection()
 
     @handle(Keys.F2)
     def _(event):
@@ -73,13 +67,6 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
         """
         settings.paste_mode = not settings.paste_mode
 
-    @handle(Keys.F7)
-    def _(event):
-        """
-        Enable/Disable multiline mode.
-        """
-        settings.currently_multiline = not settings.currently_multiline
-
     @handle(Keys.F8)
     def _(event):
         """
@@ -101,59 +88,6 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
         """
         settings.show_line_numbers = not settings.show_line_numbers
 
-    @handle(Keys.F5)
-    def _(event):
-        """
-        Show all buffers
-        """
-        settings.show_all_buffers = not settings.show_all_buffers
-
-    @handle('g', 't', filter=vi_navigation_mode)
-    @handle(Keys.ControlRight)
-    def _(event):
-        """
-        Focus next tab.
-        """
-        focus_next_buffer(event.cli)
-
-    @handle('g', 'T', filter=vi_navigation_mode)
-    @handle(Keys.ControlLeft)
-    def _(event):
-        """
-        Focus previous tab.
-        """
-        focus_previous_buffer(event.cli)
-
-#    @handle(Keys.F5, filter=filters.HasFocus('default') & ~has_selection)  # XXX: use current tab
-#    def _(event):
-#        """
-#        Merge the previous entry from the history on top.
-#        """
-#        buffer = event.cli.buffers['default']
-#
-#        buffer.text = buffer._working_lines[buffer.working_index - 1] + '\n' + buffer.text
-#        buffer._working_lines = buffer._working_lines[:buffer.working_index - 1] + buffer._working_lines[buffer.working_index:]
-#        buffer.working_index -= 1
-
-    @handle(Keys.ControlT, filter=IsPythonBufferFocussed() & ~has_selection)
-    def _(event):
-        """
-        Create a new Python buffer.
-        """
-        add_buffer()
-
-    @handle(Keys.ControlD, filter=IsPythonBufferFocussed())
-    def _(event):
-        """
-        When there is text in the buffer, delete the character under the
-        cursor, otherwise close Python buffer.
-        """
-        b = event.current_buffer
-        if b.text:
-            b.delete()
-        else:
-            close_current_buffer()
-
     @handle(Keys.Tab, filter= ~has_selection & TabShouldInsertWhitespaceFilter())
     def _(event):
         """
@@ -164,7 +98,7 @@ def load_python_bindings(key_bindings_manager, settings, add_buffer, close_curre
     @handle(Keys.ControlJ, filter= ~has_selection &
             ~(ViModeEnabled(key_bindings_manager) &
               ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION)) &
-            IsPythonBufferFocussed() & IsMultiline())
+            HasFocus('default') & IsMultiline())
     def _(event):
         """
         Behaviour of the Enter key.
