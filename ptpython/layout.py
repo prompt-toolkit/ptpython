@@ -1,13 +1,13 @@
 from __future__ import unicode_literals
 
-from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown
+from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, Always, HasFocus
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.menus import CompletionsMenu
-#from prompt_toolkit.layout.processors import BracketsMismatchProcessor
-from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor
+from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, ConditionalProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
@@ -267,14 +267,20 @@ def create_layout(settings, key_bindings_manager,
 
         return Window(
             BufferControl(
-                buffer_name='default',
+                buffer_name=DEFAULT_BUFFER,
                 lexer=lexer,
                 show_line_numbers=ShowLineNumbersFilter(settings, 'default'),
-                input_processors=[#BracketsMismatchProcessor(),
-                                  HighlightMatchingBracketProcessor(chars='[](){}'),
+                input_processors=[
+                                  # Show matching parentheses, but only while editing.
+                                  ConditionalProcessor(
+                                      processor=HighlightMatchingBracketProcessor(chars='[](){}'),
+                                      filter=HasFocus(DEFAULT_BUFFER) & ~IsDone()),
                                   HighlightSearchProcessor(),
                                   HighlightSelectionProcessor()] + extra_buffer_processors,
                 menu_position=menu_position,
+
+                # Make sure that we always see the result of an reverse-i-search:
+                preview_search=Always(),
             ),
             # As long as we're editing, prefer a minimal height of 6.
             get_height=(lambda cli: (None if cli.is_done else D(min=6))),

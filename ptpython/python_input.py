@@ -20,7 +20,6 @@ from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 
 from ptpython.completer import PythonCompleter
-from ptpython.filters import HasSignature, ShowDocstring
 from ptpython.key_bindings import load_python_bindings
 from ptpython.layout import PythonPrompt, create_layout
 from ptpython.style import PythonStyle
@@ -99,8 +98,7 @@ class PythonCommandLineInterface(object):
 
         buffers = {
             'default': self._create_python_buffer(),
-            'docstring': Buffer(focussable=HasSignature(self.settings) & ShowDocstring(self.settings)),
-                                # XXX: also make docstring read only.
+            'docstring': Buffer(), # XXX: make docstring read only.
         }
         buffers.update(_extra_buffers or {})
 
