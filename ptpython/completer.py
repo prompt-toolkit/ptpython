@@ -72,8 +72,8 @@ class PythonCompleter(Completer):
                 'var2': unwrapper,
             })
         return g, GrammarCompleter(g, {
-            'var1': PathCompleter(),
-            'var2': PathCompleter(),
+            'var1': PathCompleter(expanduser=True),
+            'var2': PathCompleter(expanduser=True),
         })
 
     def _complete_path_while_typing(self, document):
