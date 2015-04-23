@@ -107,7 +107,6 @@ class PythonCommandLineInterface(object):
             style=style,
             key_bindings_registry=self.key_bindings_manager.registry,
             buffers=buffers,
-            complete_while_typing=Always(),
             paste_mode=Condition(lambda cli: self.settings.paste_mode),
             layout=self._create_layout(),
             on_abort=AbortAction.RETRY,

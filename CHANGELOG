@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+0.6: 2015-04-22
+---------------
+
+Fixed:
+- Upgrade to prompt-toolkit 0.32 which has many new features.
+
+Changes:
+- Removal of tab pages + clean up.
+- Pressing enter twice will now always automatically execute the input.
+- Improved Control-D key binding.
+- Hide docstring by default.
+
+
 0.5: 2015-01-30
 ---------------
 
