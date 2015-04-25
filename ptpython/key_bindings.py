@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 
+from prompt_toolkit.document import Document
 from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.key_binding.manager import ViModeEnabled
@@ -129,8 +130,9 @@ def load_python_bindings(key_bindings_manager, settings):
             if b.validate():
                 # When the cursor is at the end, and we have an empty line:
                 # drop the empty lines, but return the value.
-                b.text = b.text.rstrip()
-                b.cursor_position = len(b.text)
+                b.document = Document(
+                    text=b.text.rstrip(),
+                    cursor_position=len(b.text.rstrip()))
 
                 b.add_to_history()
                 event.cli.set_return_value(b.document)
