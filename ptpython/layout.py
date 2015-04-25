@@ -46,7 +46,7 @@ class PythonSidebarControl(TokenListControl):
 
             def append(shortcut, label, status):
                 tokens.append((TB.Shortcut, ' [%s] ' % shortcut))
-                tokens.append((TB.Label, '%-18s' % label))
+                tokens.append((TB.Label, '%-21s' % label))
                 if status:
                     tokens.append((TB.Status, '%9s\n' % status))
                 else:
@@ -54,6 +54,7 @@ class PythonSidebarControl(TokenListControl):
 
             append('F3', 'Completion menu', '(%s)' % completion_style)
             append('F4', 'Input mode', '(%s)' % mode)
+            append('F5', 'Complete while typing', '(on)' if settings.complete_while_typing else '(off)')
             append('F6', 'Paste mode', '(on)' if settings.paste_mode else '(off)')
             append('F8', 'Show signature', '(on)' if settings.show_signature else '(off)')
             append('F9', 'Show docstring', '(on)' if settings.show_docstring else '(off)')
@@ -68,7 +69,7 @@ class PythonSidebar(Window):
     def __init__(self, settings, key_bindings_manager):
         super(PythonSidebar, self).__init__(
             PythonSidebarControl(settings, key_bindings_manager),
-            width=LayoutDimension.exact(34),
+            width=LayoutDimension.exact(37),
             filter=ShowSidebar(settings) & ~IsDone())
 
 
@@ -170,7 +171,7 @@ class PythonToolbar(TokenListToolbar):
                 else:
                     append((TB.Off, '[F6] Paste mode (off)  '))
 
-                if python_buffer.is_multiline(cli):
+                if python_buffer.is_multiline():
                     append((TB, ' [Meta+Enter] Execute'))
 
             return result
@@ -275,7 +276,7 @@ def create_layout(settings, key_bindings_manager,
                                   ConditionalProcessor(
                                       processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                                       filter=HasFocus(DEFAULT_BUFFER) & ~IsDone()),
-                                  HighlightSearchProcessor(),
+                                  HighlightSearchProcessor(preview_search=Always()),
                                   HighlightSelectionProcessor()] + extra_buffer_processors,
                 menu_position=menu_position,
 

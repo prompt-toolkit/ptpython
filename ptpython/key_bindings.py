@@ -60,6 +60,13 @@ def load_python_bindings(key_bindings_manager, settings):
         """
         key_bindings_manager.enable_vi_mode = not key_bindings_manager.enable_vi_mode
 
+    @handle(Keys.F5)
+    def _(event):
+        """
+        Enable/Disable complete while typing.
+        """
+        settings.complete_while_typing = not settings.complete_while_typing
+
     @handle(Keys.F6)
     def _(event):
         """

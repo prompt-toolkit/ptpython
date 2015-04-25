@@ -15,7 +15,7 @@ from prompt_toolkit import AbortAction
 from prompt_toolkit import CommandLineInterface
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
-from prompt_toolkit.filters import Always, Condition
+from prompt_toolkit.filters import Condition, Always
 from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 
@@ -46,6 +46,7 @@ class PythonCLISettings(object):
         self.show_completions_toolbar = False
         self.show_completions_menu = True
         self.show_line_numbers = True
+        self.complete_while_typing = True
 
         #: Boolean `paste` flag. If True, don't insert whitespace after a
         #: newline.
@@ -187,12 +188,14 @@ class PythonCommandLineInterface(object):
             extra_sidebars=self._extra_sidebars)
 
     def _create_python_buffer(self):
-        def is_buffer_multiline(cli):
+        def is_buffer_multiline():
             return (self.settings.paste_mode or
                     document_is_multiline_python(b.document))
 
         b = Buffer(
             is_multiline=Condition(is_buffer_multiline),
+            complete_while_typing=Condition(lambda: self.settings.complete_while_typing),
+            enable_history_search=Always(),
             tempfile_suffix='.py',
             history=self.history,
             completer=self.completer,
