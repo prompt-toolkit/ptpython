@@ -19,7 +19,8 @@ from pygments.lexers import PythonTracebackLexer
 from prompt_toolkit.utils import DummyContext
 from prompt_toolkit.contrib.shortcuts import create_eventloop, create_asyncio_eventloop
 
-from ptpython.python_input import PythonCommandLineInterface, PythonStyle
+from .python_input import PythonCommandLineInterface, PythonStyle
+from ._eval import eval_  # eval() without `unicode_literals`.
 
 from six import exec_
 
@@ -115,7 +116,7 @@ class PythonRepl(PythonCommandLineInterface):
         else:
             # Try eval first
             try:
-                result = eval(line, self.get_globals(), self.get_locals())
+                result = eval_(line, self.get_globals(), self.get_locals())
                 locals = self.get_locals()
                 locals['_'] = locals['_%i' % settings.current_statement_index] = result
 
