@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.8: 2015-04-26
+---------------
+
+Fixed:
+- eval() doesn't run using unicode_literals anymore.
+- Upgrade to prompt-toolkit 0.34.
+
+
 0.7: 2015-04-25
 ---------------
 
