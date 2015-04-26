@@ -77,30 +77,6 @@ error.
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
 
 
-Tab pages
-*********
-
-Suppose that you were editing a long multiline Python command, but suddenly you
-want to test something else in between in the same shell and go back. We have
-tab pages for this. Each tab has its own input buffer, but they are all
-evaluated in the same environment (sharing locals/globals).
-
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/tab-pages.png
-
-The shortcuts:
-
-+------------------------+-----------------------+
-| Create a new tab page  | Control-T             |
-+------------------------+-----------------------+
-| Close current tab page | Control-D             |
-+------------------------+-----------------------+
-| Navigate to next tab   | Control-Arrow-right   |
-|                        | (Or in Vi-mode: 'gt') |
-+------------------------+-----------------------+
-| Navigate to previous   | Control-Arrow-left    |
-| tab                    | (Or in Vi-mode: 'gT') |
-+------------------------+-----------------------+
-
 Other features
 ***************
 
