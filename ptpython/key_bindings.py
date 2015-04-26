@@ -134,7 +134,7 @@ def load_python_bindings(key_bindings_manager, settings):
                     text=b.text.rstrip(),
                     cursor_position=len(b.text.rstrip()))
 
-                b.add_to_history()
+                b.append_to_history()
                 event.cli.set_return_value(b.document)
         else:
             auto_newline(b)
