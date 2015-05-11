@@ -17,7 +17,7 @@ from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
 
 from prompt_toolkit.utils import DummyContext
-from prompt_toolkit.contrib.shortcuts import create_eventloop, create_asyncio_eventloop
+from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
 
 from .python_input import PythonCommandLineInterface, PythonStyle
 from ._eval import eval_  # eval() without `unicode_literals`.

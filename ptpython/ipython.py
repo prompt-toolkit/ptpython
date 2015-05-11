@@ -15,7 +15,7 @@ from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter, Syst
 from prompt_toolkit.contrib.regular_languages.compiler import compile
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
-from prompt_toolkit.contrib.shortcuts import create_eventloop
+from prompt_toolkit.shortcuts import create_eventloop
 from prompt_toolkit.document import Document
 from prompt_toolkit.layout.controls import TokenListControl
 
