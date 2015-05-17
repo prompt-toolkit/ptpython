@@ -76,6 +76,23 @@ error.
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
 
+Preferences
+*************
+Certain preferences can be changed by modifying your `~/.ptpython` file. This
+file does not have to contain every preference; the default values are changed
+only if a value is found in this file.
+
+The file that loads the defaults:
+
+.. code::
+
+    [startup]
+    complete while typing : True
+    paste mode            : False
+    show signature        : True
+    show docstring        : False
+    show linenumbers      : True
+
 
 Other features
 ***************
