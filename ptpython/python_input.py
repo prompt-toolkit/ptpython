@@ -38,26 +38,76 @@ __all__ = (
 class PythonCLISettings(object):
     """
     Settings for the Python REPL which can change at runtime.
+
+    It is possible to have select preferences in ~/.ptpython. An example that
+    would load the default values is:
+
+        [startup]
+        complete while typing : True
+        paste mode            : False
+        show signature        : True
+        show docstring        : False
+        show linenumbers      : True
+
+    If using boolean values, use `True`, not `true`.
+
+    It is possible to have a file with only
+
+        [startup]
+        show docstring : True
+
+    The default values are loaded only if values are not found in this file
     """
     def __init__(self, paste_mode=False):
-        self.show_sidebar = False
-        self.show_signature = True
-        self.show_docstring = False
+        import os.path
+        import ConfigParser
+        def ConfigSectionMap(Config, section):
+            dict1 = {}
+            options = Config.options(section)
+            for option in options:
+                try:
+                    dict1[option] = Config.get(section, option)
+                    if dict1[option] == -1:
+                        DebugPrint("skip: %s" % option)
+                except:
+                    print("exception on %s!" % option)
+                    dict1[option] = None
+            return dict1
+        prefs = {'complete while typing' : True,
+                 'paste mode'            : False,
+                 'show signature'        : True,
+                 'show docstring'        : False,
+                 'show linenumbers'      : True}
+
+        # read in the user preferences
+        config_file = os.path.expanduser("~/.ptpython")
+        config = ConfigParser.ConfigParser()
+        config.read(config_file)
+
+        # modify the prefs on startup (and startup only -- can be changed)
+        if 'startup' in config.sections():
+            user_prefs = ConfigSectionMap(config, 'startup')
+            for key, value in user_prefs.iteritems():
+                # relies on value being a string with valid Python syntax
+                prefs[key] = eval(value)
+
+        self.show_sidebar             = False
+        self.show_signature           = prefs['show signature']
+        self.show_docstring           = prefs['show docstring']
         self.show_completions_toolbar = False
-        self.show_completions_menu = True
-        self.show_line_numbers = True
-        self.complete_while_typing = True
+        self.show_completions_menu    = True
+        self.show_line_numbers        = prefs['show linenumbers']
+        self.complete_while_typing    = prefs['complete while typing']
 
         #: Boolean `paste` flag. If True, don't insert whitespace after a
         #: newline.
-        self.paste_mode = paste_mode
+        self.paste_mode = prefs['paste mode']
 
         #: Incremeting integer counting the current statement.
         self.current_statement_index = 1
 
         # Code signatures. (This is set asynchronously after a timeout.)
         self.signatures = []
-
 
 class PythonCommandLineInterface(object):
     def __init__(self,

@@ -16,7 +16,6 @@ class TabShouldInsertWhitespaceFilter(Filter):
     """
     When the 'tab' key is pressed with only whitespace character before the
     cursor, do autocompletion. Otherwise, insert indentation.
-
     Except for the first character at the first line. Then always do a
     completion. It doesn't make sense to start the first line with
     indentation.
@@ -110,7 +109,6 @@ def load_python_bindings(key_bindings_manager, settings):
     def _(event):
         """
         Behaviour of the Enter key.
-
         Auto indent after newline/Enter.
         (When not in Vi navigaton mode, and when multiline is enabled.)
         """
