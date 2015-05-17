@@ -84,14 +84,17 @@ only if a value is found in this file.
 
 The file that loads the defaults:
 
-.. code::
+.. code:: lisp
 
     [startup]
+    ; default values
     complete while typing : True
     paste mode            : False
     show signature        : True
     show docstring        : False
     show linenumbers      : True
+
+This follows the `INI file format <https://en.wikipedia.org/wiki/INI_file>`_.
 
 
 Other features
