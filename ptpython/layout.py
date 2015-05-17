@@ -186,7 +186,6 @@ def get_inputmode_tokens(token, key_bindings_manager, cli):
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
-
     :param vi_mode: (bool) True when vi mode is enabled.
     :param cli: `CommandLineInterface` instance.
     """
