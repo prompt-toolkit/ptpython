@@ -27,19 +27,19 @@ __all__ = (
 
 
 class PythonSidebarControl(TokenListControl):
-    def __init__(self, settings):
+    def __init__(self, python_input):
         def get_tokens(cli):
             tokens = []
             TB = Token.Sidebar
 
-            if settings.vi_mode:
+            if python_input.vi_mode:
                 mode = 'vi'
             else:
                 mode = 'emacs'
 
-            if settings.show_completions_toolbar:
+            if python_input.show_completions_toolbar:
                 completion_style = 'toolbar'
-            elif settings.show_completions_menu:
+            elif python_input.show_completions_menu:
                 completion_style = 'pop-up'
             else:
                 completion_style = 'off'
@@ -54,11 +54,11 @@ class PythonSidebarControl(TokenListControl):
 
             append('F3', 'Completion menu', '(%s)' % completion_style)
             append('F4', 'Input mode', '(%s)' % mode)
-            append('F5', 'Complete while typing', '(on)' if settings.complete_while_typing else '(off)')
-            append('F6', 'Paste mode', '(on)' if settings.paste_mode else '(off)')
-            append('F8', 'Show signature', '(on)' if settings.show_signature else '(off)')
-            append('F9', 'Show docstring', '(on)' if settings.show_docstring else '(off)')
-            append('F10', 'Show line numbers', '(on)' if settings.show_line_numbers else '(off)')
+            append('F5', 'Complete while typing', '(on)' if python_input.complete_while_typing else '(off)')
+            append('F6', 'Paste mode', '(on)' if python_input.paste_mode else '(off)')
+            append('F8', 'Show signature', '(on)' if python_input.show_signature else '(off)')
+            append('F9', 'Show docstring', '(on)' if python_input.show_docstring else '(off)')
+            append('F10', 'Show line numbers', '(on)' if python_input.show_line_numbers else '(off)')
 
             return tokens
 
@@ -66,22 +66,22 @@ class PythonSidebarControl(TokenListControl):
 
 
 class PythonSidebar(Window):
-    def __init__(self, settings):
+    def __init__(self, python_input):
         super(PythonSidebar, self).__init__(
-            PythonSidebarControl(settings),
+            PythonSidebarControl(python_input),
             width=LayoutDimension.exact(37),
-            filter=ShowSidebar(settings) & ~IsDone())
+            filter=ShowSidebar(python_input) & ~IsDone())
 
 
 class SignatureControl(TokenListControl):
-    def __init__(self, settings):
+    def __init__(self, python_input):
         def get_tokens(cli):
             result = []
             append = result.append
             Signature = Token.Toolbar.Signature
 
-            if settings.signatures:
-                sig = settings.signatures[0]  # Always take the first one.
+            if python_input.signatures:
+                sig = python_input.signatures[0]  # Always take the first one.
 
                 append((Signature, ' '))
                 try:
@@ -114,17 +114,17 @@ class SignatureControl(TokenListControl):
 
 
 class SignatureToolbar(Window):
-    def __init__(self, settings):
+    def __init__(self, python_input):
         super(SignatureToolbar, self).__init__(
-            SignatureControl(settings),
+            SignatureControl(python_input),
             height=LayoutDimension.exact(1),
             filter=
                 # Show only when there is a signature
-                HasSignature(settings) &
+                HasSignature(python_input) &
                 # And there are no completions to be shown. (would cover signature pop-up.)
-                (~HasCompletions() | ~ShowCompletionsMenu(settings))
+                (~HasCompletions() | ~ShowCompletionsMenu(python_input))
                 # Signature needs to be shown.
-                & ShowSignature(settings) &
+                & ShowSignature(python_input) &
                 # Not done yet.
                 ~IsDone())
 
@@ -133,15 +133,15 @@ class PythonPrompt(TokenListControl):
     """
     Prompt showing something like "In [1]:".
     """
-    def __init__(self, settings):
+    def __init__(self, python_input):
         def get_tokens(cli):
-            return [(Token.Layout.Prompt, 'In [%s]: ' % settings.current_statement_index)]
+            return [(Token.Layout.Prompt, 'In [%s]: ' % python_input.current_statement_index)]
 
         super(PythonPrompt, self).__init__(get_tokens)
 
 
 class PythonToolbar(TokenListToolbar):
-    def __init__(self, key_bindings_manager, settings, token=Token.Toolbar.Status):
+    def __init__(self, key_bindings_manager, python_input, token=Token.Toolbar.Status):
         def get_tokens(cli):
             python_buffer = cli.buffers['default']
 
@@ -150,7 +150,7 @@ class PythonToolbar(TokenListToolbar):
             append = result.append
 
             append((TB, ' '))
-            result.extend(get_inputmode_tokens(TB, key_bindings_manager, settings, cli))
+            result.extend(get_inputmode_tokens(TB, key_bindings_manager, python_input, cli))
             append((TB, '  '))
 
             # Position in history.
@@ -158,15 +158,15 @@ class PythonToolbar(TokenListToolbar):
                                     len(python_buffer._working_lines))))
 
             # Shortcuts.
-            if not settings.vi_mode and cli.focus_stack.current == 'search':
+            if not python_input.vi_mode and cli.focus_stack.current == 'search':
                 append((TB, '[Ctrl-G] Cancel search [Enter] Go to this position.'))
-            elif bool(cli.current_buffer.selection_state) and not settings.vi_mode:
+            elif bool(cli.current_buffer.selection_state) and not python_input.vi_mode:
                 # Emacs cut/copy keys.
                 append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
             else:
                 append((TB, '  '))
 
-                if settings.paste_mode:
+                if python_input.paste_mode:
                     append((TB.On, '[F6] Paste mode (on)   '))
                 else:
                     append((TB.Off, '[F6] Paste mode (off)  '))
@@ -182,7 +182,7 @@ class PythonToolbar(TokenListToolbar):
             filter=~IsDone() & RendererHeightIsKnown())
 
 
-def get_inputmode_tokens(token, key_bindings_manager, settings, cli):
+def get_inputmode_tokens(token, key_bindings_manager, python_input, cli):
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
@@ -196,7 +196,7 @@ def get_inputmode_tokens(token, key_bindings_manager, settings, cli):
     append((token.InputMode, '[F4] '))
 
     # InputMode
-    if settings.vi_mode:
+    if python_input.vi_mode:
         if bool(cli.current_buffer.selection_state):
             if cli.current_buffer.selection_state.type == SelectionType.LINES:
                 append((token.InputMode, 'Vi (VISUAL LINE)'))
@@ -245,7 +245,7 @@ class ShowSidebarButtonInfo(Window):
             width=LayoutDimension.exact(width))
 
 
-def create_layout(settings, key_bindings_manager,
+def create_layout(python_input, key_bindings_manager,
                   python_prompt_control=None, lexer=PythonLexer, extra_sidebars=None,
                   extra_buffer_processors=None):
     D = LayoutDimension
@@ -260,8 +260,8 @@ def create_layout(settings, key_bindings_manager,
             """
             b = cli.buffers['default']
 
-            if b.complete_state is None and settings.signatures:
-                row, col = settings.signatures[0].bracket_start
+            if b.complete_state is None and python_input.signatures:
+                row, col = python_input.signatures[0].bracket_start
                 index = b.document.translate_row_col_to_index(row - 1, col)
                 return index
 
@@ -269,7 +269,7 @@ def create_layout(settings, key_bindings_manager,
             BufferControl(
                 buffer_name=DEFAULT_BUFFER,
                 lexer=lexer,
-                show_line_numbers=ShowLineNumbersFilter(settings, 'default'),
+                show_line_numbers=ShowLineNumbersFilter(python_input),
                 input_processors=[
                                   # Show matching parentheses, but only while editing.
                                   ConditionalProcessor(
@@ -304,36 +304,36 @@ def create_layout(settings, key_bindings_manager,
                               ycursor=True,
                               content=CompletionsMenu(
                                   max_height=12,
-                                  extra_filter=ShowCompletionsMenu(settings))),
+                                  extra_filter=ShowCompletionsMenu(python_input))),
                         Float(xcursor=True,
                               ycursor=True,
-                              content=SignatureToolbar(settings))
+                              content=SignatureToolbar(python_input))
                     ]),
                 ArgToolbar(),
                 SearchToolbar(),
                 SystemToolbar(),
                 ValidationToolbar(),
-                CompletionsToolbar(extra_filter=ShowCompletionsToolbar(settings)),
+                CompletionsToolbar(extra_filter=ShowCompletionsToolbar(python_input)),
 
                 # Docstring region.
                 Window(height=D.exact(1),
                        content=FillControl('\u2500', token=Token.Separator),
-                       filter=HasSignature(settings) & ShowDocstring(settings) & ~IsDone()),
+                       filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone()),
                 Window(
                     BufferControl(
                         buffer_name='docstring',
                         default_token=Token.Docstring,
                         #lexer=PythonLexer,
                     ),
-                    filter=HasSignature(settings) & ShowDocstring(settings) & ~IsDone(),
+                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone(),
                     height=D(max=12),
                 ),
             ]),
             ] + extra_sidebars + [
-            PythonSidebar(settings),
+            PythonSidebar(python_input),
         ]),
         VSplit([
-            PythonToolbar(key_bindings_manager, settings),
+            PythonToolbar(key_bindings_manager, python_input),
             ShowSidebarButtonInfo(),
         ])
     ])

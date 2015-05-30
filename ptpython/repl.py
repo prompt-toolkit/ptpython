@@ -73,8 +73,8 @@ class PythonRepl(PythonInput):
             except Exception as e:
                 self._handle_exception(cli, e)
 
-            self.settings.current_statement_index += 1
-            self.settings.signatures = []
+            self.current_statement_index += 1
+            self.signatures = []
 
             cli.search_state.text = ''
             cli.buffers['default'].reset(append_to_history=True)  # XXX
@@ -84,7 +84,6 @@ class PythonRepl(PythonInput):
         Evaluate the line and print the result.
         """
         output = cli.output
-        settings = self.settings
 
         if line[0:1] == '!':
             # Run as shell command
@@ -94,10 +93,10 @@ class PythonRepl(PythonInput):
             try:
                 result = eval_(line, self.get_globals(), self.get_locals())
                 locals = self.get_locals()
-                locals['_'] = locals['_%i' % settings.current_statement_index] = result
+                locals['_'] = locals['_%i' % self.current_statement_index] = result
 
                 if result is not None:
-                    out_mark = 'Out[%i]: ' % settings.current_statement_index
+                    out_mark = 'Out[%i]: ' % self.current_statement_index
 
                     try:
                         result_str = '%r\n' % (result, )

@@ -35,40 +35,13 @@ __all__ = (
 )
 
 
-class PythonCLISettings(object):
-    """
-    Settings for the Python REPL which can change at runtime.
-    """
-    def __init__(self, vi_mode=False):
-        self.show_sidebar = False
-        self.show_signature = True
-        self.show_docstring = False
-        self.show_completions_toolbar = False
-        self.show_completions_menu = True
-        self.show_line_numbers = True
-        self.complete_while_typing = True
-
-        #: Boolean `vi` mode.
-        self.vi_mode = vi_mode
-
-        #: Boolean `paste` flag. If True, don't insert whitespace after a
-        #: newline.
-        self.paste_mode = False
-
-        #: Incremeting integer counting the current statement.
-        self.current_statement_index = 1
-
-        # Code signatures. (This is set asynchronously after a timeout.)
-        self.signatures = []
-
-
 class PythonInput(object):
     """
     `Application` for Python input.
     """
     def __init__(self,
                  get_globals=None, get_locals=None, history_filename=None,
-                 settings=None, vi_mode=False, style=PythonStyle,
+                 vi_mode=False, style=PythonStyle,
 
                  # For internal use.
                  _completer=None, _validator=None, _python_prompt_control=None,
@@ -80,7 +53,6 @@ class PythonInput(object):
 
         self.get_globals = get_globals or (lambda: {})
         self.get_locals = get_locals or self.get_globals
-        self.settings = settings or PythonCLISettings(vi_mode=vi_mode)
 
         self._completer = _completer or PythonCompleter(self.get_globals, self.get_locals)
         self._validator = _validator or PythonValidator()
@@ -95,14 +67,31 @@ class PythonInput(object):
         self._extra_sidebars = _extra_sidebars or []
         self._extra_buffer_processors = _extra_buffer_processors or []
 
-        self._python_prompt_control = _python_prompt_control or PythonPrompt(self.settings)
+        self._python_prompt_control = _python_prompt_control or PythonPrompt(self)
+
+        # Settings.
+        self.show_sidebar = False
+        self.show_signature = True
+        self.show_docstring = False
+        self.show_completions_toolbar = False
+        self.show_completions_menu = True
+        self.show_line_numbers = True
+        self.complete_while_typing = True
+        self.vi_mode = vi_mode
+        self.paste_mode = False  # When True, don't insert whitespace after newline.
+
+        #: Incremeting integer counting the current statement.
+        self.current_statement_index = 1
+
+        # Code signatures. (This is set asynchronously after a timeout.)
+        self.signatures = []
 
         # Use a KeyBindingManager for loading the key bindings.
         self._key_bindings_manager = KeyBindingManager(
-            enable_vi_mode=Condition(lambda cli: self.settings.vi_mode),
+            enable_vi_mode=Condition(lambda cli: self.vi_mode),
             enable_open_in_editor=Always(),
             enable_system_prompt=Always())
-        load_python_bindings(self._key_bindings_manager, self.settings)
+        load_python_bindings(self._key_bindings_manager, self)
 
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
@@ -116,7 +105,7 @@ class PythonInput(object):
 
         return Application(
             layout=create_layout(
-                self.settings,
+                self,
                 self._key_bindings_manager, self._python_prompt_control,
                 lexer=self._lexer,
                 extra_buffer_processors=self._extra_buffer_processors,
@@ -124,7 +113,7 @@ class PythonInput(object):
             buffer=self._create_buffer(),
             buffers=buffers,
             key_bindings_registry=self._key_bindings_manager.registry,
-            paste_mode=Condition(lambda cli: self.settings.paste_mode),
+            paste_mode=Condition(lambda cli: self.paste_mode),
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
             style=self._style,
@@ -133,12 +122,12 @@ class PythonInput(object):
 
     def _create_buffer(self):
         def is_buffer_multiline():
-            return (self.settings.paste_mode or
+            return (self.paste_mode or
                     document_is_multiline_python(python_buffer.document))
 
         python_buffer = Buffer(
             is_multiline=Condition(is_buffer_multiline),
-            complete_while_typing=Condition(lambda: self.settings.complete_while_typing),
+            complete_while_typing=Condition(lambda: self.complete_while_typing),
             enable_history_search=Always(),
             tempfile_suffix='.py',
             history=self._history,
@@ -187,7 +176,7 @@ class PythonInput(object):
             # Set signatures and redraw if the text didn't change in the
             # meantime. Otherwise request new signatures.
             if buffer.text == document.text:
-                self.settings.signatures = signatures
+                self.signatures = signatures
 
                 # Set docstring in docstring buffer.
                 if signatures:
@@ -207,7 +196,7 @@ class PythonInput(object):
 
     def on_reset(self, cli):
         self._key_bindings_manager.reset()
-        self.settings.signatures = []
+        self.signatures = []
 
 
 class PythonCommandLineInterface(CommandLineInterface):

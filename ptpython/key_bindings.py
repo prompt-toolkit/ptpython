@@ -27,20 +27,20 @@ class TabShouldInsertWhitespaceFilter(Filter):
         return bool(b.text and (not before_cursor or before_cursor.isspace()))
 
 
-def load_python_bindings(key_bindings_manager, settings):
+def load_python_bindings(key_bindings_manager, python_input):
     """
     Custom key bindings.
     """
     handle = key_bindings_manager.registry.add_binding
     has_selection = HasSelection()
-    vi_mode_enabled = Condition(lambda cli: settings.vi_mode)
+    vi_mode_enabled = Condition(lambda cli: python_input.vi_mode)
 
     @handle(Keys.F2)
     def _(event):
         """
         Show/hide sidebar.
         """
-        settings.show_sidebar = not settings.show_sidebar
+        python_input.show_sidebar = not python_input.show_sidebar
 
     @handle(Keys.F3)
     def _(event):
@@ -48,53 +48,53 @@ def load_python_bindings(key_bindings_manager, settings):
         Shange completion style.
         """
         # Toggle between combinations.
-        settings.show_completions_toolbar, settings.show_completions_menu = {
+        python_input.show_completions_toolbar, python_input.show_completions_menu = {
             (False, False): (False, True),
             (False, True): (True, False),
             (True, False): (False, False),
-        }[settings.show_completions_toolbar, settings.show_completions_menu]
+        }[python_input.show_completions_toolbar, python_input.show_completions_menu]
 
     @handle(Keys.F4)
     def _(event):
         """
         Toggle between Vi and Emacs mode.
         """
-        settings.vi_mode = not settings.vi_mode
+        python_input.vi_mode = not python_input.vi_mode
 
     @handle(Keys.F5)
     def _(event):
         """
         Enable/Disable complete while typing.
         """
-        settings.complete_while_typing = not settings.complete_while_typing
+        python_input.complete_while_typing = not python_input.complete_while_typing
 
     @handle(Keys.F6)
     def _(event):
         """
         Enable/Disable paste mode.
         """
-        settings.paste_mode = not settings.paste_mode
+        python_input.paste_mode = not python_input.paste_mode
 
     @handle(Keys.F8)
     def _(event):
         """
         Show/hide signature.
         """
-        settings.show_signature = not settings.show_signature
+        python_input.show_signature = not python_input.show_signature
 
     @handle(Keys.F9)
     def _(event):
         """
         Show/hide docstring window.
         """
-        settings.show_docstring = not settings.show_docstring
+        python_input.show_docstring = not python_input.show_docstring
 
     @handle(Keys.F10)
     def _(event):
         """
         Show/hide line numbers
         """
-        settings.show_line_numbers = not settings.show_line_numbers
+        python_input.show_line_numbers = not python_input.show_line_numbers
 
     @handle(Keys.Tab, filter= ~has_selection & TabShouldInsertWhitespaceFilter())
     def _(event):
@@ -122,7 +122,7 @@ def load_python_bindings(key_bindings_manager, settings):
             text = b.document.text_after_cursor
             return text == '' or (text.isspace() and not '\n' in text)
 
-        if settings.paste_mode:
+        if python_input.paste_mode:
             # In paste mode, always insert text.
             b.insert_text('\n')
 

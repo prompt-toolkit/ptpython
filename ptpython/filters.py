@@ -12,60 +12,46 @@ __all__ = (
 )
 
 
-class ShowLineNumbersFilter(Filter):
-    def __init__(self, settings, buffer_name):
-        self.buffer_name = buffer_name
-        self.settings = settings
+class PythonInputFilter(Filter):
+    def __init__(self, python_input):
+        self.python_input = python_input
 
     def __call__(self, cli):
-        return ('\n' in cli.buffers[self.buffer_name].text and
-                self.settings.show_line_numbers)
+        raise NotImplementedError
 
 
-class HasSignature(Filter):
-    def __init__(self, settings):
-        self.settings = settings
-
+class ShowLineNumbersFilter(PythonInputFilter):
     def __call__(self, cli):
-        return bool(self.settings.signatures)
+        return ('\n' in cli.buffers['default'].text and
+                self.python_input.show_line_numbers)
 
 
-class ShowCompletionsToolbar(Filter):
-    def __init__(self, settings):
-        self.settings = settings
-
+class HasSignature(PythonInputFilter):
     def __call__(self, cli):
-        return self.settings.show_completions_toolbar
+        return bool(self.python_input.signatures)
 
 
-class ShowCompletionsMenu(Filter):
-    def __init__(self, settings):
-        self.settings = settings
-
+class ShowCompletionsToolbar(PythonInputFilter):
     def __call__(self, cli):
-        return self.settings.show_completions_menu and \
+        return self.python_input.show_completions_toolbar
+
+
+class ShowCompletionsMenu(PythonInputFilter):
+    def __call__(self, cli):
+        return self.python_input.show_completions_menu and \
             cli.focus_stack.current == 'default'
 
 
-class ShowSidebar(Filter):
-    def __init__(self, settings):
-        self.settings = settings
-
+class ShowSidebar(PythonInputFilter):
     def __call__(self, cli):
-        return self.settings.show_sidebar
+        return self.python_input.show_sidebar
 
 
-class ShowSignature(Filter):
-    def __init__(self, settings):
-        self.settings = settings
-
+class ShowSignature(PythonInputFilter):
     def __call__(self, cli):
-        return self.settings.show_signature
+        return self.python_input.show_signature
 
 
-class ShowDocstring(Filter):
-    def __init__(self, settings):
-        self.settings = settings
-
+class ShowDocstring(PythonInputFilter):
     def __call__(self, cli):
-        return self.settings.show_docstring
+        return self.python_input.show_docstring
