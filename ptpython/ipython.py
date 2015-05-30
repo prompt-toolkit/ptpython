@@ -160,10 +160,13 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
     """
     Override the `InteractiveShellEmbed` from IPython, to replace the front-end
     with our input shell.
+
+    :param configure: Callable for configuring the repl.
     """
     def __init__(self, *a, **kw):
         vi_mode = kw.pop('vi_mode', False)
         history_filename = kw.pop('history_filename', None)
+        configure = kw.pop('configure', None)
 
         super(InteractiveShellEmbed, self).__init__(*a, **kw)
 
@@ -175,6 +178,9 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
             self,
             get_globals=get_globals, vi_mode=vi_mode,
             history_filename=history_filename)
+
+        if configure:
+            configure(ipython_input)
 
         self._cli = CommandLineInterface(
                 application=ipython_input.create_application(),

@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, Always, HasFocus
+from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, Always, HasFocus, Condition
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
@@ -179,7 +179,8 @@ class PythonToolbar(TokenListToolbar):
         super(PythonToolbar, self).__init__(
             get_tokens,
             default_char=Char(token=token),
-            filter=~IsDone() & RendererHeightIsKnown())
+            filter=~IsDone() & RendererHeightIsKnown() &
+                Condition(lambda cli: python_input.show_status_bar))
 
 
 def get_inputmode_tokens(token, key_bindings_manager, python_input, cli):
@@ -221,7 +222,7 @@ def get_inputmode_tokens(token, key_bindings_manager, python_input, cli):
 
 
 class ShowSidebarButtonInfo(Window):
-    def __init__(self):
+    def __init__(self, python_input):
         token = Token.Toolbar.Status
 
         version = sys.version_info
@@ -240,7 +241,8 @@ class ShowSidebarButtonInfo(Window):
 
         super(ShowSidebarButtonInfo, self).__init__(
             TokenListControl(get_tokens, default_char=Char(token=token)),
-            filter=~IsDone() & RendererHeightIsKnown(),
+            filter=~IsDone() & RendererHeightIsKnown() &
+                Condition(lambda cli: python_input.show_status_bar),
             height=LayoutDimension.exact(1),
             width=LayoutDimension.exact(width))
 
@@ -334,6 +336,6 @@ def create_layout(python_input, key_bindings_manager,
         ]),
         VSplit([
             PythonToolbar(key_bindings_manager, python_input),
-            ShowSidebarButtonInfo(),
+            ShowSidebarButtonInfo(python_input),
         ])
     ])

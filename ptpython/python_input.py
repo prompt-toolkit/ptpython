@@ -76,9 +76,12 @@ class PythonInput(object):
         self.show_completions_toolbar = False
         self.show_completions_menu = True
         self.show_line_numbers = True
+        self.show_status_bar = True
         self.complete_while_typing = True
         self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
+        self.enable_open_in_editor = True
+        self.enable_system_prompt = True
 
         #: Incremeting integer counting the current statement.
         self.current_statement_index = 1
@@ -87,15 +90,28 @@ class PythonInput(object):
         self.signatures = []
 
         # Use a KeyBindingManager for loading the key bindings.
-        self._key_bindings_manager = KeyBindingManager(
+        self.key_bindings_manager = KeyBindingManager(
             enable_vi_mode=Condition(lambda cli: self.vi_mode),
-            enable_open_in_editor=Always(),
-            enable_system_prompt=Always())
-        load_python_bindings(self._key_bindings_manager, self)
+            enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
+            enable_system_prompt=Condition(lambda cli: self.enable_system_prompt))
+        load_python_bindings(self.key_bindings_manager, self)
 
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
         self._get_signatures_thread_running = False
+
+    @property
+    def key_bindings_registry(self):
+        return self.key_bindings_manager.registry
+
+    @property
+    def add_key_binding(self):
+        """
+        Shortcut for adding new key bindings.
+        (Mostly useful for a .ptpython/config.py file, that receives
+        a PythonInput/Repl instance as input.)
+        """
+        return self.key_bindings_registry.add_binding
 
     def create_application(self):
         buffers = {
@@ -106,13 +122,13 @@ class PythonInput(object):
         return Application(
             layout=create_layout(
                 self,
-                self._key_bindings_manager, self._python_prompt_control,
+                self.key_bindings_manager, self._python_prompt_control,
                 lexer=self._lexer,
                 extra_buffer_processors=self._extra_buffer_processors,
                 extra_sidebars=self._extra_sidebars),
             buffer=self._create_buffer(),
             buffers=buffers,
-            key_bindings_registry=self._key_bindings_manager.registry,
+            key_bindings_registry=self.key_bindings_registry,
             paste_mode=Condition(lambda cli: self.paste_mode),
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
@@ -195,7 +211,7 @@ class PythonInput(object):
         cli.eventloop.run_in_executor(run)
 
     def on_reset(self, cli):
-        self._key_bindings_manager.reset()
+        self.key_bindings_manager.reset()
         self.signatures = []
 
 

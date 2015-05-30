@@ -2,14 +2,14 @@
 """
 ptpython: Interactive Python shell.
 Usage:
-    ptpython [ --vi ] [ --history=<filename> ] [ --no-colors ]
-             [ --autocompletion=<type> ] [ --always-multiline ]
-             [ --interactive=<filename> ] [--] [ <file> <arg>... ]
+    ptpython [ --vi ] [ --no-colors ]
+             [ --config-dir=<directory> ] [ --interactive=<filename> ]
+             [--] [ <file> <arg>... ]
     ptpython -h | --help
 
 Options:
     --vi                         : Use Vi keybindings instead of Emacs bindings.
-    --history=<filename>         : Path to history file.
+    --config-dir=<directory>     : Pass config directory. By default '~/.ptpython/'.
     -i, --interactive=<filename> : Start interactive shell after executing this file.
 
 Other environment variables:
@@ -22,7 +22,7 @@ import os
 import six
 import sys
 
-from ptpython.repl import embed, enable_deprecation_warnings
+from ptpython.repl import embed, enable_deprecation_warnings, run_config
 
 
 def run():
@@ -30,12 +30,11 @@ def run():
 
     vi_mode = bool(a['--vi'])
     no_colors = bool(a['--no-colors'])
+    config_dir = os.path.expanduser(a['--config-dir'] or '~/.ptpython/')
 
-    # Log history
-    if a['--history']:
-        history_filename = os.path.expanduser(a['--history'])
-    else:
-        history_filename = os.path.expanduser('~/.ptpython_history')
+    # Create config directory.
+    if not os.path.isdir(config_dir):
+        os.mkdir(config_dir)
 
     # Startup path
     startup_paths = []
@@ -53,12 +52,22 @@ def run():
     if a['<file>']:
         sys.argv = [a['<file>']] + a['<arg>']
         six.exec_(compile(open(a['<file>'], "rb").read(), a['<file>'], 'exec'))
+
+    # Run interactive shell.
     else:
-        # Run interactive shell.
         enable_deprecation_warnings()
 
-        embed(vi_mode=vi_mode, history_filename=history_filename,
-              no_colors=no_colors, startup_paths=startup_paths)
+        # Apply config file
+        def configure(repl):
+            path = os.path.join(config_dir, 'config.py')
+            if os.path.exists(path):
+                run_config(repl, path)
+
+        embed(vi_mode=vi_mode,
+              history_filename=os.path.join(config_dir, 'history'),
+              no_colors=no_colors,
+              configure=configure,
+              startup_paths=startup_paths)
 
 if __name__ == '__main__':
     run()
