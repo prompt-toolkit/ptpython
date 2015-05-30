@@ -21,9 +21,8 @@ from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 from .python_input import PythonStyle, PythonInput
 from ._eval import eval_  # eval() without `unicode_literals` and `print_function`.
 
-from six import exec_
-
 import os
+import six
 import sys
 import traceback
 
@@ -55,7 +54,7 @@ class PythonRepl(PythonInput):
                 if os.path.exists(path):
                     with open(path, 'r') as f:
                         code = compile(f.read(), path, 'exec')
-                        exec_(code, self.get_globals(), self.get_locals())
+                        six.exec_(code, self.get_globals(), self.get_locals())
                 else:
                     output = self.cli.output
                     output.write('WARNING | File not found: {}\n\n'.format(path))
@@ -114,7 +113,7 @@ class PythonRepl(PythonInput):
                     output.write(out_string)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
-                exec_(line, self.get_globals(), self.get_locals())
+                six.exec_(line, self.get_globals(), self.get_locals())
 
             output.write('\n\n')
             output.flush()
@@ -157,7 +156,15 @@ def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_co
 
     :param vi_mode: Boolean. Use Vi instead of Emacs key bindings.
     """
-    globals = globals or {}
+    # Default globals/locals
+    if globals is None:
+        globals = {
+            '__name__': '__main__',
+            '__package__': None,
+            '__doc__': None,
+            '__builtins__': six.moves.builtins,
+        }
+
     locals = locals or globals
 
     def get_globals():

@@ -31,9 +31,6 @@ def run():
     vi_mode = bool(a['--vi'])
     no_colors = bool(a['--no-colors'])
 
-    # Create globals/locals dict.
-    globals_, locals_ = {}, {}
-
     # Log history
     if a['--history']:
         history_filename = os.path.expanduser(a['--history'])
@@ -58,7 +55,7 @@ def run():
         six.exec_(compile(open(a['<file>'], "rb").read(), a['<file>'], 'exec'))
     else:
         # Run interactive shell.
-        embed(globals_, locals_, vi_mode=vi_mode, history_filename=history_filename,
+        embed(vi_mode=vi_mode, history_filename=history_filename,
               no_colors=no_colors, startup_paths=startup_paths)
 
 if __name__ == '__main__':
