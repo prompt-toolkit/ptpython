@@ -27,12 +27,12 @@ __all__ = (
 
 
 class PythonSidebarControl(TokenListControl):
-    def __init__(self, settings, key_bindings_manager):
+    def __init__(self, settings):
         def get_tokens(cli):
             tokens = []
             TB = Token.Sidebar
 
-            if key_bindings_manager.enable_vi_mode:
+            if settings.vi_mode:
                 mode = 'vi'
             else:
                 mode = 'emacs'
@@ -66,9 +66,9 @@ class PythonSidebarControl(TokenListControl):
 
 
 class PythonSidebar(Window):
-    def __init__(self, settings, key_bindings_manager):
+    def __init__(self, settings):
         super(PythonSidebar, self).__init__(
-            PythonSidebarControl(settings, key_bindings_manager),
+            PythonSidebarControl(settings),
             width=LayoutDimension.exact(37),
             filter=ShowSidebar(settings) & ~IsDone())
 
@@ -150,7 +150,7 @@ class PythonToolbar(TokenListToolbar):
             append = result.append
 
             append((TB, ' '))
-            result.extend(get_inputmode_tokens(TB, key_bindings_manager, cli))
+            result.extend(get_inputmode_tokens(TB, key_bindings_manager, settings, cli))
             append((TB, '  '))
 
             # Position in history.
@@ -158,9 +158,9 @@ class PythonToolbar(TokenListToolbar):
                                     len(python_buffer._working_lines))))
 
             # Shortcuts.
-            if not key_bindings_manager.enable_vi_mode and cli.focus_stack.current == 'search':
+            if not settings.vi_mode and cli.focus_stack.current == 'search':
                 append((TB, '[Ctrl-G] Cancel search [Enter] Go to this position.'))
-            elif bool(cli.current_buffer.selection_state) and not key_bindings_manager.enable_vi_mode:
+            elif bool(cli.current_buffer.selection_state) and not settings.vi_mode:
                 # Emacs cut/copy keys.
                 append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
             else:
@@ -182,12 +182,11 @@ class PythonToolbar(TokenListToolbar):
             filter=~IsDone() & RendererHeightIsKnown())
 
 
-def get_inputmode_tokens(token, key_bindings_manager, cli):
+def get_inputmode_tokens(token, key_bindings_manager, settings, cli):
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
 
-    :param vi_mode: (bool) True when vi mode is enabled.
     :param cli: `CommandLineInterface` instance.
     """
     mode = key_bindings_manager.vi_state.input_mode
@@ -197,7 +196,7 @@ def get_inputmode_tokens(token, key_bindings_manager, cli):
     append((token.InputMode, '[F4] '))
 
     # InputMode
-    if key_bindings_manager.enable_vi_mode:
+    if settings.vi_mode:
         if bool(cli.current_buffer.selection_state):
             if cli.current_buffer.selection_state.type == SelectionType.LINES:
                 append((token.InputMode, 'Vi (VISUAL LINE)'))
@@ -331,7 +330,7 @@ def create_layout(settings, key_bindings_manager,
                 ),
             ]),
             ] + extra_sidebars + [
-            PythonSidebar(settings, key_bindings_manager),
+            PythonSidebar(settings),
         ]),
         VSplit([
             PythonToolbar(key_bindings_manager, settings),

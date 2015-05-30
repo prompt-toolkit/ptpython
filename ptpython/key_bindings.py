@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
 from prompt_toolkit.document import Document
-from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus
+from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
-from prompt_toolkit.key_binding.manager import ViModeEnabled
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.keys import Keys
 
@@ -34,6 +33,7 @@ def load_python_bindings(key_bindings_manager, settings):
     """
     handle = key_bindings_manager.registry.add_binding
     has_selection = HasSelection()
+    vi_mode_enabled = Condition(lambda cli: settings.vi_mode)
 
     @handle(Keys.F2)
     def _(event):
@@ -59,7 +59,7 @@ def load_python_bindings(key_bindings_manager, settings):
         """
         Toggle between Vi and Emacs mode.
         """
-        key_bindings_manager.enable_vi_mode = not key_bindings_manager.enable_vi_mode
+        settings.vi_mode = not settings.vi_mode
 
     @handle(Keys.F5)
     def _(event):
@@ -104,7 +104,7 @@ def load_python_bindings(key_bindings_manager, settings):
         event.cli.current_buffer.insert_text('    ')
 
     @handle(Keys.ControlJ, filter= ~has_selection &
-            ~(ViModeEnabled(key_bindings_manager) &
+            ~(vi_mode_enabled &
               ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION)) &
             HasFocus('default') & IsMultiline())
     def _(event):
@@ -134,8 +134,7 @@ def load_python_bindings(key_bindings_manager, settings):
                     text=b.text.rstrip(),
                     cursor_position=len(b.text.rstrip()))
 
-                b.append_to_history()
-                event.cli.set_return_value(b.document)
+                b.accept_action.validate_and_handle(event.cli, b)
         else:
             auto_newline(b)
 

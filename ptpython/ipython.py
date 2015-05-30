@@ -15,11 +15,12 @@ from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter, Syst
 from prompt_toolkit.contrib.regular_languages.compiler import compile
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
-from prompt_toolkit.shortcuts import create_eventloop
 from prompt_toolkit.document import Document
+from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.controls import TokenListControl
+from prompt_toolkit.shortcuts import create_eventloop
 
-from ptpython.python_input import PythonCommandLineInterface, PythonValidator, PythonCompleter
+from ptpython.python_input import PythonInput, PythonValidator, PythonCompleter
 
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
 from IPython.terminal.ipapp import load_default_config
@@ -139,7 +140,7 @@ class AliasCompleter(Completer):
                                  display_meta=cmd)
 
 
-class IPythonCommandLineInterface(PythonCommandLineInterface):
+class IPythonInput(PythonInput):
     """
     Override our `PythonCommandLineInterface` to add IPython specific stuff.
     """
@@ -151,7 +152,7 @@ class IPythonCommandLineInterface(PythonCommandLineInterface):
         kw['_validator'] = IPythonValidator()
         kw['_python_prompt_control'] = IPythonPrompt(ipython_shell.prompt_manager)
 
-        super(IPythonCommandLineInterface, self).__init__(*a, **kw)
+        super(IPythonInput, self).__init__(*a, **kw)
         self.ipython_shell = ipython_shell
 
 
@@ -170,16 +171,19 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
             return self.user_ns
 
         self._eventloop = create_eventloop()
-        self._cli = IPythonCommandLineInterface(
+        ipython_input = IPythonInput(
             self,
-            eventloop=self._eventloop,
             get_globals=get_globals, vi_mode=vi_mode,
             history_filename=history_filename)
+
+        self._cli = CommandLineInterface(
+                application=ipython_input.create_application(),
+                eventloop=self._eventloop)
 
     def raw_input(self, prompt=''):
         print('')
         try:
-            string = self._cli.cli.read_input().text
+            string = self._cli.run().text
 
             # In case of multiline input, make sure to append a newline to the input,
             # otherwise, IPython will ask again for more input in some cases.

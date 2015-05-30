@@ -7,20 +7,19 @@ Utility for creating a Python repl.
     embed(globals(), locals(), vi_mode=False)
 
 """
-# Warning: don't import `print_function` from __future__, otherwise we will
-#          also get the print_function inside `eval` on Python 2.7.
-
 from __future__ import unicode_literals
 
 from pygments import highlight
 from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
 
-from prompt_toolkit.utils import DummyContext
+from prompt_toolkit.application import AbortAction
+from prompt_toolkit.utils import DummyContext, Callback
 from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
+from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 
-from .python_input import PythonCommandLineInterface, PythonStyle
-from ._eval import eval_  # eval() without `unicode_literals`.
+from .python_input import PythonStyle, PythonInput
+from ._eval import eval_  # eval() without `unicode_literals` and `print_function`.
 
 from six import exec_
 
@@ -34,80 +33,56 @@ __all__ = (
 )
 
 
-class PythonRepl(PythonCommandLineInterface):
-    def start_repl(self, startup_paths=None):
+class PythonRepl(PythonInput):
+    def __init__(self, *a, **kw):
+        self._startup_paths = kw.pop('startup_paths', None)
+
+        kw.update({
+            '_accept_action': AcceptAction.run_in_terminal(
+                handler=self._process_document, render_cli_done=True),
+            '_on_start': Callback(self._on_start),
+            '_on_exit': AbortAction.RETURN_NONE,
+        })
+
+        super(PythonRepl, self).__init__(*a, **kw)
+
+    def _on_start(self, cli):
         """
         Start the Read-Eval-Print Loop.
-
-        :param startup_paths: Array of paths to Python files.
         """
-        self._execute_startup(startup_paths)
-
-        # Run REPL loop until Exit.
-        try:
-            while True:
-                # Read
-                document = self.cli.read_input()
-                self._process_document(document)
-        except EOFError:
-            pass
-
-    def asyncio_start_repl(self):
-        """
-        (coroutine) Start a Read-Eval-print Loop for usage in asyncio. E.g.::
-
-            repl = PythonRepl(eventloop, get_globals=lambda:globals())
-            yield from repl.asyncio_start_repl()
-        """
-        try:
-            while True:
-                # Read
-                g = self.cli.read_input_async()
-
-                # We use Python 2 syntax for delegating the coroutine and
-                # catching the returned document.
-                try:
-                    while True:
-                        yield next(g)
-                except StopIteration as e:
-                    document = e.args[0]
-                    self._process_document(document)
-        except EOFError:
-            pass
-
-    def _process_document(self, document):
-        line = document.text
-
-        if line and not line.isspace():
-            try:
-                # Eval and print.
-                self._execute(line)
-            except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
-                self._handle_keyboard_interrupt(e)
-            except Exception as e:
-                self._handle_exception(e)
-
-            self.settings.current_statement_index += 1
-
-    def _execute_startup(self, startup_paths):
-        """
-        Load and execute startup file.
-        """
-        if startup_paths:
-            for path in startup_paths:
+        if self._startup_paths:
+            for path in self._startup_paths:
                 if os.path.exists(path):
                     with open(path, 'r') as f:
                         code = compile(f.read(), path, 'exec')
                         exec_(code, self.get_globals(), self.get_locals())
                 else:
-                    stdout = self.cli.stdout
-                    stdout.write('WARNING | File not found: {}\n\n'.format(path))
+                    output = self.cli.output
+                    output.write('WARNING | File not found: {}\n\n'.format(path))
 
-    def _execute(self, line):
+    def _process_document(self, cli, buffer):
+        line = buffer.text
+
+        if line and not line.isspace():
+            try:
+                # Eval and print.
+                self._execute(cli, line)
+            except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
+                self._handle_keyboard_interrupt(cli, e)
+            except Exception as e:
+                self._handle_exception(cli, e)
+
+            self.settings.current_statement_index += 1
+            self.settings.signatures = []
+
+            cli.search_state.text = ''
+            cli.buffers['default'].reset(append_to_history=True)  # XXX
+
+    def _execute(self, cli, line):
         """
         Evaluate the line and print the result.
         """
-        stdout = self.cli.stdout
+        output = cli.output
         settings = self.settings
 
         if line[0:1] == '!':
@@ -136,16 +111,17 @@ class PythonRepl(PythonCommandLineInterface):
                     line_sep = '\n' + ' ' * len(out_mark)
                     out_string = out_mark + line_sep.join(result_str.splitlines())
 
-                    self.cli.stdout.write(out_string)
+                    output.write(out_string)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 exec_(line, self.get_globals(), self.get_locals())
 
-            stdout.write('\n\n')
-            stdout.flush()
+            output.write('\n\n')
+            output.flush()
 
-    def _handle_exception(self, e):
-        stdout = self.cli.stdout
+    @classmethod
+    def _handle_exception(cls, cli, e):
+        output = cli.output
 
         # Instead of just calling ``traceback.format_exc``, we take the
         # traceback and skip the bottom calls of this framework.
@@ -158,15 +134,16 @@ class PythonRepl(PythonCommandLineInterface):
         tb = ''.join(l)
 
         # Format exception and write to output.
-        stdout.write(highlight(tb, PythonTracebackLexer(), Terminal256Formatter()))
-        stdout.write('%s\n\n' % e)
-        stdout.flush()
+        output.write(highlight(tb, PythonTracebackLexer(), Terminal256Formatter()))
+        output.write('%s\n\n' % e)
+        output.flush()
 
-    def _handle_keyboard_interrupt(self, e):
-        stdout = self.cli.stdout
+    @classmethod
+    def _handle_keyboard_interrupt(cls, cli, e):
+        output = cli.output
 
-        stdout.write('\rKeyboardInterrupt\n\n')
-        stdout.flush()
+        output.write('\rKeyboardInterrupt\n\n')
+        output.flush()
 
 
 def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_colors=False,
@@ -196,19 +173,21 @@ def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_co
         eventloop = create_eventloop()
 
     # Create REPL.
-    repl = PythonRepl(eventloop, get_globals, get_locals, vi_mode=vi_mode,
+    repl = PythonRepl(get_globals, get_locals, vi_mode=vi_mode,
                       history_filename=history_filename,
-                      style=(None if no_colors else PythonStyle))
+                      style=(None if no_colors else PythonStyle),
+                      startup_paths=startup_paths)
+    cli = CommandLineInterface(application=repl.create_application(), eventloop=eventloop)
 
     # Start repl.
-    patch_context = repl.cli.patch_stdout_context() if patch_stdout else DummyContext()
+    patch_context = cli.patch_stdout_context() if patch_stdout else DummyContext()
 
     if return_asyncio_coroutine:
         def coroutine():
             with patch_context:
-                for future in repl.asyncio_start_repl():
+                for future in cli.run_async():
                     yield future
         return coroutine()
     else:
         with patch_context:
-            repl.start_repl(startup_paths=startup_paths)
+            cli.run()

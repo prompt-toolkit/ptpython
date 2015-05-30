@@ -1,10 +1,11 @@
 """
-Eval without `unicode_literals`.
+Eval without `unicode_literals` and `print_function`.
 """
 
 __all__ = (
     'eval_',
 )
+
 
 def eval_(source, globals=None, locals=None):
     """
