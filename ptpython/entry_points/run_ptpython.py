@@ -8,9 +8,9 @@ Usage:
     ptpython -h | --help
 
 Options:
-    --vi                     : Use Vi keybindings instead of Emacs bindings.
-    --history=<filename>     : Path to history file.
-    --interactive=<filename> : Start interactive shell after executing this file.
+    --vi                         : Use Vi keybindings instead of Emacs bindings.
+    --history=<filename>         : Path to history file.
+    -i, --interactive=<filename> : Start interactive shell after executing this file.
 
 Other environment variables:
 PYTHONSTARTUP: file executed on interactive startup (no default)
