@@ -20,7 +20,7 @@ setup(
     packages=find_packages('.'),
     install_requires = [
         'prompt_toolkit==0.37',
-        'jedi>=0.8.1',
+        'jedi>=0.9.0',
         'docopt',
     ],
     entry_points={
