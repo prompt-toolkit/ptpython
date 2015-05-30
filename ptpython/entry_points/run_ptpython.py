@@ -22,7 +22,7 @@ import os
 import six
 import sys
 
-from ptpython.repl import embed
+from ptpython.repl import embed, enable_deprecation_warnings
 
 
 def run():
@@ -55,6 +55,8 @@ def run():
         six.exec_(compile(open(a['<file>'], "rb").read(), a['<file>'], 'exec'))
     else:
         # Run interactive shell.
+        enable_deprecation_warnings()
+
         embed(vi_mode=vi_mode, history_filename=history_filename,
               no_colors=no_colors, startup_paths=startup_paths)
 

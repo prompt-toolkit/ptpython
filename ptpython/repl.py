@@ -25,10 +25,12 @@ import os
 import six
 import sys
 import traceback
+import warnings
 
 __all__ = (
     'PythonRepl',
-    'embed'
+    'embed',
+    'enable_deprecation_warnings',
 )
 
 
@@ -143,6 +145,18 @@ class PythonRepl(PythonInput):
 
         output.write('\rKeyboardInterrupt\n\n')
         output.flush()
+
+
+def enable_deprecation_warnings():
+    """
+    Show deprecation warnings, when they are triggered directly by actions in
+    the REPL. This is recommended to call, before calling `embed`.
+
+    e.g. This will show an error message when the user imports the 'sha'
+         library on Python 2.7.
+    """
+    warnings.filterwarnings('default', category=DeprecationWarning,
+                            module='__main__')
 
 
 def embed(globals=None, locals=None, vi_mode=False, history_filename=None, no_colors=False,
