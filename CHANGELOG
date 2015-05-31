@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+0.11: 2015-05-31
+---------------
+
+New features:
+- Upgrade to prompt-toolkit 0.38.
+- Upgrade to Jedi 0.9.0
+- Fixed default globals for repl (correct __name, __builtins__, etc...)
+- Display deprecation warnings in the REPL.
+- Added configuration support.
+- Added asyncio-ssh-python-embed example.
+
+
 0.10: 2015-05-11
 ---------------
 
