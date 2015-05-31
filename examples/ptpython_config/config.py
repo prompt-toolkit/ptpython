@@ -51,7 +51,8 @@ def configure(repl):
     repl.enable_open_in_editor = True
 
     # Enable system prompt. Pressing meta-! will display the system prompt.
-    repl.enable_system_prompt = True
+    # Also enables Control-Z suspend.
+    repl.enable_system_bindings = True
 
     # Add custom key binding for PDB.
     @repl.add_key_binding(Keys.ControlB)

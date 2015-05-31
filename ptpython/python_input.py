@@ -81,7 +81,7 @@ class PythonInput(object):
         self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
         self.enable_open_in_editor = True
-        self.enable_system_prompt = True
+        self.enable_system_bindings = True
 
         #: Incremeting integer counting the current statement.
         self.current_statement_index = 1
@@ -93,7 +93,7 @@ class PythonInput(object):
         self.key_bindings_manager = KeyBindingManager(
             enable_vi_mode=Condition(lambda cli: self.vi_mode),
             enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
-            enable_system_prompt=Condition(lambda cli: self.enable_system_prompt))
+            enable_system_bindings=Condition(lambda cli: self.enable_system_bindings))
         load_python_bindings(self.key_bindings_manager, self)
 
         # Boolean indicating whether we have a signatures thread running.
