@@ -38,7 +38,7 @@ If you want to embed the REPL inside your application at one point, do:
 .. code:: python
 
     from ptpython.repl import embed
-    embed(globals(), locals(), vi_mode=False, history_filename=None)
+    embed(globals(), locals())
 
 
 Autocompletion
@@ -78,7 +78,7 @@ error.
 
 
 Other features
-***************
+**************
 
 Running system commands: Press ``Meta-!`` in Emacs mode or just ``!`` in Vi
 navigation mode to see the "Shell command" prompt. There you can enter system
@@ -86,6 +86,15 @@ commands without leaving the REPL.
 
 Selecting text: Press ``Control+Space`` in Emacs mode on ``V`` (major V) in Vi
 navigation mode.
+
+
+Configurating
+*************
+
+It is possible to create a ``~/.ptpython/config.py`` file to customize the configuration.
+
+Have a look at this example to see what is possible:
+`config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_
 
 
 You love IPython?
