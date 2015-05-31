@@ -77,8 +77,10 @@ class PythonRepl(PythonInput):
             self.current_statement_index += 1
             self.signatures = []
 
+            # Append to history and reset.
             cli.search_state.text = ''
-            cli.buffers['default'].reset(append_to_history=True)  # XXX
+            cli.buffers['default'].reset(append_to_history=True)
+            self.key_bindings_manager.reset()
 
     def _execute(self, cli, line):
         """
