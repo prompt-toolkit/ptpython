@@ -5,6 +5,7 @@ Copy this file to ~/.ptpython/config.py
 """
 from __future__ import unicode_literals
 from prompt_toolkit.keys import Keys
+from pygments.token import Token
 
 __all__ = (
     'configure',
@@ -54,6 +55,10 @@ def configure(repl):
     # Also enables Control-Z suspend.
     repl.enable_system_bindings = True
 
+    # Install custom colorscheme named 'my-colorscheme' and use it.
+    repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
+    repl.use_ui_colorscheme('my-colorscheme')
+
     # Add custom key binding for PDB.
     @repl.add_key_binding(Keys.ControlB)
     def _(event):
@@ -78,3 +83,14 @@ def configure(repl):
                 b.insert_text(corrections[w])
 
         b.insert_text(' ')
+
+
+# Custom colorscheme for the UI. See `ptpython/layout.py` and
+# `ptpython/style.py` for all possible tokens.
+_custom_ui_colorscheme = {
+    # Blue prompt.
+    Token.Layout.Prompt:                          'bg:#eeeeff #000000 bold',
+
+    # Make the status toolbar red.
+    Token.Toolbar.Status:                         'bg:#ff0000 #000000',
+}

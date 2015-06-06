@@ -1,35 +1,54 @@
 from __future__ import unicode_literals
 
-from pygments.token import Keyword, Operator, Number, Name, Error, Comment, Token, String
+from pygments.token import Token
 from pygments.style import Style
+from pygments.styles import get_style_by_name, get_all_styles
+from prompt_toolkit.styles import default_style_extensions
+
+__all__ = (
+    'get_all_code_styles',
+    'get_all_ui_styles',
+    'generate_style',
+)
 
 
-class PythonStyle(Style):
-    background_color = None
-    styles = {
-        # Build-ins from the Pygments lexer.
-        Comment:                                      '#0000dd',
-        Error:                                        '#000000 bg:#ff8888',
-        Keyword:                                      '#ee00ee',
-        Name.Decorator:                               '#aa22ff',
-        Name.Namespace:                               '#008800 underline',
-        Name:                                         '#008800',
-        Number:                                       '#ff0000',
-        Operator:                                     '#ff6666 bold',
-        String:                                       '#ba4444 bold',
+def get_all_code_styles():
+    """
+    Return a mapping from style names to their classes.
+    """
+    return dict((name, get_style_by_name(name).styles) for name in get_all_styles())
 
-        # Highlighting of search matches in document.
-        Token.SearchMatch:                            '#ffffff bg:#4444aa',
-        Token.SearchMatch.Current:                    '#ffffff bg:#44aa44',
 
-        # Highlighting of select text in document.
-        Token.SelectedText:                           '#ffffff bg:#6666aa',
+def get_all_ui_styles():
+    """
+    Return a dict mapping {ui_style_name -> style_dict}.
+    """
+    return {
+        'default': default_ui_style,
+        'blue': blue_ui_style,
+    }
 
+
+def generate_style(python_style, ui_style):
+    """
+    Generate Pygments Style class from two dictionaries
+    containing style rules.
+    """
+    assert isinstance(python_style, dict)
+    assert isinstance(ui_style, dict)
+
+    class PythonStyle(Style):
+        styles = {}
+        styles.update(default_style_extensions)
+        styles.update(python_style)
+        styles.update(ui_style)
+
+    return PythonStyle
+
+
+default_ui_style = {
         # (Python) Prompt: "In [1]:"
         Token.Layout.Prompt:                          'bold #008800',
-
-        # Line numbers.
-        Token.LineNumber:                             '#aa6666',
 
         Token.Separator:                              '#bbbbbb',
 
@@ -52,11 +71,6 @@ class PythonStyle(Style):
 
         Token.Docstring:                              '#888888',
 
-        # Tab bar
-        Token.TabBar:                                 '#888888 underline',
-        Token.TabBar.Tab:                             'bg:#aaaaaa #444444',
-        Token.TabBar.Tab.Active:                      'bg:#ffffff #000000 bold nounderline',
-
         # Validation toolbar.
         Token.Toolbar.Validation:                     'bg:#440000 #aaaaaa',
 
@@ -66,6 +80,36 @@ class PythonStyle(Style):
         Token.Toolbar.Status.Off:                     'bg:#222222 #888888',
         Token.Toolbar.Status.On:                      'bg:#222222 #ffffff',
         Token.Toolbar.Status.PythonVersion:           'bg:#222222 #ffffff bold',
+
+        # When Control-C has been pressed. Grayed.
+        Token.Aborted:                                '#888888',
+
+        Token.Sidebar:                                'bg:#bbbbbb #000000',
+        Token.Sidebar.Title:                          'bg:#bbbbbb #000000 underline',
+        Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
+        Token.Sidebar.Status:                         'bg:#dddddd #000011',
+
+        Token.Sidebar.Selected:                       'bg:#222222 #000000',
+        Token.Sidebar.Selected.Label:                 'bg:#222222 #eeeeee',
+        Token.Sidebar.Selected.Status:                'bg:#444444 #ffffff bold',
+
+        Token.Sidebar.Keys:                           'bg:#ffffff #222222',
+        Token.Sidebar.Keys.Description:               'bg:#cccccc #222222',
+}
+
+
+blue_ui_style = {}
+blue_ui_style.update(default_ui_style)
+blue_ui_style.update({
+        # Line numbers.
+        Token.LineNumber:                             '#aa6666',
+
+        # Highlighting of search matches in document.
+        Token.SearchMatch:                            '#ffffff bg:#4444aa',
+        Token.SearchMatch.Current:                    '#ffffff bg:#44aa44',
+
+        # Highlighting of select text in document.
+        Token.SelectedText:                           '#ffffff bg:#6666aa',
 
         # Completer toolbar.
         Token.Toolbar.Completions:                    'bg:#44bbbb #000000',
@@ -80,15 +124,4 @@ class PythonStyle(Style):
         Token.Menu.Completions.Meta.Current:          'bg:#00aaaa #000000',
         Token.Menu.Completions.ProgressBar:           'bg:#aaaaaa',
         Token.Menu.Completions.ProgressButton:        'bg:#000000',
-
-        # When Control-C has been pressed. Grayed.
-        Token.Aborted:                                '#888888',
-
-        Token.Sidebar:                                'bg:#bbbbbb',
-        Token.Sidebar.Shortcut:                       'bg:#bbbbbb #000011 bold',
-        Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
-        Token.Sidebar.Status:                         'bg:#bbbbbb #000011 bold',
-
-        # Matching bracket.
-        Token.MatchingBracket:                        'bg:#aaaaff #000000',
-    }
+})

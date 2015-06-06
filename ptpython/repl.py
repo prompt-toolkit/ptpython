@@ -18,7 +18,7 @@ from prompt_toolkit.utils import DummyContext, Callback
 from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
 from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 
-from .python_input import PythonStyle, PythonInput
+from .python_input import PythonInput
 from ._eval import eval_  # eval() without `unicode_literals` and `print_function`.
 
 import os
@@ -202,7 +202,7 @@ def run_config(repl, config_file='~/.ptpython/config.py'):
 
 
 def embed(globals=None, locals=None, configure=None,
-          vi_mode=False, history_filename=None, no_colors=False,
+          vi_mode=False, history_filename=None,
           startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
     """
     Call this to embed  Python shell at the current point in your program.
@@ -243,7 +243,6 @@ def embed(globals=None, locals=None, configure=None,
     # Create REPL.
     repl = PythonRepl(get_globals, get_locals, vi_mode=vi_mode,
                       history_filename=history_filename,
-                      style=(None if no_colors else PythonStyle),
                       startup_paths=startup_paths)
 
     if configure:

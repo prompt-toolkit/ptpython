@@ -8,6 +8,7 @@ from prompt_toolkit.keys import Keys
 
 __all__ = (
     'load_python_bindings',
+    'load_sidebar_bindings',
 )
 
 
@@ -31,9 +32,17 @@ def load_python_bindings(key_bindings_manager, python_input):
     """
     Custom key bindings.
     """
+    sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
     handle = key_bindings_manager.registry.add_binding
     has_selection = HasSelection()
     vi_mode_enabled = Condition(lambda cli: python_input.vi_mode)
+
+    @handle(Keys.ControlL)
+    def _(event):
+        """
+        Clear whole screen and render again -- also when the sidebar is visible.
+        """
+        event.cli.renderer.clear()
 
     @handle(Keys.F2)
     def _(event):
@@ -42,31 +51,12 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         python_input.show_sidebar = not python_input.show_sidebar
 
-    @handle(Keys.F3)
-    def _(event):
-        """
-        Shange completion style.
-        """
-        # Toggle between combinations.
-        python_input.show_completions_toolbar, python_input.show_completions_menu = {
-            (False, False): (False, True),
-            (False, True): (True, False),
-            (True, False): (False, False),
-        }[python_input.show_completions_toolbar, python_input.show_completions_menu]
-
     @handle(Keys.F4)
     def _(event):
         """
         Toggle between Vi and Emacs mode.
         """
         python_input.vi_mode = not python_input.vi_mode
-
-    @handle(Keys.F5)
-    def _(event):
-        """
-        Enable/Disable complete while typing.
-        """
-        python_input.complete_while_typing = not python_input.complete_while_typing
 
     @handle(Keys.F6)
     def _(event):
@@ -75,35 +65,14 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         python_input.paste_mode = not python_input.paste_mode
 
-    @handle(Keys.F8)
-    def _(event):
-        """
-        Show/hide signature.
-        """
-        python_input.show_signature = not python_input.show_signature
-
-    @handle(Keys.F9)
-    def _(event):
-        """
-        Show/hide docstring window.
-        """
-        python_input.show_docstring = not python_input.show_docstring
-
-    @handle(Keys.F10)
-    def _(event):
-        """
-        Show/hide line numbers
-        """
-        python_input.show_line_numbers = not python_input.show_line_numbers
-
-    @handle(Keys.Tab, filter= ~has_selection & TabShouldInsertWhitespaceFilter())
+    @handle(Keys.Tab, filter= ~sidebar_visible & ~has_selection & TabShouldInsertWhitespaceFilter())
     def _(event):
         """
         When tab should insert whitespace, do that instead of completion.
         """
         event.cli.current_buffer.insert_text('    ')
 
-    @handle(Keys.ControlJ, filter= ~has_selection &
+    @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
             ~(vi_mode_enabled &
               ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION)) &
             HasFocus('default') & IsMultiline())
@@ -137,6 +106,54 @@ def load_python_bindings(key_bindings_manager, python_input):
                 b.accept_action.validate_and_handle(event.cli, b)
         else:
             auto_newline(b)
+
+
+def load_sidebar_bindings(key_bindings_manager, python_input):
+    """
+    Load bindings for the navigation in the sidebar.
+    """
+    handle = key_bindings_manager.registry.add_binding
+    sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
+
+    @handle(Keys.Up, filter=sidebar_visible)
+    @handle(Keys.ControlP, filter=sidebar_visible)
+    @handle('k', filter=sidebar_visible)
+    def _(event):
+        " Go to previous option. "
+        python_input.selected_option = (
+            (python_input.selected_option - 1) % len(python_input.options))
+
+    @handle(Keys.Down, filter=sidebar_visible)
+    @handle(Keys.ControlN, filter=sidebar_visible)
+    @handle('j', filter=sidebar_visible)
+    def _(event):
+        " Go to next option. "
+        python_input.selected_option = (
+            (python_input.selected_option + 1) % len(python_input.options))
+
+    @handle(Keys.Right, filter=sidebar_visible)
+    @handle('l', filter=sidebar_visible)
+    @handle(' ', filter=sidebar_visible)
+    def _(event):
+        " Select next value for current option. "
+        option = python_input.options[python_input.selected_option]
+        option.activate_next()
+
+    @handle(Keys.Left, filter=sidebar_visible)
+    @handle('h', filter=sidebar_visible)
+    def _(event):
+        " Select previous value for current option. "
+        option = python_input.options[python_input.selected_option]
+        option.activate_previous()
+
+    @handle(Keys.ControlC, filter=sidebar_visible)
+    @handle(Keys.ControlG, filter=sidebar_visible)
+    @handle(Keys.ControlD, filter=sidebar_visible)
+    @handle(Keys.ControlJ, filter=sidebar_visible)
+    @handle(Keys.Escape, filter=sidebar_visible)
+    def _(event):
+        " Hide sidebar. "
+        python_input.show_sidebar = False
 
 
 def auto_newline(buffer):

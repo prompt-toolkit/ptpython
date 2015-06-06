@@ -26,54 +26,73 @@ __all__ = (
 )
 
 
-class PythonSidebarControl(TokenListControl):
+class PythonSidebar(Window):
+    """
+    Sidebar containing the configurable options.
+    """
     def __init__(self, python_input):
         def get_tokens(cli):
             tokens = []
-            TB = Token.Sidebar
+            T = Token.Sidebar
 
-            if python_input.vi_mode:
-                mode = 'vi'
-            else:
-                mode = 'emacs'
+            tokens.extend([
+                (T, '  '),
+                (T.Title, 'Options'),
+                (T, '\n'),
+            ])
 
-            if python_input.show_completions_toolbar:
-                completion_style = 'toolbar'
-            elif python_input.show_completions_menu:
-                completion_style = 'pop-up'
-            else:
-                completion_style = 'off'
+            def append(selected, label, status):
+                token = T.Selected if selected else T
 
-            def append(shortcut, label, status):
-                tokens.append((TB.Shortcut, ' [%s] ' % shortcut))
-                tokens.append((TB.Label, '%-21s' % label))
-                if status:
-                    tokens.append((TB.Status, '%9s\n' % status))
-                else:
-                    tokens.append((TB.Label, '\n'))
+                tokens.append((T, ' >' if selected else '  '))
+                tokens.append((token.Label, '%-24s' % label))
+                tokens.append((token.Status, ' %-14s' % status))
+                tokens.append((T, '<' if selected else ''))
+                tokens.append((T, '\n'))
 
-            append('F3', 'Completion menu', '(%s)' % completion_style)
-            append('F4', 'Input mode', '(%s)' % mode)
-            append('F5', 'Complete while typing', '(on)' if python_input.complete_while_typing else '(off)')
-            append('F6', 'Paste mode', '(on)' if python_input.paste_mode else '(off)')
-            append('F8', 'Show signature', '(on)' if python_input.show_signature else '(off)')
-            append('F9', 'Show docstring', '(on)' if python_input.show_docstring else '(off)')
-            append('F10', 'Show line numbers', '(on)' if python_input.show_line_numbers else '(off)')
+            for i, option in enumerate(python_input.options):
+                append(i == python_input.selected_option,
+                       option.description, '%s' % option.get_current_value())
+
+            tokens.pop()  # Remove last newline.
 
             return tokens
 
-        super(PythonSidebarControl, self).__init__(get_tokens, Char(token=Token.Sidebar))
-
-
-class PythonSidebar(Window):
-    def __init__(self, python_input):
         super(PythonSidebar, self).__init__(
-            PythonSidebarControl(python_input),
-            width=LayoutDimension.exact(37),
+            TokenListControl(get_tokens, Char(token=Token.Sidebar)),
+            width=LayoutDimension.exact(43),
             filter=ShowSidebar(python_input) & ~IsDone())
 
 
-class SignatureControl(TokenListControl):
+class PythonSidebarNavigation(Window):
+    """
+    Showing the navigation information for the sidebar.
+    """
+    def __init__(self, python_input):
+        def get_tokens(cli):
+            tokens = []
+            T = Token.Sidebar
+
+            # Show navigation info.
+            tokens.extend([
+                (T, '     '),
+                (T.Keys, '[Arrows]'),
+                (T.Keys.Description, 'Navigate'),
+                (T, ' '),
+                (T.Keys, '[Enter]'),
+                (T.Keys.Description, 'Hide menu'),
+            ])
+
+            return tokens
+
+        super(PythonSidebarNavigation, self).__init__(
+            TokenListControl(get_tokens, Char(token=Token.Sidebar)),
+            width=LayoutDimension.exact(43),
+            height=LayoutDimension.exact(1),
+            filter=ShowSidebar(python_input) & ~IsDone())
+
+
+class SignatureToolbar(Window):
     def __init__(self, python_input):
         def get_tokens(cli):
             result = []
@@ -110,13 +129,8 @@ class SignatureControl(TokenListControl):
                 append((Signature, ' '))
             return result
 
-        super(SignatureControl, self).__init__(get_tokens)
-
-
-class SignatureToolbar(Window):
-    def __init__(self, python_input):
         super(SignatureToolbar, self).__init__(
-            SignatureControl(python_input),
+            TokenListControl(get_tokens),
             height=LayoutDimension.exact(1),
             filter=
                 # Show only when there is a signature
@@ -227,7 +241,7 @@ class ShowSidebarButtonInfo(Window):
 
         version = sys.version_info
         tokens = [
-            (token, ' [F2] Sidebar'),
+            (token, ' [F2] Options'),
             (token, ' - '),
             (token.PythonVersion, '%s %i.%i.%i' % (platform.python_implementation(),
                                                    version[0], version[1], version[2])),
@@ -332,7 +346,10 @@ def create_layout(python_input, key_bindings_manager,
                 ),
             ]),
             ] + extra_sidebars + [
-            PythonSidebar(python_input),
+            HSplit([
+                PythonSidebar(python_input),
+                PythonSidebarNavigation(python_input),
+            ])
         ]),
         VSplit([
             PythonToolbar(key_bindings_manager, python_input),

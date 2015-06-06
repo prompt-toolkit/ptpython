@@ -2,7 +2,7 @@
 """
 ptpython: Interactive Python shell.
 Usage:
-    ptpython [ --vi ] [ --no-colors ]
+    ptpython [ --vi ]
              [ --config-dir=<directory> ] [ --interactive=<filename> ]
              [--] [ <file> <arg>... ]
     ptpython -h | --help
@@ -29,7 +29,6 @@ def run():
     a = docopt.docopt(__doc__)
 
     vi_mode = bool(a['--vi'])
-    no_colors = bool(a['--no-colors'])
     config_dir = os.path.expanduser(a['--config-dir'] or '~/.ptpython/')
 
     # Create config directory.
@@ -65,7 +64,6 @@ def run():
 
         embed(vi_mode=vi_mode,
               history_filename=os.path.join(config_dir, 'history'),
-              no_colors=no_colors,
               configure=configure,
               startup_paths=startup_paths)
 
