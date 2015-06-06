@@ -47,6 +47,14 @@ def configure(repl):
     # Paste mode. (When True, don't insert whitespace after new line.)
     repl.paste_mode = False
 
+    # History Search.
+    # When True, going back in history will filter the history on the records
+    # starting with the current input. (Like readline.)
+    # Note: When enable, please disable the `complete_while_typing` option.
+    #       otherwise, when there is a completion available, the arrows will
+    #       browse through the available completions instead of the history.
+    repl.enable_history_search = False
+
     # Enable open-in-editor. Pressing C-X C-E in emacs mode or 'v' in
     # Vi navigation mode will open the input in the current editor.
     repl.enable_open_in_editor = True
