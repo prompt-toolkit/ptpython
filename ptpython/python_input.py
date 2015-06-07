@@ -20,7 +20,7 @@ from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.utils import Callback
 
 from ptpython.completer import PythonCompleter
-from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings
+from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
 from ptpython.layout import PythonPrompt, create_layout
 from ptpython.style import get_all_code_styles, get_all_ui_styles, generate_style
 from ptpython.utils import get_jedi_script_from_document, document_is_multiline_python
@@ -122,7 +122,6 @@ class PythonInput(object):
         self._python_prompt_control = _python_prompt_control or PythonPrompt(self)
 
         # Settings.
-        self.show_sidebar = False
         self.show_signature = True
         self.show_docstring = False
         self.show_completions_toolbar = False
@@ -132,12 +131,16 @@ class PythonInput(object):
         self.complete_while_typing = True
         self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
+        self.confirm_exit = True  # Ask for confirmation when Control-D is pressed.
         self.enable_open_in_editor = True
         self.enable_system_bindings = True
         self.enable_history_search = False  # When True, like readline, going
                                             # back in history will filter the
                                             # history on the records starting
                                             # with the current input.
+
+        self.show_sidebar = False  # Currently show the sidebar.
+        self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
@@ -208,6 +211,7 @@ class PythonInput(object):
             _Option('Color scheme (UI)', lambda: {
                 name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
             }, lambda: self._current_ui_style_name),
+            simple_option('Confirm on exit', 'confirm_exit'),
         ]
         self.selected_option = 0
 
@@ -222,10 +226,14 @@ class PythonInput(object):
             enable_vi_mode=Condition(lambda cli: self.vi_mode),
             enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
             enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
-            enable_all=Condition(lambda cli: not self.show_sidebar))
+
+            # Disable all default key bindings when the sidebar or the exit confirmation
+            # are shown.
+            enable_all=Condition(lambda cli: not (self.show_sidebar or self.show_exit_confirmation)))
 
         load_python_bindings(self.key_bindings_manager, self)
         load_sidebar_bindings(self.key_bindings_manager, self)
+        load_confirm_exit_bindings(self.key_bindings_manager, self)
 
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)

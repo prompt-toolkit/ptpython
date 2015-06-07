@@ -194,7 +194,8 @@ class PythonToolbar(TokenListToolbar):
             get_tokens,
             default_char=Char(token=token),
             filter=~IsDone() & RendererHeightIsKnown() &
-                Condition(lambda cli: python_input.show_status_bar))
+                Condition(lambda cli: python_input.show_status_bar and
+                                      not python_input.show_exit_confirmation))
 
 
 def get_inputmode_tokens(token, key_bindings_manager, python_input, cli):
@@ -256,9 +257,25 @@ class ShowSidebarButtonInfo(Window):
         super(ShowSidebarButtonInfo, self).__init__(
             TokenListControl(get_tokens, default_char=Char(token=token)),
             filter=~IsDone() & RendererHeightIsKnown() &
-                Condition(lambda cli: python_input.show_status_bar),
+                Condition(lambda cli: python_input.show_status_bar and
+                                      not python_input.show_exit_confirmation),
             height=LayoutDimension.exact(1),
             width=LayoutDimension.exact(width))
+
+
+class ExitConfirmation(Window):
+    """
+    Display exit message.
+    """
+    def __init__(self, python_input):
+        def get_tokens(cli):
+            return [
+                (Token.ExitConfirmation, ' Do you really want to exit ([y]/n)? '),
+            ]
+
+        super(ExitConfirmation, self).__init__(
+            TokenListControl(get_tokens),
+            filter=~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation))
 
 
 def create_layout(python_input, key_bindings_manager,
@@ -323,7 +340,10 @@ def create_layout(python_input, key_bindings_manager,
                                   extra_filter=ShowCompletionsMenu(python_input))),
                         Float(xcursor=True,
                               ycursor=True,
-                              content=SignatureToolbar(python_input))
+                              content=SignatureToolbar(python_input)),
+                        Float(left=4,
+                              bottom=0,
+                              content=ExitConfirmation(python_input)),
                     ]),
                 ArgToolbar(),
                 SearchToolbar(),

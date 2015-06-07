@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 
 from prompt_toolkit.document import Document
+from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition
 from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -9,6 +10,7 @@ from prompt_toolkit.keys import Keys
 __all__ = (
     'load_python_bindings',
     'load_sidebar_bindings',
+    'load_confirm_exit_bindings',
 )
 
 
@@ -107,6 +109,18 @@ def load_python_bindings(key_bindings_manager, python_input):
         else:
             auto_newline(b)
 
+    @handle(Keys.ControlD, filter=~sidebar_visible & Condition(lambda cli:
+            # Only when the `confirm_exit` flag is set.
+            python_input.confirm_exit and
+            # And the current buffer is empty.
+            cli.current_buffer_name == DEFAULT_BUFFER and
+            not cli.current_buffer.text))
+    def _(event):
+        """
+        Override Control-D exit, to ask for confirmation.
+        """
+        python_input.show_exit_confirmation = True
+
 
 def load_sidebar_bindings(key_bindings_manager, python_input):
     """
@@ -154,6 +168,30 @@ def load_sidebar_bindings(key_bindings_manager, python_input):
     def _(event):
         " Hide sidebar. "
         python_input.show_sidebar = False
+
+
+def load_confirm_exit_bindings(key_bindings_manager, python_input):
+    """
+    Handle yes/no key presses when the exit confirmation is shown.
+    """
+    handle = key_bindings_manager.registry.add_binding
+    confirmation_visible = Condition(lambda cli: python_input.show_exit_confirmation)
+
+    @handle('y', filter=confirmation_visible)
+    @handle('Y', filter=confirmation_visible)
+    @handle(Keys.ControlJ, filter=confirmation_visible)
+    def _(event):
+        """
+        Really quit.
+        """
+        event.cli.set_exit()
+
+    @handle(Keys.Any, filter=confirmation_visible)
+    def _(event):
+        """
+        Cancel exit.
+        """
+        python_input.show_exit_confirmation = False
 
 
 def auto_newline(buffer):

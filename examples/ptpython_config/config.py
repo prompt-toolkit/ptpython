@@ -18,9 +18,6 @@ def configure(repl):
 
     :param repl: `PythonRepl` instance.
     """
-    # Show sidebar (bool).
-    repl.show_sidebar = False
-
     # Show function signature (bool).
     repl.show_signature = True
 
@@ -62,6 +59,9 @@ def configure(repl):
     # Enable system prompt. Pressing meta-! will display the system prompt.
     # Also enables Control-Z suspend.
     repl.enable_system_bindings = True
+
+    # Ask for confirmation on exit.
+    repl.confirm_exit = True
 
     # Install custom colorscheme named 'my-colorscheme' and use it.
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
