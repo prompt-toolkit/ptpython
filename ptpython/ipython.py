@@ -65,7 +65,8 @@ def create_ipython_grammar():
         \s*
         (
             (?P<percent>%)(
-                (?P<magic>pycat|run|loadpy|load)  \s+ (?P<filename>[^\s]+)     |
+                (?P<magic>pycat|run|loadpy|load)  \s+ (?P<py_filename>[^\s]+)  |
+                (?P<magic>cat)                    \s+ (?P<filename>[^\s]+)     |
                 (?P<magic>pushd|cd|ls)            \s+ (?P<directory>[^\s]+)    |
                 (?P<magic>pdb)                    \s+ (?P<pdb_arg>[^\s]+)      |
                 (?P<magic>autocall)               \s+ (?P<autocall_arg>[^\s]+) |
@@ -91,7 +92,8 @@ def create_completer(get_globals, get_locals, magics_manager, alias_manager):
         'alias_name': AliasCompleter(alias_manager),
         'pdb_arg': WordCompleter(['on', 'off'], ignore_case=True),
         'autocall_arg': WordCompleter(['0', '1', '2'], ignore_case=True),
-        'filename': PathCompleter(only_directories=False, file_filter=lambda name: name.endswith('.py')),
+        'py_filename': PathCompleter(only_directories=False, file_filter=lambda name: name.endswith('.py')),
+        'filename': PathCompleter(only_directories=False),
         'directory': PathCompleter(only_directories=True),
         'system': SystemCompleter(),
     })
