@@ -270,7 +270,9 @@ class ExitConfirmation(Window):
     def __init__(self, python_input):
         def get_tokens(cli):
             return [
-                (Token.ExitConfirmation, ' Do you really want to exit ([y]/n)? '),
+                (Token.ExitConfirmation, '                                       \n'),
+                (Token.ExitConfirmation, ' Do you really want to exit   ([y]/n)? \n'),
+                (Token.ExitConfirmation, '                                       '),
             ]
 
         super(ExitConfirmation, self).__init__(
@@ -341,8 +343,8 @@ def create_layout(python_input, key_bindings_manager,
                         Float(xcursor=True,
                               ycursor=True,
                               content=SignatureToolbar(python_input)),
-                        Float(left=4,
-                              bottom=0,
+                        Float(left=2,
+                              bottom=1,
                               content=ExitConfirmation(python_input)),
                     ]),
                 ArgToolbar(),

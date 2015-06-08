@@ -97,7 +97,7 @@ default_ui_style = {
         Token.Sidebar.Keys.Description:               'bg:#cccccc #222222',
 
         # Exit confirmation.
-        Token.ExitConfirmation:                       'bg:#eeffee #000000 underline',
+        Token.ExitConfirmation:                       'bg:#aa6666 #ffffff',
 }
 
 
