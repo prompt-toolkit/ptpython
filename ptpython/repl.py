@@ -9,9 +9,8 @@ Utility for creating a Python repl.
 """
 from __future__ import unicode_literals
 
-from pygments import highlight
-from pygments.formatters.terminal256 import Terminal256Formatter
 from pygments.lexers import PythonTracebackLexer
+from pygments.styles.default import DefaultStyle
 
 from prompt_toolkit.application import AbortAction
 from prompt_toolkit.utils import DummyContext, Callback
@@ -137,7 +136,11 @@ class PythonRepl(PythonInput):
         tb = ''.join(l)
 
         # Format exception and write to output.
-        output.write(highlight(tb, PythonTracebackLexer(), Terminal256Formatter()))
+        # (We use the default style. Most other styles result
+        # in unreadable colors for the traceback.)
+        tokens = _lex_python_traceback(tb)
+        cli.print_tokens(tokens, style=DefaultStyle)
+
         output.write('%s\n\n' % e)
         output.flush()
 
@@ -148,6 +151,9 @@ class PythonRepl(PythonInput):
         output.write('\rKeyboardInterrupt\n\n')
         output.flush()
 
+def _lex_python_traceback(tb):
+    lexer = PythonTracebackLexer()
+    return lexer.get_tokens(tb)
 
 def enable_deprecation_warnings():
     """
