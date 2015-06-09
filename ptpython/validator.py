@@ -2,14 +2,28 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.validation import Validator, ValidationError
 
+__all__ = (
+    'PythonValidator',
+)
+
 
 class PythonValidator(Validator):
+    """
+    Validation of Python input.
+
+    :param get_compiler_flags: Callable that returns the currently
+        active compiler flags.
+    """
+    def __init__(self, get_compiler_flags):
+        self.get_compiler_flags = get_compiler_flags
+
     def validate(self, document):
         """
         Check input for Python syntax errors.
         """
         try:
-            compile(document.text, '<input>', 'exec')
+            compile(document.text, '<input>', 'exec',
+                    flags=self.get_compiler_flags(), dont_inherit=True)
         except SyntaxError as e:
             # Note, the 'or 1' for offset is required because Python 2.7
             # gives `None` as offset in case of '4=4' as input. (Looks like

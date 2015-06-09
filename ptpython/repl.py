@@ -18,7 +18,6 @@ from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
 from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 
 from .python_input import PythonInput
-from ._eval import eval_  # eval() without `unicode_literals` and `print_function`.
 
 import os
 import six
@@ -87,13 +86,21 @@ class PythonRepl(PythonInput):
         """
         output = cli.output
 
+        def compile_with_flags(code, mode):
+            " Compile code with the right compiler flags. "
+            return compile(code, '<stdin>', mode,
+                           flags=self.get_compiler_flags(),
+                           dont_inherit=True)
+
         if line[0:1] == '!':
             # Run as shell command
             os.system(line[1:])
         else:
             # Try eval first
             try:
-                result = eval_(line, self.get_globals(), self.get_locals())
+                code = compile_with_flags(line, 'eval')
+                result = eval(code, self.get_globals(), self.get_locals())
+
                 locals = self.get_locals()
                 locals['_'] = locals['_%i' % self.current_statement_index] = result
 
@@ -116,7 +123,8 @@ class PythonRepl(PythonInput):
                     output.write(out_string)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
-                six.exec_(line, self.get_globals(), self.get_locals())
+                code = compile_with_flags(line, 'exec')
+                six.exec_(code, self.get_globals(), self.get_locals())
 
             output.write('\n\n')
             output.flush()

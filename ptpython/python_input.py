@@ -30,6 +30,7 @@ from pygments.lexers import PythonLexer
 from functools import partial
 
 import six
+import __future__
 
 
 __all__ = (
@@ -108,7 +109,7 @@ class PythonInput(object):
         self.get_locals = get_locals or self.get_globals
 
         self._completer = _completer or PythonCompleter(self.get_globals, self.get_locals)
-        self._validator = _validator or PythonValidator()
+        self._validator = _validator or PythonValidator(self.get_compiler_flags)
         self._history = FileHistory(history_filename) if history_filename else History()
         self._lexer = _lexer or PythonLexer
         self._extra_buffers = _extra_buffers
@@ -238,6 +239,19 @@ class PythonInput(object):
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
         self._get_signatures_thread_running = False
+
+    def get_compiler_flags(self):
+        """
+        Give the current compiler flags by looking for _Feature instances
+        in the globals.
+        """
+        flags = 0
+
+        for value in self.get_globals().values():
+            if isinstance(value, __future__._Feature):
+                flags |= value.compiler_flag
+
+        return flags
 
     @property
     def key_bindings_registry(self):
