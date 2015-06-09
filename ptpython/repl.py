@@ -121,12 +121,13 @@ class PythonRepl(PythonInput):
                     out_string = out_mark + line_sep.join(result_str.splitlines())
 
                     output.write(out_string)
+                    output.write('\n')
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, 'exec')
                 six.exec_(code, self.get_globals(), self.get_locals())
 
-            output.write('\n\n')
+            output.write('\n')
             output.flush()
 
     @classmethod
