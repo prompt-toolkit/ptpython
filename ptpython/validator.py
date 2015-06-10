@@ -14,7 +14,7 @@ class PythonValidator(Validator):
     :param get_compiler_flags: Callable that returns the currently
         active compiler flags.
     """
-    def __init__(self, get_compiler_flags):
+    def __init__(self, get_compiler_flags=None):
         self.get_compiler_flags = get_compiler_flags
 
     def validate(self, document):
@@ -22,8 +22,12 @@ class PythonValidator(Validator):
         Check input for Python syntax errors.
         """
         try:
-            compile(document.text, '<input>', 'exec',
-                    flags=self.get_compiler_flags(), dont_inherit=True)
+            if self.get_compiler_flags:
+                flags = self.get_compiler_flags()
+            else:
+                flags = 0
+
+            compile(document.text, '<input>', 'exec', flags=flags, dont_inherit=True)
         except SyntaxError as e:
             # Note, the 'or 1' for offset is required because Python 2.7
             # gives `None` as offset in case of '4=4' as input. (Looks like
