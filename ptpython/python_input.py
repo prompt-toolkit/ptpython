@@ -18,6 +18,7 @@ from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.utils import Callback
+from prompt_toolkit.validation import SwitchableValidator
 
 from ptpython.completer import PythonCompleter
 from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
@@ -135,6 +136,7 @@ class PythonInput(object):
         self.confirm_exit = True  # Ask for confirmation when Control-D is pressed.
         self.enable_open_in_editor = True
         self.enable_system_bindings = True
+        self.enable_input_validation = True
         self.enable_history_search = False  # When True, like readline, going
                                             # back in history will filter the
                                             # history on the records starting
@@ -213,6 +215,7 @@ class PythonInput(object):
                 name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
             }, lambda: self._current_ui_style_name),
             simple_option('Confirm on exit', 'confirm_exit'),
+            simple_option('Input validation', 'enable_input_validation'),
         ]
         self.selected_option = 0
 
@@ -367,7 +370,9 @@ class PythonInput(object):
             tempfile_suffix='.py',
             history=self._history,
             completer=self._completer,
-            validator=self._validator,
+            validator=SwitchableValidator(
+                self._validator,
+                Condition(lambda: self.enable_input_validation)),
             accept_action=self._accept_action)
 
         return python_buffer

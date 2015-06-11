@@ -63,6 +63,10 @@ def configure(repl):
     # Ask for confirmation on exit.
     repl.confirm_exit = True
 
+    # Enable input validation. (Don't try to execute when the input contains
+    # syntax errors.)
+    repl.enable_input_validation = True
+
     # Install custom colorscheme named 'my-colorscheme' and use it.
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
     repl.use_ui_colorscheme('my-colorscheme')
