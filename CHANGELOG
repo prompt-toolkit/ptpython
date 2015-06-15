@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+0.13: 2015-06-15
+---------------
+
+New features:
+- Upgrade to prompt_toolkit 0.40
+- Options sidebar.
+- Custom color schemes.
+- Syntax highlighting of the output.
+- Input validation can now be turned off.
+- Determine compiler flags dynamically. (Fixes importing unicode_literals).
+- Exit confirmation and dialog.
+- Autocompletion of IPython %cat command.
+- Correctly render tracebacks on Windows.
+
 0.12: 2015-06-04
 ---------------
 
