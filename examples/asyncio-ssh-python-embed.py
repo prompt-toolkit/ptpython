@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """
 Example of running the Python REPL through an SSH connection in an asyncio process.
+This requires Python 3, asyncio and asyncssh.
 
-This requires Python 3.
+Run this example and then SSH to localhost, port 8222.
 """
 import asyncio
 import asyncssh
@@ -22,6 +23,7 @@ class MySSHServer(asyncssh.SSHServer):
         self.get_namespace = get_namespace
 
     def begin_auth(self, username):
+        # No authentication.
         return False
 
     def session_requested(self):
