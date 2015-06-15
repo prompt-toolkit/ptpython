@@ -39,7 +39,16 @@ __all__ = (
     'PythonCommandLineInterface',
 )
 
-class _Option(object):
+class OptionCategory(object):
+    def __init__(self, title, options):
+        assert isinstance(title, six.text_type)
+        assert isinstance(options, list)
+
+        self.title = title
+        self.options = options
+
+
+class Option(object):
     """
     Ptpython configuration option that can be shown and modified from the
     sidebar.
@@ -69,11 +78,20 @@ class _Option(object):
         current = self.get_current_value()
         options = sorted(self.values.keys())
 
-        if _previous:
-            next_option = options[(options.index(current) - 1) % len(options)]
-        else:
-            next_option = options[(options.index(current) + 1) % len(options)]
+        # Get current index.
+        try:
+            index = options.index(current)
+        except ValueError:
+            index = 0
 
+        # Go to previous/next index.
+        if _previous:
+            index -= 1
+        else:
+            index += 1
+
+        # Call handler for this option.
+        next_option = options[index % len(options)]
         self.values[next_option]()
 
     def activate_previous(self):
@@ -134,6 +152,8 @@ class PythonInput(object):
         self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
         self.confirm_exit = True  # Ask for confirmation when Control-D is pressed.
+        self.accept_input_on_enter = 2  # Accept when pressing Enter 'n' times.
+                                        # 'None' means that meta-enter is always required.
         self.enable_open_in_editor = True
         self.enable_system_bindings = True
         self.enable_input_validation = True
@@ -153,71 +173,8 @@ class PythonInput(object):
         self._current_style = self._generate_style()
 
         # Options to be configurable from the sidebar.
-        def handler(enable=None, disable=None):
-            " Handler for an '_Option'. "
-            def handler():
-                if enable:
-                    for o in enable:
-                        setattr(self, o, True)
-
-                if disable:
-                    for o in disable:
-                        setattr(self, o, False)
-            return handler
-
-        def simple_option(description, field_name, values=None):
-            " Create Simple on/of option. "
-            values = values or ['off', 'on']
-
-            def current_value():
-                return values[bool(getattr(self, field_name))]
-
-            return _Option(description, lambda: {
-                values[1]: handler(enable=[field_name]),
-                values[0]: handler(disable=[field_name]),
-            }, current_value)
-
-        def get_completion_menu_value():
-            " Return active value for the 'completion menu' option. "
-            if self.show_completions_menu:
-                return 'pop-up'
-            elif self.show_completions_toolbar:
-                return 'toolbar'
-            else:
-                return 'off'
-
-        self.options = [
-            simple_option('Input mode', 'vi_mode', values=['emacs', 'vi']),
-            simple_option('Paste mode', 'paste_mode'),
-            _Option('Completion menu', lambda: {
-                'off': handler(disable=['show_completions_menu', 'show_completions_toolbar']),
-                'pop-up': handler(enable=['show_completions_menu'],
-                                  disable=['show_completions_toolbar']),
-                'toolbar': handler(enable=['show_completions_toolbar'],
-                                  disable=['show_completions_menu'])
-            }, get_completion_menu_value),
-            _Option('Complete while typing', lambda: {
-                'on': handler(enable=['complete_while_typing'], disable=['enable_history_search']),
-                'off': handler(disable=['complete_while_typing']),
-            }, lambda: ['off', 'on'][self.complete_while_typing]),
-            simple_option('Show signature', 'show_signature'),
-            simple_option('Show docstring', 'show_docstring'),
-            simple_option('Show line numbers', 'show_line_numbers'),
-            simple_option('Show status bar', 'show_status_bar'),
-            _Option('History search', lambda: {
-                'on': handler(enable=['enable_history_search'], disable=['complete_while_typing']),
-                'off': handler(disable=['enable_history_search']),
-            }, lambda: ['off', 'on'][self.enable_history_search]),
-            _Option('Color scheme (code)', lambda: {
-                name: partial(self.use_code_colorscheme, name) for name in self.code_styles
-            }, lambda: self._current_code_style_name),
-            _Option('Color scheme (UI)', lambda: {
-                name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
-            }, lambda: self._current_ui_style_name),
-            simple_option('Confirm on exit', 'confirm_exit'),
-            simple_option('Input validation', 'enable_input_validation'),
-        ]
-        self.selected_option = 0
+        self.options = self._create_options()
+        self.selected_option_index = 0
 
         #: Incremeting integer counting the current statement.
         self.current_statement_index = 1
@@ -242,6 +199,22 @@ class PythonInput(object):
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
         self._get_signatures_thread_running = False
+
+    @property
+    def option_count(self):
+        " Return the total amount of options. (In all categories together.) "
+        return sum(len(category.options) for category in self.options)
+
+    @property
+    def selected_option(self):
+        " Return the currently selected option. "
+        i = 0
+        for category in self.options:
+            for o in category.options:
+                if i == self.selected_option_index:
+                    return o
+                else:
+                    i += 1
 
     def get_compiler_flags(self):
         """
@@ -328,6 +301,84 @@ class PythonInput(object):
         """
         return generate_style(self.code_styles[self._current_code_style_name],
                               self.ui_styles[self._current_ui_style_name])
+
+    def _create_options(self):
+        """
+        Create a list of `Option` instances for the options sidebar.
+        """
+        def enable(attribute, value=True):
+            setattr(self, attribute, value)
+
+            # Return `True`, to be able to chain this in the lambdas below.
+            return True
+
+        def disable(attribute):
+            setattr(self, attribute, False)
+            return True
+
+        def simple_option(description, field_name, values=None):
+            " Create Simple on/of option. "
+            values = values or ['off', 'on']
+
+            def current_value():
+                return values[bool(getattr(self, field_name))]
+
+            return Option(description, lambda: {
+                values[1]: lambda: enable(field_name),
+                values[0]: lambda: disable(field_name),
+            }, current_value)
+
+        def get_completion_menu_value():
+            " Return active value for the 'completion menu' option. "
+            if self.show_completions_menu:
+                return 'pop-up'
+            elif self.show_completions_toolbar:
+                return 'toolbar'
+            else:
+                return 'off'
+
+        return [
+            OptionCategory('Input', [
+                simple_option('Input mode', 'vi_mode', values=['emacs', 'vi']),
+                simple_option('Paste mode', 'paste_mode'),
+                Option('Completion menu', lambda: {
+                    'off': lambda: disable('show_completions_menu') and disable('show_completions_toolbar'),
+                    'pop-up': lambda: enable('show_completions_menu') and disable('show_completions_toolbar'),
+                    'toolbar': lambda: enable('show_completions_toolbar') and disable('show_completions_menu'),
+                }, get_completion_menu_value),
+                Option('Complete while typing', lambda: {
+                    'on': lambda: enable('complete_while_typing') and disable('enable_history_search'),
+                    'off': lambda: disable('complete_while_typing'),
+                }, lambda: ['off', 'on'][self.complete_while_typing]),
+                Option('History search', lambda: {
+                    'on': lambda: enable('enable_history_search') and disable('complete_while_typing'),
+                    'off': lambda: disable('enable_history_search'),
+                }, lambda: ['off', 'on'][self.enable_history_search]),
+                simple_option('Confirm on exit', 'confirm_exit'),
+                simple_option('Input validation', 'enable_input_validation'),
+                Option('Accept input on enter', lambda: {
+                    '1': lambda: enable('accept_input_on_enter', 1),
+                    '2': lambda: enable('accept_input_on_enter', 2),
+                    '3': lambda: enable('accept_input_on_enter', 3),
+                    '4': lambda: enable('accept_input_on_enter', 4),
+                    'meta-enter': lambda: enable('accept_input_on_enter', None),
+                }, lambda: str(self.accept_input_on_enter or 'meta-enter')),
+            ]),
+            OptionCategory('Display', [
+                simple_option('Show signature', 'show_signature'),
+                simple_option('Show docstring', 'show_docstring'),
+                simple_option('Show line numbers', 'show_line_numbers'),
+                simple_option('Show status bar', 'show_status_bar'),
+            ]),
+            OptionCategory('Colors', [
+                Option('Code', lambda: {
+                    name: partial(self.use_code_colorscheme, name) for name in self.code_styles
+                }, lambda: self._current_code_style_name),
+                Option('User interface', lambda: {
+                    name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
+                }, lambda: self._current_ui_style_name),
+            ]),
+        ]
 
     def create_application(self):
         """

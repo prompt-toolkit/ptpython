@@ -35,32 +35,47 @@ class PythonSidebar(Window):
             tokens = []
             T = Token.Sidebar
 
-            tokens.extend([
-                (T, '  '),
-                (T.Title, 'Options'),
-                (T, '\n'),
-            ])
+            def append_category(category):
+                tokens.extend([
+                    (T, '  '),
+                    (T.Title, '   %-36s' % category.title),
+                    (T, '\n'),
+                ])
 
             def append(selected, label, status):
                 token = T.Selected if selected else T
 
                 tokens.append((T, ' >' if selected else '  '))
                 tokens.append((token.Label, '%-24s' % label))
-                tokens.append((token.Status, ' %-14s' % status))
+                tokens.append((token.Status, ' '))
+                tokens.append((token.Status, '%s' % status))
+
+                if selected:
+                    tokens.append((Token.SetCursorPosition, ''))
+
+                tokens.append((token.Status, ' ' * (14 - len(status))))
                 tokens.append((T, '<' if selected else ''))
                 tokens.append((T, '\n'))
 
-            for i, option in enumerate(python_input.options):
-                append(i == python_input.selected_option,
-                       option.description, '%s' % option.get_current_value())
+            i = 0
+            for category in python_input.options:
+                append_category(category)
+
+                for option in category.options:
+                    append(i == python_input.selected_option_index,
+                           option.description, '%s' % option.get_current_value())
+                    i += 1
 
             tokens.pop()  # Remove last newline.
 
             return tokens
 
         super(PythonSidebar, self).__init__(
-            TokenListControl(get_tokens, Char(token=Token.Sidebar)),
+            TokenListControl(get_tokens, Char(token=Token.Sidebar),
+                has_focus=ShowSidebar(python_input) & ~IsDone()),
             width=LayoutDimension.exact(43),
+            height=LayoutDimension(min=3),
+            scroll_offset=1,
             filter=ShowSidebar(python_input) & ~IsDone())
 
 
@@ -149,7 +164,11 @@ class PythonPrompt(TokenListControl):
     """
     def __init__(self, python_input):
         def get_tokens(cli):
-            return [(Token.Layout.Prompt, 'In [%s]: ' % python_input.current_statement_index)]
+            return [
+                (Token.In, 'In ['),
+                (Token.In.Number, '%s' % python_input.current_statement_index),
+                (Token.In, ']: '),
+            ]
 
         super(PythonPrompt, self).__init__(get_tokens)
 
@@ -267,17 +286,20 @@ class ExitConfirmation(Window):
     """
     Display exit message.
     """
-    def __init__(self, python_input):
+    def __init__(self, python_input, token=Token.ExitConfirmation):
         def get_tokens(cli):
             return [
-                (Token.ExitConfirmation, '                                       \n'),
-                (Token.ExitConfirmation, ' Do you really want to exit   ([y]/n)? \n'),
-                (Token.ExitConfirmation, '                                       '),
+                (token, '\n Do you really want to exit? ([y]/n)'),
+                (Token.SetCursorPosition, ''),
+                (token, '  \n'),
             ]
 
+        visible = ~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation)
+
         super(ExitConfirmation, self).__init__(
-            TokenListControl(get_tokens),
-            filter=~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation))
+            TokenListControl(get_tokens, default_char=Char(token=token),
+                             has_focus=visible),
+            filter=visible)
 
 
 def create_layout(python_input, key_bindings_manager,

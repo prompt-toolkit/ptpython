@@ -48,8 +48,14 @@ def generate_style(python_style, ui_style):
 
 default_ui_style = {
         # (Python) Prompt: "In [1]:"
-        Token.Layout.Prompt:                          'bold #008800',
+        Token.In:                                     'bold #008800',
+        Token.In.Number:                              '',
 
+        # Return value.
+        Token.Out:                                    '#ff0000',
+        Token.Out.Number:                             '#ff0000',
+
+        # Separator between windows. (Used above docstring.)
         Token.Separator:                              '#bbbbbb',
 
         # Search toolbar.
@@ -84,17 +90,13 @@ default_ui_style = {
         # When Control-C has been pressed. Grayed.
         Token.Aborted:                                '#888888',
 
+        # The options sidebar.
         Token.Sidebar:                                'bg:#bbbbbb #000000',
-        Token.Sidebar.Title:                          'bg:#bbbbbb #000000 underline',
+        Token.Sidebar.Title:                          'bg:#888888 #ffffff underline',
         Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
         Token.Sidebar.Status:                         'bg:#dddddd #000011',
-
-        Token.Sidebar.Selected:                       'bg:#222222 #000000',
         Token.Sidebar.Selected.Label:                 'bg:#222222 #eeeeee',
         Token.Sidebar.Selected.Status:                'bg:#444444 #ffffff bold',
-
-        Token.Sidebar.Keys:                           'bg:#ffffff #222222',
-        Token.Sidebar.Keys.Description:               'bg:#cccccc #222222',
 
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#aa6666 #ffffff',

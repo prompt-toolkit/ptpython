@@ -9,13 +9,15 @@ Utility for creating a Python repl.
 """
 from __future__ import unicode_literals
 
-from pygments.lexers import PythonTracebackLexer
+from pygments.lexers import PythonTracebackLexer, PythonLexer
 from pygments.styles.default import DefaultStyle
+from pygments.token import Token
 
 from prompt_toolkit.application import AbortAction
-from prompt_toolkit.utils import DummyContext, Callback
-from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
 from prompt_toolkit.interface import AcceptAction, CommandLineInterface
+from prompt_toolkit.layout.utils import token_list_width
+from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
+from prompt_toolkit.utils import DummyContext, Callback
 
 from .python_input import PythonInput
 
@@ -105,7 +107,12 @@ class PythonRepl(PythonInput):
                 locals['_'] = locals['_%i' % self.current_statement_index] = result
 
                 if result is not None:
-                    out_mark = 'Out[%i]: ' % self.current_statement_index
+                    out_tokens = [
+                        (Token.Out, 'Out['),
+                        (Token.Out.Number, '%s' % self.current_statement_index),
+                        (Token.Out, ']:'),
+                        (Token, ' '),
+                    ]
 
                     try:
                         result_str = '%r\n' % (result, )
@@ -116,12 +123,13 @@ class PythonRepl(PythonInput):
                         # characters. Decode as utf-8 in that case.
                         result_str = '%s\n' % repr(result).decode('utf-8')
 
-                    # align every line to the first one
-                    line_sep = '\n' + ' ' * len(out_mark)
-                    out_string = out_mark + line_sep.join(result_str.splitlines())
+                    # Align every line to the first one.
+                    line_sep = '\n' + ' ' * token_list_width(out_tokens)
+                    result_str = line_sep.join(result_str.splitlines()) + '\n'
 
-                    output.write(out_string)
-                    output.write('\n')
+                    # Write output tokens.
+                    out_tokens.extend(_lex_python_result(result_str))
+                    cli.print_tokens(out_tokens)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, 'exec')
@@ -160,9 +168,18 @@ class PythonRepl(PythonInput):
         output.write('\rKeyboardInterrupt\n\n')
         output.flush()
 
+
 def _lex_python_traceback(tb):
+    " Return token list for traceback string. "
     lexer = PythonTracebackLexer()
     return lexer.get_tokens(tb)
+
+
+def _lex_python_result(tb):
+    " Return token list for Python string. "
+    lexer = PythonLexer()
+    return lexer.get_tokens(tb)
+
 
 def enable_deprecation_warnings():
     """

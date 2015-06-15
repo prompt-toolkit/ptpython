@@ -86,6 +86,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         (When not in Vi navigaton mode, and when multiline is enabled.)
         """
         b = event.current_buffer
+        empty_lines_required = python_input.accept_input_on_enter or 10000
 
         def at_the_end(b):
             """ we consider the cursor at the end when there is no text after
@@ -97,7 +98,8 @@ def load_python_bindings(key_bindings_manager, python_input):
             # In paste mode, always insert text.
             b.insert_text('\n')
 
-        elif at_the_end(b) and b.document.text.replace(' ', '').endswith('\n'):
+        elif at_the_end(b) and b.document.text.replace(' ', '').endswith(
+                    '\n' * (empty_lines_required - 1)):
             if b.validate():
                 # When the cursor is at the end, and we have an empty line:
                 # drop the empty lines, but return the value.
@@ -134,30 +136,30 @@ def load_sidebar_bindings(key_bindings_manager, python_input):
     @handle('k', filter=sidebar_visible)
     def _(event):
         " Go to previous option. "
-        python_input.selected_option = (
-            (python_input.selected_option - 1) % len(python_input.options))
+        python_input.selected_option_index = (
+            (python_input.selected_option_index - 1) % python_input.option_count)
 
     @handle(Keys.Down, filter=sidebar_visible)
     @handle(Keys.ControlN, filter=sidebar_visible)
     @handle('j', filter=sidebar_visible)
     def _(event):
         " Go to next option. "
-        python_input.selected_option = (
-            (python_input.selected_option + 1) % len(python_input.options))
+        python_input.selected_option_index = (
+            (python_input.selected_option_index + 1) % python_input.option_count)
 
     @handle(Keys.Right, filter=sidebar_visible)
     @handle('l', filter=sidebar_visible)
     @handle(' ', filter=sidebar_visible)
     def _(event):
         " Select next value for current option. "
-        option = python_input.options[python_input.selected_option]
+        option = python_input.selected_option
         option.activate_next()
 
     @handle(Keys.Left, filter=sidebar_visible)
     @handle('h', filter=sidebar_visible)
     def _(event):
         " Select previous value for current option. "
-        option = python_input.options[python_input.selected_option]
+        option = python_input.selected_option
         option.activate_previous()
 
     @handle(Keys.ControlC, filter=sidebar_visible)
