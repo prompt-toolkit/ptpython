@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.14: 2015-06-16
+---------------
+
+Fix:
+- Correct dependency for prompt_toolkit.
+
 0.13: 2015-06-15
 ---------------
 
