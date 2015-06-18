@@ -67,6 +67,9 @@ def configure(repl):
     # syntax errors.)
     repl.enable_input_validation = True
 
+    # Use this colorscheme for the code.
+    repl.use_code_colorscheme('pastie')
+
     # Install custom colorscheme named 'my-colorscheme' and use it.
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
     repl.use_ui_colorscheme('my-colorscheme')
