@@ -42,7 +42,7 @@ class IPythonPrompt(TokenListControl):
     def __init__(self, prompt_manager):
         def get_tokens(cli):
             text = prompt_manager.render('in', color=False, just=False)
-            return [(Token.Layout.Prompt, text)]
+            return [(Token.In, text)]
 
         super(IPythonPrompt, self).__init__(get_tokens)
 
