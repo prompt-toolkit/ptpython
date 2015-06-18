@@ -115,9 +115,19 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         """
         self._input_pipe.send(data)
 
-    def _print(self, *data, sep=' ', end='\n', file=None):
+    def _print(self, *data, **kw):
         """
+        _print(self, *data, sep=' ', end='\n', file=None)
+
         Alternative 'print' function that prints back into the SSH channel.
         """
+        # Pop keyword-only arguments. (We cannot use the syntax from the
+        # signature. Otherwise, Python2 will give a syntax error message when
+        # installing.)
+        sep = kw.pop('sep', ' ')
+        end = kw.pop('end', '\n')
+        file = kw.pop('end', None)
+        assert not kw, 'Too many keyword-only arguments'
+
         data = sep.join(map(str, data))
         self._chan.write(data + end)
