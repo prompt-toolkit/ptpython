@@ -357,7 +357,6 @@ class PythonInput(object):
                 simple_option('Confirm on exit', 'confirm_exit'),
                 simple_option('Input validation', 'enable_input_validation'),
                 Option('Accept input on enter', lambda: {
-                    '1': lambda: enable('accept_input_on_enter', 1),
                     '2': lambda: enable('accept_input_on_enter', 2),
                     '3': lambda: enable('accept_input_on_enter', 3),
                     '4': lambda: enable('accept_input_on_enter', 4),
