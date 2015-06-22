@@ -145,7 +145,13 @@ class PythonRepl(PythonInput):
         # Instead of just calling ``traceback.format_exc``, we take the
         # traceback and skip the bottom calls of this framework.
         t, v, tb = sys.exc_info()
-        tblist = traceback.extract_tb(tb)[3:]
+        tblist = traceback.extract_tb(tb)
+
+        for line_nr, tb_tuple in enumerate(tblist):
+            if tb_tuple[0] == '<stdin>':
+                tblist = tblist[line_nr:]
+                break
+
         l = traceback.format_list(tblist)
         if l:
             l.insert(0, "Traceback (most recent call last):\n")
