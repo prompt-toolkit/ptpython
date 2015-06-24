@@ -5,6 +5,8 @@ from pygments.style import Style
 from pygments.styles import get_style_by_name, get_all_styles
 from prompt_toolkit.styles import default_style_extensions
 
+import sys
+
 __all__ = (
     'get_all_code_styles',
     'get_all_ui_styles',
@@ -106,6 +108,16 @@ default_ui_style = {
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#884444 #ffffff',
 }
+
+
+# Some changes to get a bit more contrast on Windows consoles.
+# (They only support 16 colors.)
+if sys.platform == 'win32':
+    default_ui_style.update({
+        Token.Sidebar.Title:                          'bg:#228822 #ffffff underline',
+        Token.ExitConfirmation:                       'bg:#ff4444 #ffffff',
+        Token.Toolbar.Validation:                     'bg:#ff4444 #ffffff',
+    })
 
 
 blue_ui_style = {}
