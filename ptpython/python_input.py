@@ -53,19 +53,22 @@ class Option(object):
     Ptpython configuration option that can be shown and modified from the
     sidebar.
 
+    :param title: Text.
     :param description: Text.
     :param get_values: Callable that returns a dictionary mapping the
             possible values to callbacks that activate these value.
     :param get_current_value: Callable that returns the current, active value.
     """
-    def __init__(self, description, get_values, get_current_value):
+    def __init__(self, title, description, get_current_value, get_values):
+        assert isinstance(title, six.text_type)
         assert isinstance(description, six.text_type)
-        assert callable(get_values)
         assert callable(get_current_value)
+        assert callable(get_values)
 
+        self.title = title
         self.description = description
-        self.get_values = get_values
         self.get_current_value = get_current_value
+        self.get_values = get_values
 
     @property
     def values(self):
@@ -163,6 +166,7 @@ class PythonInput(object):
                                             # with the current input.
 
         self.show_sidebar = False  # Currently show the sidebar.
+        self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
         self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
 
@@ -317,17 +321,22 @@ class PythonInput(object):
             setattr(self, attribute, False)
             return True
 
-        def simple_option(description, field_name, values=None):
+        def simple_option(title, description, field_name, values=None):
             " Create Simple on/of option. "
             values = values or ['off', 'on']
 
-            def current_value():
+            def get_current_value():
                 return values[bool(getattr(self, field_name))]
 
-            return Option(description, lambda: {
-                values[1]: lambda: enable(field_name),
-                values[0]: lambda: disable(field_name),
-            }, current_value)
+            def get_values():
+                return {
+                    values[1]: lambda: enable(field_name),
+                    values[0]: lambda: disable(field_name),
+                }
+
+            return Option(title=title, description=description,
+                          get_values=get_values,
+                          get_current_value=get_current_value)
 
         def get_completion_menu_value():
             " Return active value for the 'completion menu' option. "
@@ -340,43 +349,85 @@ class PythonInput(object):
 
         return [
             OptionCategory('Input', [
-                simple_option('Input mode', 'vi_mode', values=['emacs', 'vi']),
-                simple_option('Paste mode', 'paste_mode'),
-                Option('Completion menu', lambda: {
-                    'off': lambda: disable('show_completions_menu') and disable('show_completions_toolbar'),
-                    'pop-up': lambda: enable('show_completions_menu') and disable('show_completions_toolbar'),
-                    'toolbar': lambda: enable('show_completions_toolbar') and disable('show_completions_menu'),
-                }, get_completion_menu_value),
-                Option('Complete while typing', lambda: {
-                    'on': lambda: enable('complete_while_typing') and disable('enable_history_search'),
-                    'off': lambda: disable('complete_while_typing'),
-                }, lambda: ['off', 'on'][self.complete_while_typing]),
-                Option('History search', lambda: {
-                    'on': lambda: enable('enable_history_search') and disable('complete_while_typing'),
-                    'off': lambda: disable('enable_history_search'),
-                }, lambda: ['off', 'on'][self.enable_history_search]),
-                simple_option('Confirm on exit', 'confirm_exit'),
-                simple_option('Input validation', 'enable_input_validation'),
-                Option('Accept input on enter', lambda: {
-                    '2': lambda: enable('accept_input_on_enter', 2),
-                    '3': lambda: enable('accept_input_on_enter', 3),
-                    '4': lambda: enable('accept_input_on_enter', 4),
-                    'meta-enter': lambda: enable('accept_input_on_enter', None),
-                }, lambda: str(self.accept_input_on_enter or 'meta-enter')),
+                simple_option(title='Input mode',
+                              description='Vi or emacs key bindings.',
+                              field_name='vi_mode',
+                              values=['emacs', 'vi']),
+                simple_option(title='Paste mode',
+                              description="When enabled, don't indent automatically.",
+                              field_name='paste_mode'),
+                Option(title='Complete while typing',
+                       description="Generate autocompletions automatically while typing. "
+                                   'Don\'t require pressing TAB. (Not compatible with "History search".)',
+                       get_current_value=lambda: ['off', 'on'][self.complete_while_typing],
+                       get_values=lambda: {
+                           'on': lambda: enable('complete_while_typing') and disable('enable_history_search'),
+                           'off': lambda: disable('complete_while_typing'),
+                       }),
+                Option(title='History search',
+                       description='When pressing the up-arrow, filter the history on input starting '
+                                   'with the current text. (Not compatible with "Complete while typing".)',
+                       get_current_value=lambda: ['off', 'on'][self.enable_history_search],
+                       get_values=lambda: {
+                           'on': lambda: enable('enable_history_search') and disable('complete_while_typing'),
+                           'off': lambda: disable('enable_history_search'),
+                       }),
+                simple_option(title='Confirm on exit',
+                              description='Require confirmation when exiting.',
+                              field_name='confirm_exit'),
+                simple_option(title='Input validation',
+                              description='In case of syntax errors, move the cursor to the error '
+                                          'instead of showing a traceback of a SyntaxError.',
+                              field_name='enable_input_validation'),
+                Option(title='Accept input on enter',
+                       description='Amount of ENTER presses required to execute input when the cursor '
+                                   'is at the end of the input. (Note that META+ENTER will always execute.)',
+                       get_current_value=lambda: str(self.accept_input_on_enter or 'meta-enter'),
+                       get_values=lambda: {
+                           '2': lambda: enable('accept_input_on_enter', 2),
+                           '3': lambda: enable('accept_input_on_enter', 3),
+                           '4': lambda: enable('accept_input_on_enter', 4),
+                           'meta-enter': lambda: enable('accept_input_on_enter', None),
+                       }),
             ]),
             OptionCategory('Display', [
-                simple_option('Show signature', 'show_signature'),
-                simple_option('Show docstring', 'show_docstring'),
-                simple_option('Show line numbers', 'show_line_numbers'),
-                simple_option('Show status bar', 'show_status_bar'),
+                Option(title='Completion menu',
+                       description='Visualisation to use for displaying the completions.',
+                       get_current_value=get_completion_menu_value,
+                       get_values=lambda: {
+                           'off': lambda: disable('show_completions_menu') and disable('show_completions_toolbar'),
+                           'pop-up': lambda: enable('show_completions_menu') and disable('show_completions_toolbar'),
+                           'toolbar': lambda: enable('show_completions_toolbar') and disable('show_completions_menu'),
+                       }),
+                simple_option(title='Show signature',
+                              description='Display function signatures.',
+                              field_name='show_signature'),
+                simple_option(title='Show docstring',
+                              description='Display function docstrings.',
+                              field_name='show_docstring'),
+                simple_option(title='Show line numbers',
+                              description='Show line numbers when the input consists of multiple lines.',
+                              field_name='show_line_numbers'),
+                simple_option(title='Show status bar',
+                              description='Show the status bar at the bottom of the terminal.',
+                              field_name='show_status_bar'),
+                simple_option(title='Show sidebar help',
+                              description='When the sidebar is visible, also show this help text.',
+                              field_name='show_sidebar_help'),
             ]),
             OptionCategory('Colors', [
-                Option('Code', lambda: {
-                    name: partial(self.use_code_colorscheme, name) for name in self.code_styles
-                }, lambda: self._current_code_style_name),
-                Option('User interface', lambda: {
-                    name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
-                }, lambda: self._current_ui_style_name),
+                Option(title='Code',
+                       description='Color scheme to use for the Python code.',
+                       get_current_value=lambda: self._current_code_style_name,
+                       get_values=lambda: {
+                           name: partial(self.use_code_colorscheme, name) for name in self.code_styles
+                       }),
+                Option(title='User interface',
+                       description='Color scheme to use for the user interface.',
+                       get_current_value=lambda: self._current_ui_style_name,
+                       get_values=lambda: {
+                           name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
+                       }),
             ]),
         ]
 

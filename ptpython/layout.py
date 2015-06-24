@@ -63,7 +63,7 @@ class PythonSidebar(Window):
 
                 for option in category.options:
                     append(i == python_input.selected_option_index,
-                           option.description, '%s' % option.get_current_value())
+                           option.title, '%s' % option.get_current_value())
                     i += 1
 
             tokens.pop()  # Remove last newline.
@@ -108,6 +108,35 @@ class PythonSidebarNavigation(Window):
             width=LayoutDimension.exact(43),
             height=LayoutDimension.exact(2),
             filter=ShowSidebar(python_input) & ~IsDone())
+
+
+class PythonSidebarHelp(Window):
+    """
+    Help text for the current item in the sidebar.
+    """
+    def __init__(self, python_input):
+        token = Token.Sidebar.HelpText
+
+        def get_current_description():
+            """
+            Return the description of the selected option.
+            """
+            i = 0
+            for category in python_input.options:
+                for option in category.options:
+                    if i == python_input.selected_option_index:
+                        return option.description
+                    i += 1
+            return ''
+
+        def get_tokens(cli):
+            return [(token, get_current_description())]
+
+        super(PythonSidebarHelp, self).__init__(
+            TokenListControl(get_tokens, Char(token=token)),
+            height=LayoutDimension(min=3),
+            filter=ShowSidebar(python_input) &
+                   Condition(lambda cli: python_input.show_sidebar_help) & ~IsDone())
 
 
 class SignatureToolbar(Window):
@@ -371,6 +400,7 @@ def create_layout(python_input, key_bindings_manager,
                         Float(left=2,
                               bottom=1,
                               content=ExitConfirmation(python_input)),
+                        Float(bottom=1, left=1, right=0, content=PythonSidebarHelp(python_input)),
                     ]),
                 ArgToolbar(),
                 SearchToolbar(),

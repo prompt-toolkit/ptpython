@@ -101,6 +101,7 @@ default_ui_style = {
         Token.Sidebar.Separator:                      'bg:#bbbbbb #ffffff underline',
         Token.Sidebar.Key:                            'bg:#bbddbb #000000 bold',
         Token.Sidebar.Key.Description:                'bg:#bbbbbb #000000',
+        Token.Sidebar.HelpText:                       'bg:#bbeebb #000000',
 
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#884444 #ffffff',

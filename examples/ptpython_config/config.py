@@ -34,6 +34,9 @@ def configure(repl):
     # Show status bar.
     repl.show_status_bar = True
 
+    # When the sidebar is visible, also show the help text.
+    repl.show_sidebar_help = True
+
     # Complete while typing. (Don't require tab before the
     # completion menu is shown.)
     repl.complete_while_typing = True
