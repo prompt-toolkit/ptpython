@@ -244,7 +244,7 @@ def run_config(repl, config_file='~/.ptpython/config.py'):
 
 
 def embed(globals=None, locals=None, configure=None,
-          vi_mode=False, history_filename=None,
+          vi_mode=False, history_filename=None, title=None,
           startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
     """
     Call this to embed  Python shell at the current point in your program.
@@ -256,6 +256,7 @@ def embed(globals=None, locals=None, configure=None,
     :param vi_mode: Boolean. Use Vi instead of Emacs key bindings.
     :param configure: Callable that will be called with the `PythonRepl` as a first
                       argument, to trigger configuration.
+    :param title: Title to be displayed in the terminal titlebar. (None or string.)
     """
     assert configure is None or callable(configure)
 
@@ -286,6 +287,9 @@ def embed(globals=None, locals=None, configure=None,
     repl = PythonRepl(get_globals, get_locals, vi_mode=vi_mode,
                       history_filename=history_filename,
                       startup_paths=startup_paths)
+
+    if title:
+        repl.terminal_title = title
 
     if configure:
         configure(repl)

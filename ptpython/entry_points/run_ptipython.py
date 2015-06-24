@@ -58,10 +58,11 @@ def run():
                 run_config(repl, path)
 
         # Run interactive shell.
-        embed(vi_mode=vi_mode, 
+        embed(vi_mode=vi_mode,
               history_filename=os.path.join(config_dir, 'history'),
               configure=configure,
-              user_ns=user_ns)
+              user_ns=user_ns,
+              title='IPython REPL (ptipython)')
 
 
 if __name__ == '__main__':

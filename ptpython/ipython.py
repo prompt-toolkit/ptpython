@@ -169,6 +169,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
         vi_mode = kw.pop('vi_mode', False)
         history_filename = kw.pop('history_filename', None)
         configure = kw.pop('configure', None)
+        title = kw.pop('title', None)
 
         super(InteractiveShellEmbed, self).__init__(*a, **kw)
 
@@ -180,6 +181,9 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
             self,
             get_globals=get_globals, vi_mode=vi_mode,
             history_filename=history_filename)
+
+        if title:
+            ipython_input.terminal_title = title
 
         if configure:
             configure(ipython_input)

@@ -65,7 +65,8 @@ def run():
         embed(vi_mode=vi_mode,
               history_filename=os.path.join(config_dir, 'history'),
               configure=configure,
-              startup_paths=startup_paths)
+              startup_paths=startup_paths,
+              title='Python REPL (ptpython)')
 
 if __name__ == '__main__':
     run()

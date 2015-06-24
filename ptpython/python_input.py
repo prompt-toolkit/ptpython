@@ -164,6 +164,7 @@ class PythonInput(object):
 
         self.show_sidebar = False  # Currently show the sidebar.
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
+        self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
@@ -402,6 +403,7 @@ class PythonInput(object):
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
             get_style=lambda: self._current_style,
+            get_title=lambda: self.terminal_title,
             on_start=self._on_start,
             on_input_timeout=Callback(self._on_input_timeout))
 
