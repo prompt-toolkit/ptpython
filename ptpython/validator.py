@@ -21,6 +21,11 @@ class PythonValidator(Validator):
         """
         Check input for Python syntax errors.
         """
+        # When the input starts with Ctrl-Z, always accept. This means EOF in a
+        # Python REPL.
+        if document.text.startswith('\x1a'):
+            return
+
         try:
             if self.get_compiler_flags:
                 flags = self.get_compiler_flags()

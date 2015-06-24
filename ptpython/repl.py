@@ -94,7 +94,11 @@ class PythonRepl(PythonInput):
                            flags=self.get_compiler_flags(),
                            dont_inherit=True)
 
-        if line[0:1] == '!':
+        if line.lstrip().startswith('\x1a'):
+            # When the input starts with Ctrl-Z, quit the REPL.
+            cli.set_return_value(None)
+
+        elif line.lstrip().startswith('!'):
             # Run as shell command
             os.system(line[1:])
         else:
