@@ -90,12 +90,15 @@ class PythonSidebarNavigation(Window):
 
             # Show navigation info.
             tokens.extend([
-                (T, '     '),
-                (T.Keys, '[Arrows]'),
-                (T.Keys.Description, 'Navigate'),
+                (T.Separator , ' ' * 43 + '\n'),
+                (T, '    '),
+                (T.Key, '[Arrows]'),
                 (T, ' '),
-                (T.Keys, '[Enter]'),
-                (T.Keys.Description, 'Hide menu'),
+                (T.Key.Description, 'Navigate'),
+                (T, ' '),
+                (T.Key, '[Enter]'),
+                (T, ' '),
+                (T.Key.Description, 'Hide menu'),
             ])
 
             return tokens
@@ -103,7 +106,7 @@ class PythonSidebarNavigation(Window):
         super(PythonSidebarNavigation, self).__init__(
             TokenListControl(get_tokens, Char(token=Token.Sidebar)),
             width=LayoutDimension.exact(43),
-            height=LayoutDimension.exact(1),
+            height=LayoutDimension.exact(2),
             filter=ShowSidebar(python_input) & ~IsDone())
 
 

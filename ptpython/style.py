@@ -92,14 +92,18 @@ default_ui_style = {
 
         # The options sidebar.
         Token.Sidebar:                                'bg:#bbbbbb #000000',
-        Token.Sidebar.Title:                          'bg:#888888 #ffffff underline',
+        Token.Sidebar.Title:                          'bg:#668866 #ffffff underline',
         Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
         Token.Sidebar.Status:                         'bg:#dddddd #000011',
         Token.Sidebar.Selected.Label:                 'bg:#222222 #eeeeee',
         Token.Sidebar.Selected.Status:                'bg:#444444 #ffffff bold',
 
+        Token.Sidebar.Separator:                      'bg:#bbbbbb #ffffff underline',
+        Token.Sidebar.Key:                            'bg:#bbddbb #000000 bold',
+        Token.Sidebar.Key.Description:                'bg:#bbbbbb #000000',
+
         # Exit confirmation.
-        Token.ExitConfirmation:                       'bg:#aa6666 #ffffff',
+        Token.ExitConfirmation:                       'bg:#884444 #ffffff',
 }
 
 
