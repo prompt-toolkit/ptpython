@@ -1,6 +1,23 @@
 CHANGELOG
 =========
 
+0.16: 2015-06-25
+---------------
+
+Upgrade to prompt_toolkit 0.42
+
+Fixes:
+- Workaround for Jedi bug. (Signatures of functions with keyword-only arguments.)
+- Correctly show traceback on Python 3.
+- Better styling of the options sidebar.
+
+New features:
+- Exit REPL when input starts with Control-Z.
+- Set terminal title.
+- Display help text in options sidebar.
+- Better colorscheme for Windows.
+
+
 0.15: 2015-06-20
 ---------------
 
