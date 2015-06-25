@@ -160,12 +160,19 @@ class SignatureToolbar(Window):
                 append((Signature.Operator, '('))
 
                 for i, p in enumerate(sig.params):
-                    if i == sig.index:
+                    # Workaround for #47: 'p' is None when we hit the '*' in the signature.
+                    #                     and sig has no 'index' attribute.
+                    # See: https://github.com/jonathanslenders/ptpython/issues/47
+                    #      https://github.com/davidhalter/jedi/issues/598
+                    description = (p.description if p else '*') #or '*'
+                    sig_index = getattr(sig, 'index', 0)
+
+                    if i == sig_index:
                         # Note: we use `_Param.description` instead of
                         #       `_Param.name`, that way we also get the '*' before args.
-                        append((Signature.CurrentName, str(p.description)))
+                        append((Signature.CurrentName, str(description)))
                     else:
-                        append((Signature, str(p.description)))
+                        append((Signature, str(description)))
                     append((Signature.Operator, ', '))
 
                 if sig.params:

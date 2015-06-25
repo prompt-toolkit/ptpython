@@ -516,6 +516,18 @@ class PythonInput(object):
                     # of probably bugs in jedi. We can silence them.
                     # See: https://github.com/davidhalter/jedi/issues/492
                     signatures = []
+                else:
+                    # Try to access the params attribute just once. For Jedi
+                    # signatures containing the keyword-only argument star,
+                    # this will crash when retrieving it the first time with
+                    # AttributeError. Every following time it works.
+                    # See: https://github.com/jonathanslenders/ptpython/issues/47
+                    #      https://github.com/davidhalter/jedi/issues/598
+                    try:
+                        if signatures:
+                            signatures[0].params
+                    except AttributeError:
+                        pass
             else:
                 signatures = []
 
