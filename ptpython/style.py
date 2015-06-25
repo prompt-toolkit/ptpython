@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from pygments.token import Token
+from pygments.token import Token, Keyword, Name, Comment, String, Operator, Number
 from pygments.style import Style
 from pygments.styles import get_style_by_name, get_all_styles
 from prompt_toolkit.styles import default_style_extensions
@@ -18,7 +18,9 @@ def get_all_code_styles():
     """
     Return a mapping from style names to their classes.
     """
-    return dict((name, get_style_by_name(name).styles) for name in get_all_styles())
+    result = dict((name, get_style_by_name(name).styles) for name in get_all_styles())
+    result['win32'] = win32_code_style
+    return result
 
 
 def get_all_ui_styles():
@@ -46,6 +48,32 @@ def generate_style(python_style, ui_style):
         styles.update(ui_style)
 
     return PythonStyle
+
+
+# Code style for Windows consoles. They support only 16 colors,
+# so we choose a combination that displays nicely.
+win32_code_style = {
+    Comment:                   "#00ff00",
+    Keyword:                   '#44ff44',
+    Number:                    '',
+    Operator:                  '',
+    String:                    '#ff44ff',
+
+    Name:                      '',
+    Name.Decorator:            '#ff4444',
+    Name.Class:                '#ff4444',
+    Name.Function:             '#ff4444',
+    Name.Builtin:              '#ff4444',
+
+    Name.Attribute:            '',
+    Name.Constant:             '',
+    Name.Entity:               '',
+    Name.Exception:            '',
+    Name.Label:                '',
+    Name.Namespace:            '',
+    Name.Tag:                  '',
+    Name.Variable:             '',
+}
 
 
 default_ui_style = {
@@ -114,7 +142,7 @@ default_ui_style = {
 # (They only support 16 colors.)
 if sys.platform == 'win32':
     default_ui_style.update({
-        Token.Sidebar.Title:                          'bg:#228822 #ffffff underline',
+        Token.Sidebar.Title:                          'bg:#00ff00 #ffffff',
         Token.ExitConfirmation:                       'bg:#ff4444 #ffffff',
         Token.Toolbar.Validation:                     'bg:#ff4444 #ffffff',
     })

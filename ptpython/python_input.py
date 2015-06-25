@@ -31,6 +31,7 @@ from pygments.lexers import PythonLexer
 from functools import partial
 
 import six
+import sys
 import __future__
 
 
@@ -175,6 +176,10 @@ class PythonInput(object):
         self.ui_styles = get_all_ui_styles()
         self._current_code_style_name = 'default'
         self._current_ui_style_name = 'default'
+
+        if sys.platform == 'win32':
+            self._current_code_style_name = 'win32'
+
         self._current_style = self._generate_style()
 
         # Options to be configurable from the sidebar.
