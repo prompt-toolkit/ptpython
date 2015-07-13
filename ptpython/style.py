@@ -91,7 +91,6 @@ default_ui_style = {
         # Search toolbar.
         Token.Toolbar.Search:                         '#22aaaa noinherit',
         Token.Toolbar.Search.Text:                    'noinherit',
-        Token.Toolbar.Search.Text.NoMatch:            'bg:#aa4444 #ffffff',
 
         # System toolbar
         Token.Toolbar.System.Prefix:                  '#22aaaa noinherit',
