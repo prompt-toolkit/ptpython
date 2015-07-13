@@ -16,10 +16,11 @@ from pygments.token import Token
 from prompt_toolkit.application import AbortAction
 from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 from prompt_toolkit.layout.utils import token_list_width
-from prompt_toolkit.shortcuts import create_eventloop, create_asyncio_eventloop
+from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.utils import DummyContext, Callback
 
 from .python_input import PythonInput
+from .eventloop import create_eventloop
 
 import os
 import six

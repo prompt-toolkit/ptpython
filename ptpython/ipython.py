@@ -18,9 +18,9 @@ from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.controls import TokenListControl
-from prompt_toolkit.shortcuts import create_eventloop
 
-from ptpython.python_input import PythonInput, PythonValidator, PythonCompleter
+from .python_input import PythonInput, PythonValidator, PythonCompleter
+from .eventloop import create_eventloop
 
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
 from IPython.terminal.ipapp import load_default_config
