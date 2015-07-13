@@ -6,6 +6,7 @@ Copy this file to ~/.ptpython/config.py
 from __future__ import unicode_literals
 from prompt_toolkit.keys import Keys
 from pygments.token import Token
+from ptpython.layout import CompletionVisualisation
 
 __all__ = (
     'configure',
@@ -24,9 +25,8 @@ def configure(repl):
     # Show docstring (bool).
     repl.show_docstring = False
 
-    # Show completions.
-    repl.show_completions_menu = True
-    repl.show_completions_toolbar = False
+    # Show completions. (NONE, POP_UP, MULTI_COLUMN or TOOLBAR)
+    repl.completion_visualisation = CompletionVisualisation.MULTI_COLUMN
 
     # Show line numbers (when the input contains multiple lines.)
     repl.show_line_numbers = True

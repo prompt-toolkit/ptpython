@@ -5,8 +5,6 @@ from prompt_toolkit.filters import Filter
 __all__ = (
     'ShowLineNumbersFilter',
     'HasSignature',
-    'ShowCompletionsToolbar',
-    'ShowCompletionsMenu',
     'ShowSidebar',
     'ShowDocstring',
 )
@@ -29,17 +27,6 @@ class ShowLineNumbersFilter(PythonInputFilter):
 class HasSignature(PythonInputFilter):
     def __call__(self, cli):
         return bool(self.python_input.signatures)
-
-
-class ShowCompletionsToolbar(PythonInputFilter):
-    def __call__(self, cli):
-        return self.python_input.show_completions_toolbar
-
-
-class ShowCompletionsMenu(PythonInputFilter):
-    def __call__(self, cli):
-        return self.python_input.show_completions_menu and \
-            cli.focus_stack.current == 'default'
 
 
 class ShowSidebar(PythonInputFilter):

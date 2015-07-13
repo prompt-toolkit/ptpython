@@ -6,14 +6,14 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
-from prompt_toolkit.layout.menus import CompletionsMenu
+from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, ConditionalProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.selection import SelectionType
 
-from ptpython.filters import HasSignature, ShowCompletionsMenu, ShowCompletionsToolbar, ShowSidebar, ShowLineNumbersFilter, ShowSignature, ShowDocstring
+from ptpython.filters import HasSignature, ShowSidebar, ShowLineNumbersFilter, ShowSignature, ShowDocstring
 
 from pygments.lexers import PythonLexer
 from pygments.token import Token
@@ -23,7 +23,28 @@ import sys
 
 __all__ = (
     'create_layout',
+    'CompletionVisualisation',
 )
+
+
+class CompletionVisualisation:
+    " Visualisation method for the completions. "
+    NONE = 'none'
+    POP_UP = 'pop-up'
+    MULTI_COLUMN = 'multi-column'
+    TOOLBAR = 'toolbar'
+
+
+def show_completions_toolbar(python_input):
+    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.TOOLBAR)
+
+
+def show_completions_menu(python_input):
+    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.POP_UP)
+
+
+def show_multi_column_completions_menu(python_input):
+    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.MULTI_COLUMN)
 
 
 class PythonSidebar(Window):
@@ -190,7 +211,8 @@ class SignatureToolbar(Window):
                 # Show only when there is a signature
                 HasSignature(python_input) &
                 # And there are no completions to be shown. (would cover signature pop-up.)
-                (~HasCompletions() | ~ShowCompletionsMenu(python_input))
+                ~(HasCompletions() & (show_completions_menu(python_input) |
+                                       show_multi_column_completions_menu(python_input)))
                 # Signature needs to be shown.
                 & ShowSignature(python_input) &
                 # Not done yet.
@@ -400,7 +422,11 @@ def create_layout(python_input, key_bindings_manager,
                               ycursor=True,
                               content=CompletionsMenu(
                                   max_height=12,
-                                  extra_filter=ShowCompletionsMenu(python_input))),
+                                  extra_filter=show_completions_menu(python_input))),
+                        Float(xcursor=True,
+                              ycursor=True,
+                              content=MultiColumnCompletionsMenu(
+                                  extra_filter=show_multi_column_completions_menu(python_input))),
                         Float(xcursor=True,
                               ycursor=True,
                               content=SignatureToolbar(python_input)),
@@ -413,7 +439,7 @@ def create_layout(python_input, key_bindings_manager,
                 SearchToolbar(),
                 SystemToolbar(),
                 ValidationToolbar(),
-                CompletionsToolbar(extra_filter=ShowCompletionsToolbar(python_input)),
+                CompletionsToolbar(extra_filter=show_completions_toolbar(python_input)),
 
                 # Docstring region.
                 Window(height=D.exact(1),

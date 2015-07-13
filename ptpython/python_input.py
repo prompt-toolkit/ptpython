@@ -22,7 +22,7 @@ from prompt_toolkit.validation import SwitchableValidator
 
 from ptpython.completer import PythonCompleter
 from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
-from ptpython.layout import PythonPrompt, create_layout
+from ptpython.layout import PythonPrompt, create_layout, CompletionVisualisation
 from ptpython.style import get_all_code_styles, get_all_ui_styles, generate_style
 from ptpython.utils import get_jedi_script_from_document, document_is_multiline_python
 from ptpython.validator import PythonValidator
@@ -39,6 +39,7 @@ __all__ = (
     'PythonInput',
     'PythonCommandLineInterface',
 )
+
 
 class OptionCategory(object):
     def __init__(self, title, options):
@@ -150,6 +151,8 @@ class PythonInput(object):
         self.show_docstring = False
         self.show_completions_toolbar = False
         self.show_completions_menu = True
+        self.completion_visualisation = CompletionVisualisation.POP_UP
+
         self.show_line_numbers = True
         self.show_status_bar = True
         self.complete_while_typing = True
@@ -343,15 +346,6 @@ class PythonInput(object):
                           get_values=get_values,
                           get_current_value=get_current_value)
 
-        def get_completion_menu_value():
-            " Return active value for the 'completion menu' option. "
-            if self.show_completions_menu:
-                return 'pop-up'
-            elif self.show_completions_toolbar:
-                return 'toolbar'
-            else:
-                return 'off'
-
         return [
             OptionCategory('Input', [
                 simple_option(title='Input mode',
@@ -396,13 +390,14 @@ class PythonInput(object):
                        }),
             ]),
             OptionCategory('Display', [
-                Option(title='Completion menu',
-                       description='Visualisation to use for displaying the completions.',
-                       get_current_value=get_completion_menu_value,
+                Option(title='Completions',
+                       description='Visualisation to use for displaying the completions. (Multiple columns, one column, a toolbar or nothing.)',
+                       get_current_value=lambda: self.completion_visualisation,
                        get_values=lambda: {
-                           'off': lambda: disable('show_completions_menu') and disable('show_completions_toolbar'),
-                           'pop-up': lambda: enable('show_completions_menu') and disable('show_completions_toolbar'),
-                           'toolbar': lambda: enable('show_completions_toolbar') and disable('show_completions_menu'),
+                           CompletionVisualisation.NONE: lambda: enable('completion_visualisation', CompletionVisualisation.NONE),
+                           CompletionVisualisation.POP_UP: lambda: enable('completion_visualisation', CompletionVisualisation.POP_UP),
+                           CompletionVisualisation.MULTI_COLUMN: lambda: enable('completion_visualisation', CompletionVisualisation.MULTI_COLUMN),
+                           CompletionVisualisation.TOOLBAR: lambda: enable('completion_visualisation', CompletionVisualisation.TOOLBAR),
                        }),
                 simple_option(title='Show signature',
                               description='Display function signatures.',
