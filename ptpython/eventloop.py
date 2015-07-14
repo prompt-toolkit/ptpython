@@ -9,6 +9,7 @@ will fix it for Tk.)
 """
 from prompt_toolkit.shortcuts import create_eventloop as _create_eventloop
 import sys
+import time
 
 __all__ = (
     'create_eventloop',
@@ -19,11 +20,16 @@ def _inputhook_tk(inputhook_context):
     Inputhook for Tk.
     Run the Tk eventloop until prompt-toolkit needs to process the next input.
     """
-    import _tkinter, Tkinter  # Keep this imports inline!
+    # Get the current TK application.
+    import _tkinter  # Keep this imports inline!
+    from six.moves import tkinter
+    root = tkinter._default_root
 
-    root = Tkinter._default_root
-
-    if root is not None:
+    def wait_using_filehandler():
+        """
+        Run the TK eventloop until the file handler that we got from the
+        inputhook becomes readable.
+        """
         # Add a handler that sets the stop flag when `prompt-toolkit` has input
         # to process.
         stop = [False]
@@ -39,10 +45,28 @@ def _inputhook_tk(inputhook_context):
 
         root.deletefilehandler(inputhook_context.fileno())
 
+    def wait_using_polling():
+        """
+        Windows TK doesn't support 'createfilehandler'.
+        So, run the TK eventloop and poll until input is ready.
+        """
+        while not inputhook_context.input_is_ready():
+            while root.dooneevent(_tkinter.ALL_EVENTS | _tkinter.DONT_WAIT):
+                 pass
+            # Sleep to make the CPU idle, but not too long, so that the UI
+            # stays responsive.
+            time.sleep(.01)
+
+    if root is not None:
+        if hasattr(root, 'createfilehandler'):
+            wait_using_filehandler()
+        else:
+            wait_using_polling()
+
 
 def _inputhook(inputhook_context):
     # Only call the real input hook when the 'Tkinter' library was loaded.
-    if 'Tkinter' in  sys.modules:
+    if 'Tkinter' in sys.modules or 'tkinter' in sys.modules:
         _inputhook_tk(inputhook_context)
 
 
