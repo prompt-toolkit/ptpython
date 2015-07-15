@@ -419,15 +419,15 @@ class PythonInput(object):
                 Option(title='Code',
                        description='Color scheme to use for the Python code.',
                        get_current_value=lambda: self._current_code_style_name,
-                       get_values=lambda: {
-                           name: partial(self.use_code_colorscheme, name) for name in self.code_styles
-                       }),
+                       get_values=lambda: dict(
+                            (name, partial(self.use_code_colorscheme, name)) for name in self.code_styles)
+                       ),
                 Option(title='User interface',
                        description='Color scheme to use for the user interface.',
                        get_current_value=lambda: self._current_ui_style_name,
-                       get_values=lambda: {
-                           name: partial(self.use_ui_colorscheme, name) for name in self.ui_styles
-                       }),
+                       get_values=lambda: dict(
+                            (name, partial(self.use_ui_colorscheme, name)) for name in self.ui_styles)
+                       ),
             ]),
         ]
 
