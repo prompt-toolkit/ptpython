@@ -1,6 +1,8 @@
 ptpython: a better Python REPL
 ==============================
 
+|Build Status|
+
 .. image:: https://pypip.in/version/ptpython/badge.svg
     :target: https://pypi.python.org/pypi/ptpython/
     :alt: Latest Version
@@ -169,6 +171,9 @@ Special thanks to
 - `Docopt <http://docopt.org/>`_: Command-line interface description language.
 - `wcwidth <https://github.com/jquast/wcwidth>`_: Determine columns needed for a wide characters.
 - `prompt_toolkit <http://github.com/jonathanslenders/python-prompt-toolkit>`_ for the interface.
+
+.. |Build Status| image:: https://api.travis-ci.org/jonathanslenders/ptpython.svg?branch=master
+    :target: https://travis-ci.org/jonathanslenders/ptpython#
 
 .. |PyPI| image:: https://pypip.in/version/prompt-toolkit/badge.svg
     :target: https://pypi.python.org/pypi/prompt-toolkit/
