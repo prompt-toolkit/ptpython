@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.17: 2015-07-15
+---------------
+
+Upgrade to prompt_toolkit 0.43
+
+New features:
+- Integration with Tk eventloop. (This makes turtle and other Tk stuff work
+  again from the REPL.)
+- Multi column completion visualisation.
+
+
 0.16: 2015-06-25
 ---------------
 
