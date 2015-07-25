@@ -149,8 +149,6 @@ class PythonInput(object):
         # Settings.
         self.show_signature = True
         self.show_docstring = False
-        self.show_completions_toolbar = False
-        self.show_completions_menu = True
         self.completion_visualisation = CompletionVisualisation.POP_UP
 
         self.show_line_numbers = True
