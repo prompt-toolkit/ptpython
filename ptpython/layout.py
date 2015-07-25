@@ -11,6 +11,7 @@ from prompt_toolkit.layout.processors import HighlightSearchProcessor, Highlight
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
+from prompt_toolkit.reactive import Integer
 from prompt_toolkit.selection import SelectionType
 
 from ptpython.filters import HasSignature, ShowSidebar, ShowLineNumbersFilter, ShowSignature, ShowDocstring
@@ -421,6 +422,8 @@ def create_layout(python_input, key_bindings_manager,
                         Float(xcursor=True,
                               ycursor=True,
                               content=CompletionsMenu(
+                                  scroll_offset=Integer.from_callable(
+                                      lambda: python_input.completion_menu_scroll_offset),
                                   max_height=12,
                                   extra_filter=show_completions_menu(python_input))),
                         Float(xcursor=True,
