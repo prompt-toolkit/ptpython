@@ -4,6 +4,7 @@ from pygments.token import Token, Keyword, Name, Comment, String, Operator, Numb
 from pygments.style import Style
 from pygments.styles import get_style_by_name, get_all_styles
 from prompt_toolkit.styles import default_style_extensions
+from prompt_toolkit.utils import is_windows, is_conemu_ansi
 
 import sys
 
@@ -139,7 +140,7 @@ default_ui_style = {
 
 # Some changes to get a bit more contrast on Windows consoles.
 # (They only support 16 colors.)
-if sys.platform == 'win32':
+if is_windows() and not is_conemu_ansi():
     default_ui_style.update({
         Token.Sidebar.Title:                          'bg:#00ff00 #ffffff',
         Token.ExitConfirmation:                       'bg:#ff4444 #ffffff',

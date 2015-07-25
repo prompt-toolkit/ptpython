@@ -17,7 +17,7 @@ from prompt_toolkit.filters import Condition, Always
 from prompt_toolkit.history import FileHistory, History
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
 from prompt_toolkit.key_binding.manager import KeyBindingManager
-from prompt_toolkit.utils import Callback
+from prompt_toolkit.utils import Callback, is_windows
 from prompt_toolkit.validation import SwitchableValidator
 
 from ptpython.completer import PythonCompleter
@@ -178,7 +178,7 @@ class PythonInput(object):
         self._current_code_style_name = 'default'
         self._current_ui_style_name = 'default'
 
-        if sys.platform == 'win32':
+        if is_windows():
             self._current_code_style_name = 'win32'
 
         self._current_style = self._generate_style()
