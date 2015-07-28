@@ -3,13 +3,14 @@
 ptipython: IPython interactive shell with the `prompt_toolkit` front-end.
 Usage:
     ptpython [ --vi ]
-             [ --config-dir=<directory> ]
+             [ --config-dir=<directory> ] [ --interactive=<filename> ]
              [--] [ <file> <arg>... ]
     ptpython -h | --help
 
 Options:
     --vi                     : Use Vi keybindings instead of Emacs bindings.
     --config-dir=<directory> : Pass config directory. By default '~/.ptpython/'.
+    -i, --interactive=<filename> : Start interactive shell after executing this file.
 """
 from __future__ import absolute_import, unicode_literals
 
@@ -50,6 +51,18 @@ def run():
         # that, all the variables from this function will become available in
         # the IPython shell.)
         user_ns = {}
+
+        # --interactive
+        if a['--interactive']:
+            path = a['--interactive']
+
+            if os.path.exists(path):
+                with open(path, 'r') as f:
+                    code = compile(f.read(), path, 'exec')
+                    six.exec_(code, user_ns, user_ns)
+            else:
+                print('File not found: {}\n\n'.format(path))
+                sys.exit(1)
 
         # Apply config file
         def configure(repl):
