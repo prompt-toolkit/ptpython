@@ -6,8 +6,6 @@ from pygments.styles import get_style_by_name, get_all_styles
 from prompt_toolkit.styles import default_style_extensions
 from prompt_toolkit.utils import is_windows, is_conemu_ansi
 
-import sys
-
 __all__ = (
     'get_all_code_styles',
     'get_all_ui_styles',
@@ -113,7 +111,7 @@ default_ui_style = {
         # Status toolbar.
         Token.Toolbar.Status:                         'bg:#222222 #aaaaaa',
         Token.Toolbar.Status.InputMode:               'bg:#222222 #ffffaa',
-        Token.Toolbar.Status.Off:                     'bg:#222222 #888888',
+        Token.Toolbar.Status.Off:                     'bg:#222222 #aaaaaa',
         Token.Toolbar.Status.On:                      'bg:#222222 #ffffff',
         Token.Toolbar.Status.PythonVersion:           'bg:#222222 #ffffff bold',
 
@@ -122,7 +120,7 @@ default_ui_style = {
 
         # The options sidebar.
         Token.Sidebar:                                'bg:#bbbbbb #000000',
-        Token.Sidebar.Title:                          'bg:#668866 #ffffff underline',
+        Token.Sidebar.Title:                          'bg:#668866 #ffffff',
         Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
         Token.Sidebar.Status:                         'bg:#dddddd #000011',
         Token.Sidebar.Selected.Label:                 'bg:#222222 #eeeeee',
@@ -131,7 +129,7 @@ default_ui_style = {
         Token.Sidebar.Separator:                      'bg:#bbbbbb #ffffff underline',
         Token.Sidebar.Key:                            'bg:#bbddbb #000000 bold',
         Token.Sidebar.Key.Description:                'bg:#bbbbbb #000000',
-        Token.Sidebar.HelpText:                       'bg:#bbeebb #000000',
+        Token.Sidebar.HelpText:                       'bg:#fdf6e3 #000011',
 
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#884444 #ffffff',
@@ -145,6 +143,9 @@ if is_windows() and not is_conemu_ansi():
         Token.Sidebar.Title:                          'bg:#00ff00 #ffffff',
         Token.ExitConfirmation:                       'bg:#ff4444 #ffffff',
         Token.Toolbar.Validation:                     'bg:#ff4444 #ffffff',
+
+        Token.Menu.Completions.Completion:            'bg:#ffffff #000000',
+        Token.Menu.Completions.Completion.Current:    'bg:#aaaaaa #000000',
     })
 
 
