@@ -31,7 +31,6 @@ from pygments.lexers import PythonLexer
 from functools import partial
 
 import six
-import sys
 import __future__
 
 
