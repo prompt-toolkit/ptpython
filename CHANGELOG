@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+0.19: 2015-07-30
+---------------
+
+Upgrade to prompt_toolkit 0.44
+
+New features:
+- Added --interactive option for ptipython.
+- A few style improvements.
+
+
 0.18: 2015-07-15
 ---------------
 
