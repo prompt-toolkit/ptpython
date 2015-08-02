@@ -45,7 +45,8 @@ def run():
         startup_paths.append(a['--interactive'])
 
     # Add the current directory to `sys.path`.
-    sys.path.append('.')
+    if sys.path[0] != '':
+        sys.path.insert(0, '')
 
     # When a file has been given, run that, otherwise start the shell.
     if a['<file>']:
