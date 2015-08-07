@@ -92,7 +92,7 @@ default_ui_style = {
         Token.Toolbar.Search.Text:                    'noinherit',
 
         # System toolbar
-        Token.Toolbar.System.Prefix:                  '#22aaaa noinherit',
+        Token.Toolbar.System:                         '#22aaaa noinherit',
 
         # "arg" toolbar.
         Token.Toolbar.Arg:                            '#22aaaa noinherit',
