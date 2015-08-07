@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, Always, HasFocus, Condition
 from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float
+from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
@@ -48,7 +48,7 @@ def show_multi_column_completions_menu(python_input):
     return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.MULTI_COLUMN)
 
 
-class PythonSidebar(Window):
+class PythonSidebar(ConditionalContainer):
     """
     Sidebar containing the configurable options.
     """
@@ -93,15 +93,16 @@ class PythonSidebar(Window):
             return tokens
 
         super(PythonSidebar, self).__init__(
-            TokenListControl(get_tokens, Char(token=Token.Sidebar),
-                has_focus=ShowSidebar(python_input) & ~IsDone()),
-            width=LayoutDimension.exact(43),
-            height=LayoutDimension(min=3),
-            scroll_offset=1,
+            content=Window(
+                TokenListControl(get_tokens, Char(token=Token.Sidebar),
+                    has_focus=ShowSidebar(python_input) & ~IsDone()),
+                width=LayoutDimension.exact(43),
+                height=LayoutDimension(min=3),
+                scroll_offset=1),
             filter=ShowSidebar(python_input) & ~IsDone())
 
 
-class PythonSidebarNavigation(Window):
+class PythonSidebarNavigation(ConditionalContainer):
     """
     Showing the navigation information for the sidebar.
     """
@@ -126,13 +127,14 @@ class PythonSidebarNavigation(Window):
             return tokens
 
         super(PythonSidebarNavigation, self).__init__(
-            TokenListControl(get_tokens, Char(token=Token.Sidebar)),
-            width=LayoutDimension.exact(43),
-            height=LayoutDimension.exact(2),
+            content=Window(
+                TokenListControl(get_tokens, Char(token=Token.Sidebar)),
+                width=LayoutDimension.exact(43),
+                height=LayoutDimension.exact(2)),
             filter=ShowSidebar(python_input) & ~IsDone())
 
 
-class PythonSidebarHelp(Window):
+class PythonSidebarHelp(ConditionalContainer):
     """
     Help text for the current item in the sidebar.
     """
@@ -155,13 +157,14 @@ class PythonSidebarHelp(Window):
             return [(token, get_current_description())]
 
         super(PythonSidebarHelp, self).__init__(
-            TokenListControl(get_tokens, Char(token=token)),
-            height=LayoutDimension(min=3),
+            content=Window(
+                TokenListControl(get_tokens, Char(token=token)),
+                height=LayoutDimension(min=3)),
             filter=ShowSidebar(python_input) &
                    Condition(lambda cli: python_input.show_sidebar_help) & ~IsDone())
 
 
-class SignatureToolbar(Window):
+class SignatureToolbar(ConditionalContainer):
     def __init__(self, python_input):
         def get_tokens(cli):
             result = []
@@ -206,8 +209,9 @@ class SignatureToolbar(Window):
             return result
 
         super(SignatureToolbar, self).__init__(
-            TokenListControl(get_tokens),
-            height=LayoutDimension.exact(1),
+            content=Window(
+                TokenListControl(get_tokens),
+                height=LayoutDimension.exact(1)),
             filter=
                 # Show only when there is a signature
                 HasSignature(python_input) &
@@ -317,7 +321,7 @@ def get_inputmode_tokens(token, key_bindings_manager, python_input, cli):
     return result
 
 
-class ShowSidebarButtonInfo(Window):
+class ShowSidebarButtonInfo(ConditionalContainer):
     def __init__(self, python_input):
         token = Token.Toolbar.Status
 
@@ -336,15 +340,16 @@ class ShowSidebarButtonInfo(Window):
             return tokens
 
         super(ShowSidebarButtonInfo, self).__init__(
-            TokenListControl(get_tokens, default_char=Char(token=token)),
+            content=Window(
+                TokenListControl(get_tokens, default_char=Char(token=token)),
+                height=LayoutDimension.exact(1),
+                width=LayoutDimension.exact(width)),
             filter=~IsDone() & RendererHeightIsKnown() &
                 Condition(lambda cli: python_input.show_status_bar and
-                                      not python_input.show_exit_confirmation),
-            height=LayoutDimension.exact(1),
-            width=LayoutDimension.exact(width))
+                                      not python_input.show_exit_confirmation))
 
 
-class ExitConfirmation(Window):
+class ExitConfirmation(ConditionalContainer):
     """
     Display exit message.
     """
@@ -359,8 +364,9 @@ class ExitConfirmation(Window):
         visible = ~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation)
 
         super(ExitConfirmation, self).__init__(
-            TokenListControl(get_tokens, default_char=Char(token=token),
-                             has_focus=visible),
+            content=Window(
+                TokenListControl(get_tokens, default_char=Char(token=token),
+                                 has_focus=visible)),
             filter=visible)
 
 
@@ -445,17 +451,19 @@ def create_layout(python_input, key_bindings_manager,
                 CompletionsToolbar(extra_filter=show_completions_toolbar(python_input)),
 
                 # Docstring region.
-                Window(height=D.exact(1),
-                       content=FillControl('\u2500', token=Token.Separator),
-                       filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone()),
-                Window(
-                    BufferControl(
-                        buffer_name='docstring',
-                        default_token=Token.Docstring,
-                        #lexer=PythonLexer,
-                    ),
+                ConditionalContainer(
+                    content=Window(height=D.exact(1),
+                                   content=FillControl('\u2500', token=Token.Separator)),
+                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone()),
+                ConditionalContainer(
+                    content=Window(
+                        BufferControl(
+                            buffer_name='docstring',
+                            default_token=Token.Docstring,
+                            #lexer=PythonLexer,
+                        ),
+                        height=D(max=12)),
                     filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone(),
-                    height=D(max=12),
                 ),
             ]),
             ] + extra_sidebars + [
