@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, Always, HasFocus, Condition
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer
@@ -400,7 +400,9 @@ def create_layout(python_input, key_bindings_manager,
                                   ConditionalProcessor(
                                       processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                                       filter=HasFocus(DEFAULT_BUFFER) & ~IsDone()),
-                                  HighlightSearchProcessor(preview_search=Always()),
+                                  ConditionalProcessor(
+                                      processor=HighlightSearchProcessor(preview_search=Always()),
+                                      filter=HasFocus(SEARCH_BUFFER)),
                                   HighlightSelectionProcessor()] + extra_buffer_processors,
                 menu_position=menu_position,
 
