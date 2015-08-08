@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.21: 2015-08-08
+---------------
+
+Upgrade to prompt_toolkit 0.46
+
+Fixes:
+- Correctly add current directory to sys.path.
+- Only show search highlighting when the search is the current input buffer.
+- Styling fix.
+
+
 0.20: 2015-07-30
 ---------------
 
