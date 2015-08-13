@@ -6,6 +6,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
+from prompt_toolkit.layout.margins import ConditionalMargin, NumberredMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, ConditionalProcessor
 from prompt_toolkit.layout.screen import Char
@@ -242,7 +243,7 @@ class PythonPrompt(TokenListControl):
 class PythonToolbar(TokenListToolbar):
     def __init__(self, key_bindings_manager, python_input, token=Token.Toolbar.Status):
         def get_tokens(cli):
-            python_buffer = cli.buffers['default']
+            python_buffer = cli.buffers[DEFAULT_BUFFER]
 
             TB = token
             result = []
@@ -384,7 +385,7 @@ def create_layout(python_input, key_bindings_manager,
             When there is no autocompletion menu to be shown, and we have a signature,
             set the pop-up position at `bracket_start`.
             """
-            b = cli.buffers['default']
+            b = cli.buffers[DEFAULT_BUFFER]
 
             if b.complete_state is None and python_input.signatures:
                 row, col = python_input.signatures[0].bracket_start
@@ -395,7 +396,9 @@ def create_layout(python_input, key_bindings_manager,
             BufferControl(
                 buffer_name=DEFAULT_BUFFER,
                 lexer=lexer,
-                show_line_numbers=ShowLineNumbersFilter(python_input),
+                margin=ConditionalMargin(
+                    NumberredMargin(),
+                    filter=ShowLineNumbersFilter(python_input)),
                 input_processors=[
                                   # Show matching parentheses, but only while editing.
                                   ConditionalProcessor(

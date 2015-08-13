@@ -435,7 +435,7 @@ class PythonInput(object):
         Create an `Application` instance for use in a `CommandLineInterface`.
         """
         buffers = {
-            'docstring': Buffer(),  # XXX: make docstring read only.
+            'docstring': Buffer(read_only=True),
         }
         buffers.update(self._extra_buffers or {})
 
