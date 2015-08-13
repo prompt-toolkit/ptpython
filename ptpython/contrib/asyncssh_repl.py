@@ -126,7 +126,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         # installing.)
         sep = kw.pop('sep', ' ')
         end = kw.pop('end', '\n')
-        file = kw.pop('end', None)
+        _ = kw.pop('file', None)
         assert not kw, 'Too many keyword-only arguments'
 
         data = sep.join(map(str, data))
