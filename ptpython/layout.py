@@ -355,8 +355,9 @@ class ExitConfirmation(ConditionalContainer):
     """
     def __init__(self, python_input, token=Token.ExitConfirmation):
         def get_tokens(cli):
+            # Show "Do you really want to exit?"
             return [
-                (token, '\n Do you really want to exit? ([y]/n)'),
+                (token, '\n %s ([y]/n)' % python_input.exit_message),
                 (Token.SetCursorPosition, ''),
                 (token, '  \n'),
             ]

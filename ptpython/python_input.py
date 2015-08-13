@@ -171,6 +171,7 @@ class PythonInput(object):
         self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
         self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
+        self.exit_message = 'Do you really want to exit?'
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
