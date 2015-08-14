@@ -3,7 +3,6 @@ For internal use only.
 """
 from __future__ import unicode_literals
 
-import jedi
 import re
 
 __all__ = (
@@ -41,6 +40,9 @@ def has_unclosed_brackets(text):
 
 
 def get_jedi_script_from_document(document, locals, globals):
+    import jedi  # We keep this import in-line, to improve start-up time.
+                 # Importing Jedi is 'slow'.
+
     try:
         return jedi.Interpreter(
             document.text,

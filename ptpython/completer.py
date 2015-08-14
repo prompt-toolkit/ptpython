@@ -24,9 +24,32 @@ class PythonCompleter(Completer):
         self.get_globals = get_globals
         self.get_locals = get_locals
 
-        self._path_completer_grammar, self._path_completer = self._create_path_completer()
+        self._path_completer_cache = None
+        self._path_completer_grammar_cache = None
 
-    def _create_path_completer(self):
+    @property
+    def _path_completer(self):
+        if self._path_completer_cache is None:
+            self._path_completer_cache = GrammarCompleter(
+                self._path_completer_grammar, {
+                    'var1': PathCompleter(expanduser=True),
+                    'var2': PathCompleter(expanduser=True),
+                })
+        return self._path_completer_cache
+
+    @property
+    def _path_completer_grammar(self):
+        """
+        Return the grammar for matching paths inside strings inside Python
+        code.
+        """
+        # We make this lazy, because it delays startup time a little bit.
+        # This way, the grammar is build during the first completion.
+        if self._path_completer_grammar_cache is None:
+            self._path_completer_grammar_cache = self._create_path_completer_grammar()
+        return self._path_completer_grammar_cache
+
+    def _create_path_completer_grammar(self):
         def unwrapper(text):
             return re.sub(r'\\(.)', r'\1', text)
 
@@ -61,7 +84,7 @@ class PythonCompleter(Completer):
                 )
         """
 
-        g = compile_grammar(
+        return compile_grammar(
             grammar,
             escape_funcs={
                 'var1': single_quoted_wrapper,
@@ -71,10 +94,6 @@ class PythonCompleter(Completer):
                 'var1': unwrapper,
                 'var2': unwrapper,
             })
-        return g, GrammarCompleter(g, {
-            'var1': PathCompleter(expanduser=True),
-            'var2': PathCompleter(expanduser=True),
-        })
 
     def _complete_path_while_typing(self, document):
         char_before_cursor = document.char_before_cursor
