@@ -6,6 +6,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
+from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import ConditionalMargin, NumberredMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, ConditionalProcessor
@@ -465,7 +466,7 @@ def create_layout(python_input, key_bindings_manager,
                     content=Window(
                         BufferControl(
                             buffer_name='docstring',
-                            default_token=Token.Docstring,
+                            lexer=SimpleLexer(default_token=Token.Docstring),
                             #lexer=PythonLexer,
                         ),
                         height=D(max=12)),
