@@ -232,7 +232,7 @@ class PythonPrompt(TokenListControl):
     """
     def __init__(self, python_input):
         def get_tokens(cli):
-            return [
+            return python_input.get_prompt_prefix() + [
                 (Token.In, 'In ['),
                 (Token.In.Number, '%s' % python_input.current_statement_index),
                 (Token.In, ']: '),

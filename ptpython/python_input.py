@@ -177,6 +177,9 @@ class PythonInput(object):
         self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
         self.exit_message = 'Do you really want to exit?'
 
+        # Tokens to be shown before the prompt.
+        self.get_prompt_prefix = lambda: []
+
         #: Load styles.
         self.code_styles = get_all_code_styles()
         self.ui_styles = get_all_ui_styles()
