@@ -152,7 +152,7 @@ class PythonInput(object):
         # Settings.
         self.show_signature = True
         self.show_docstring = False
-        self.completion_visualisation = CompletionVisualisation.POP_UP
+        self.completion_visualisation = CompletionVisualisation.MULTI_COLUMN
         self.completion_menu_scroll_offset = 1
 
         self.show_line_numbers = True
