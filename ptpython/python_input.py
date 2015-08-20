@@ -14,7 +14,7 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, Always
-from prompt_toolkit.history import FileHistory, History
+from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -134,7 +134,7 @@ class PythonInput(object):
 
         self._completer = _completer or PythonCompleter(self.get_globals, self.get_locals)
         self._validator = _validator or PythonValidator(self.get_compiler_flags)
-        self._history = FileHistory(history_filename) if history_filename else History()
+        self._history = FileHistory(history_filename) if history_filename else InMemoryHistory()
         self._lexer = _lexer or PygmentsLexer(PythonLexer)
         self._extra_buffers = _extra_buffers
         self._accept_action = _accept_action
