@@ -17,7 +17,6 @@ from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.layout.controls import TokenListControl
 from prompt_toolkit.layout.lexers import PygmentsLexer
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
@@ -30,22 +29,30 @@ from IPython.core.inputsplitter import IPythonInputSplitter
 
 from pygments.lexers import PythonLexer, BashLexer
 from pygments.token import Token
+from ptpython.prompt_style import PromptStyle
 
 __all__ = (
     'embed',
 )
 
 
-class IPythonPrompt(TokenListControl):
+class IPythonPrompt(PromptStyle):
     """
-    Prompt showing something like "In [1]:".
+    PromptStyle that uses the templates, as set by IPython.
+    Usually, something like "In [1]:".
     """
     def __init__(self, prompt_manager):
-        def get_tokens(cli):
-            text = prompt_manager.render('in', color=False, just=False)
-            return [(Token.In, text)]
+        self.prompt_manager = prompt_manager
 
-        super(IPythonPrompt, self).__init__(get_tokens)
+    def in_tokens(self, cli):
+        text = self.prompt_manager.render('in', color=False, just=False)
+        return [(Token.In, text)]
+
+    def out_tokens(self, cli):
+        # This function is currently not used by IPython. But for completeness,
+        # it would look like this.
+        text = self.prompt_manager.render('out', color=False, just=False)
+        return [(Token.Out, text)]
 
 
 class IPythonValidator(PythonValidator):
@@ -153,10 +160,12 @@ class IPythonInput(PythonInput):
                                             ipython_shell.alias_manager)
         kw['_lexer'] = create_lexer()
         kw['_validator'] = IPythonValidator()
-        kw['_python_prompt_control'] = IPythonPrompt(ipython_shell.prompt_manager)
 
         super(IPythonInput, self).__init__(*a, **kw)
         self.ipython_shell = ipython_shell
+
+        self.all_prompt_styles['ipython'] = IPythonPrompt(ipython_shell.prompt_manager)
+        self.prompt_style = 'ipython'
 
 
 class InteractiveShellEmbed(_InteractiveShellEmbed):
