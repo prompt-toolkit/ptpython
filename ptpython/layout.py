@@ -374,11 +374,14 @@ class ExitConfirmation(ConditionalContainer):
 
 
 def create_layout(python_input, key_bindings_manager,
-                  python_prompt_control=None, lexer=PythonLexer, extra_sidebars=None,
-                  extra_buffer_processors=None):
+                  python_prompt_control=None, lexer=PythonLexer,
+                  extra_body=None, extra_toolbars=None,
+                  extra_buffer_processors=None, input_buffer_height=None):
     D = LayoutDimension
-    extra_sidebars = extra_sidebars or []
+    extra_body = [extra_body] if extra_body else []
+    extra_toolbars = extra_toolbars or []
     extra_buffer_processors = extra_buffer_processors or []
+    input_buffer_height = input_buffer_height or D(min=6)
 
     def create_python_input_window():
         def menu_position(cli):
@@ -415,7 +418,9 @@ def create_layout(python_input, key_bindings_manager,
                 preview_search=Always(),
             ),
             # As long as we're editing, prefer a minimal height of 6.
-            get_height=(lambda cli: (None if cli.is_done else D(min=6))),
+            get_height=(lambda cli: (
+                None if cli.is_done or python_input.show_exit_confirmation
+                        else input_buffer_height)),
         )
 
     return HSplit([
@@ -427,9 +432,11 @@ def create_layout(python_input, key_bindings_manager,
                             Window(
                                 python_prompt_control,
                                 dont_extend_width=True,
+                                height=D.exact(1),
                             ),
                             create_python_input_window(),
                         ]),
+                        ] + extra_body + [
                     ]),
                     floats=[
                         Float(xcursor=True,
@@ -473,12 +480,12 @@ def create_layout(python_input, key_bindings_manager,
                     filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone(),
                 ),
             ]),
-            ] + extra_sidebars + [
             HSplit([
                 PythonSidebar(python_input),
                 PythonSidebarNavigation(python_input),
             ])
         ]),
+    ] + extra_toolbars + [
         VSplit([
             PythonToolbar(key_bindings_manager, python_input),
             ShowSidebarButtonInfo(python_input),

@@ -125,7 +125,8 @@ class PythonInput(object):
                  _completer=None, _validator=None, _python_prompt_control=None,
                  _lexer=None, _extra_buffers=None, _extra_buffer_processors=None,
                  _on_start=None,
-                 _extra_sidebars=None,
+                 _extra_layout_body=None, _extra_toolbars=None,
+                 _input_buffer_height=None,
                  _accept_action=AcceptAction.RETURN_DOCUMENT,
                  _on_exit=AbortAction.RAISE_EXCEPTION):
 
@@ -141,7 +142,9 @@ class PythonInput(object):
         self._on_exit = _on_exit
         self._on_start = _on_start
 
-        self._extra_sidebars = _extra_sidebars or []
+        self._input_buffer_height = _input_buffer_height
+        self._extra_layout_body = _extra_layout_body or []
+        self._extra_toolbars = _extra_toolbars or []
         self._extra_buffer_processors = _extra_buffer_processors or []
 
         self._python_prompt_control = _python_prompt_control or PythonPrompt(self)
@@ -445,8 +448,10 @@ class PythonInput(object):
                 self,
                 self.key_bindings_manager, self._python_prompt_control,
                 lexer=self._lexer,
+                input_buffer_height=self._input_buffer_height,
                 extra_buffer_processors=self._extra_buffer_processors,
-                extra_sidebars=self._extra_sidebars),
+                extra_body=self._extra_layout_body,
+                extra_toolbars=self._extra_toolbars),
             buffer=self._create_buffer(),
             buffers=buffers,
             key_bindings_registry=self.key_bindings_registry,
