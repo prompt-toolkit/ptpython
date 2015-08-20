@@ -18,6 +18,7 @@ from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.controls import TokenListControl
+from prompt_toolkit.layout.lexers import PygmentsLexer
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
 from .eventloop import create_eventloop
@@ -110,8 +111,8 @@ def create_lexer():
             'filename': Token.Name,
         },
         lexers={
-            'python': PythonLexer,
-            'system': BashLexer,
+            'python': PygmentsLexer(PythonLexer),
+            'system': PygmentsLexer(BashLexer),
         })
 
 
