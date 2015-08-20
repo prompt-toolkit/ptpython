@@ -27,9 +27,11 @@ from ptpython.layout import PythonPrompt, create_layout, CompletionVisualisation
 from ptpython.style import get_all_code_styles, get_all_ui_styles, generate_style
 from ptpython.utils import get_jedi_script_from_document, document_is_multiline_python
 from ptpython.validator import PythonValidator
+from ptpython.prompt_style import IPythonPrompt, ClassicPrompt
 
-from pygments.lexers import PythonLexer
+from collections import namedtuple
 from functools import partial
+from pygments.lexers import PythonLexer
 
 import six
 import __future__
@@ -38,6 +40,7 @@ import __future__
 __all__ = (
     'PythonInput',
     'PythonCommandLineInterface',
+    'PromptStyle',
 )
 
 
@@ -122,7 +125,7 @@ class PythonInput(object):
                  vi_mode=False,
 
                  # For internal use.
-                 _completer=None, _validator=None, _python_prompt_control=None,
+                 _completer=None, _validator=None, prompt=None,
                  _lexer=None, _extra_buffers=None, _extra_buffer_processors=None,
                  _on_start=None,
                  _extra_layout_body=None, _extra_toolbars=None,
@@ -147,7 +150,7 @@ class PythonInput(object):
         self._extra_toolbars = _extra_toolbars or []
         self._extra_buffer_processors = _extra_buffer_processors or []
 
-        self._python_prompt_control = _python_prompt_control or PythonPrompt(self)
+        self.prompt = prompt or PythonPrompt(self)
 
         # Settings.
         self.show_signature = True
@@ -176,6 +179,20 @@ class PythonInput(object):
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
         self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
         self.exit_message = 'Do you really want to exit?'
+
+        # Tokens to be shown at the prompt.
+        self.prompt_style = 'ipython'  # The currently active style.
+
+        self.all_prompt_styles = {  # Styles selectable from the menu.
+            'ipython': IPythonPrompt(self),
+            'classic': ClassicPrompt(),
+        }
+
+        self.get_input_prompt_tokens = lambda cli: \
+            self.all_prompt_styles[self.prompt_style].in_tokens(cli)
+
+        self.get_output_prompt_tokens = lambda cli: \
+            self.all_prompt_styles[self.prompt_style].out_tokens(cli)
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
@@ -402,6 +419,10 @@ class PythonInput(object):
                            CompletionVisualisation.MULTI_COLUMN: lambda: enable('completion_visualisation', CompletionVisualisation.MULTI_COLUMN),
                            CompletionVisualisation.TOOLBAR: lambda: enable('completion_visualisation', CompletionVisualisation.TOOLBAR),
                        }),
+                Option(title='Prompt',
+                       description='Visualisation of the prompt.',
+                       get_current_value=lambda: self.prompt_style,
+                       get_values=lambda: dict((s, partial(enable, 'prompt_style', s)) for s in self.all_prompt_styles)),
                 simple_option(title='Show signature',
                               description='Display function signatures.',
                               field_name='show_signature'),
@@ -446,7 +467,8 @@ class PythonInput(object):
         return Application(
             layout=create_layout(
                 self,
-                self.key_bindings_manager, self._python_prompt_control,
+                self.key_bindings_manager,
+                prompt=self.prompt,
                 lexer=self._lexer,
                 input_buffer_height=self._input_buffer_height,
                 extra_buffer_processors=self._extra_buffer_processors,

@@ -112,12 +112,7 @@ class PythonRepl(PythonInput):
                 locals['_'] = locals['_%i' % self.current_statement_index] = result
 
                 if result is not None:
-                    out_tokens = [
-                        (Token.Out, 'Out['),
-                        (Token.Out.Number, '%s' % self.current_statement_index),
-                        (Token.Out, ']:'),
-                        (Token, ' '),
-                    ]
+                    out_tokens = self.get_output_prompt_tokens(cli)
 
                     try:
                         result_str = '%r\n' % (result, )

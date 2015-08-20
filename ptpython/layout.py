@@ -232,11 +232,7 @@ class PythonPrompt(TokenListControl):
     """
     def __init__(self, python_input):
         def get_tokens(cli):
-            return [
-                (Token.In, 'In ['),
-                (Token.In.Number, '%s' % python_input.current_statement_index),
-                (Token.In, ']: '),
-            ]
+            return python_input.get_input_prompt_tokens(cli)
 
         super(PythonPrompt, self).__init__(get_tokens)
 
@@ -374,7 +370,7 @@ class ExitConfirmation(ConditionalContainer):
 
 
 def create_layout(python_input, key_bindings_manager,
-                  python_prompt_control=None, lexer=PythonLexer,
+                  prompt=None, lexer=PythonLexer,
                   extra_body=None, extra_toolbars=None,
                   extra_buffer_processors=None, input_buffer_height=None):
     D = LayoutDimension
@@ -430,7 +426,7 @@ def create_layout(python_input, key_bindings_manager,
                     content=HSplit([
                         VSplit([
                             Window(
-                                python_prompt_control,
+                                prompt,
                                 dont_extend_width=True,
                                 height=D.exact(1),
                             ),
