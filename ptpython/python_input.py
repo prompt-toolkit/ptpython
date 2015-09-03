@@ -136,7 +136,7 @@ class PythonInput(object):
 
         self._completer = _completer or PythonCompleter(self.get_globals, self.get_locals)
         self._validator = _validator or PythonValidator(self.get_compiler_flags)
-        self._history = FileHistory(history_filename) if history_filename else InMemoryHistory()
+        self.history = FileHistory(history_filename) if history_filename else InMemoryHistory()
         self._lexer = _lexer or PygmentsLexer(PythonLexer)
         self._extra_buffers = _extra_buffers
         self._accept_action = _accept_action
@@ -497,7 +497,7 @@ class PythonInput(object):
             complete_while_typing=Condition(lambda: self.complete_while_typing),
             enable_history_search=Condition(lambda: self.enable_history_search),
             tempfile_suffix='.py',
-            history=self._history,
+            history=self.history,
             completer=self._completer,
             validator=SwitchableValidator(
                 self._validator,

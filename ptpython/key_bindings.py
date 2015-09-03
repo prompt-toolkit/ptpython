@@ -7,6 +7,8 @@ from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.keys import Keys
 
+from .history_browser import create_history_application
+
 __all__ = (
     'load_python_bindings',
     'load_sidebar_bindings',
@@ -53,6 +55,22 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         python_input.show_sidebar = not python_input.show_sidebar
 
+    @handle(Keys.F3)
+    def _(event):
+        """
+        Select from the history.
+        """
+        python_input.key_bindings_manager.vi_state.input_mode = InputMode.NAVIGATION
+
+        def done(result):
+            if result is not None:
+                event.cli.buffers[DEFAULT_BUFFER].document = result
+
+            python_input.key_bindings_manager.vi_state.input_mode = InputMode.INSERT
+
+        event.cli.run_sub_application(create_history_application(
+            python_input, event.cli.buffers[DEFAULT_BUFFER].document), done)
+
     @handle(Keys.F4)
     def _(event):
         """
@@ -77,7 +95,7 @@ def load_python_bindings(key_bindings_manager, python_input):
     @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
             ~(vi_mode_enabled &
               ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION)) &
-            HasFocus('default') & IsMultiline())
+            HasFocus(DEFAULT_BUFFER) & IsMultiline())
     def _(event):
         """
         Behaviour of the Enter key.

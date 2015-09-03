@@ -111,6 +111,7 @@ default_ui_style = {
         # Status toolbar.
         Token.Toolbar.Status:                         'bg:#222222 #aaaaaa',
         Token.Toolbar.Status.InputMode:               'bg:#222222 #ffffaa',
+        Token.Toolbar.Status.Key:                     'bg:#bbbbbb #000000',
         Token.Toolbar.Status.Off:                     'bg:#222222 #aaaaaa',
         Token.Toolbar.Status.On:                      'bg:#222222 #ffffff',
         Token.Toolbar.Status.PythonVersion:           'bg:#222222 #ffffff bold',
@@ -130,6 +131,17 @@ default_ui_style = {
         Token.Sidebar.Key:                            'bg:#bbddbb #000000 bold',
         Token.Sidebar.Key.Description:                'bg:#bbbbbb #000000',
         Token.Sidebar.HelpText:                       'bg:#fdf6e3 #000011',
+
+        # Styling for the history layout.
+        Token.History.Line:                          '',
+        Token.History.Line.Selected:                 'bg:#008800  #000000',
+        Token.History.Line.Current:                  'bg:#ffffff #000000',
+        Token.History.Line.Selected.Current:         'bg:#88ff88 #000000',
+        Token.History.ExistingInput:                  '#888888',
+
+        # Help Window.
+        Token.Window.Border:                          '#bbbbbb',
+        Token.Window.Title:                           'bg:#bbbbbb #000000',
 
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#884444 #ffffff',

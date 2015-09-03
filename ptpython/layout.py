@@ -238,16 +238,17 @@ class PythonPrompt(TokenListControl):
 
 
 class PythonToolbar(TokenListToolbar):
-    def __init__(self, key_bindings_manager, python_input, token=Token.Toolbar.Status):
+    def __init__(self, key_bindings_manager, python_input):
+        TB = Token.Toolbar.Status
+
         def get_tokens(cli):
             python_buffer = cli.buffers[DEFAULT_BUFFER]
 
-            TB = token
             result = []
             append = result.append
 
             append((TB, ' '))
-            result.extend(get_inputmode_tokens(TB, key_bindings_manager, python_input, cli))
+            result.extend(get_inputmode_tokens(cli, python_input))
             append((TB, '  '))
 
             # Position in history.
@@ -275,20 +276,22 @@ class PythonToolbar(TokenListToolbar):
 
         super(PythonToolbar, self).__init__(
             get_tokens,
-            default_char=Char(token=token),
+            default_char=Char(token=TB),
             filter=~IsDone() & RendererHeightIsKnown() &
                 Condition(lambda cli: python_input.show_status_bar and
                                       not python_input.show_exit_confirmation))
 
 
-def get_inputmode_tokens(token, key_bindings_manager, python_input, cli):
+def get_inputmode_tokens(cli, python_input):
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
 
     :param cli: `CommandLineInterface` instance.
     """
-    mode = key_bindings_manager.vi_state.input_mode
+    token = Token.Toolbar.Status
+
+    mode = python_input.key_bindings_manager.vi_state.input_mode
     result = []
     append = result.append
 
