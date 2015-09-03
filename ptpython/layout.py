@@ -403,7 +403,8 @@ def create_layout(python_input, key_bindings_manager,
                                   # Show matching parentheses, but only while editing.
                                   ConditionalProcessor(
                                       processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                                      filter=HasFocus(DEFAULT_BUFFER) & ~IsDone()),
+                                      filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
+                                          Condition(lambda cli: python_input.highlight_matching_parenthesis)),
                                   ConditionalProcessor(
                                       processor=HighlightSearchProcessor(preview_search=Always()),
                                       filter=HasFocus(SEARCH_BUFFER)),

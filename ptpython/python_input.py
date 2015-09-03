@@ -170,6 +170,7 @@ class PythonInput(object):
                                             # history on the records starting
                                             # with the current input.
 
+        self.highlight_matching_parenthesis = True
         self.show_sidebar = False  # Currently show the sidebar.
         self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
@@ -434,6 +435,9 @@ class PythonInput(object):
                 simple_option(title='Show sidebar help',
                               description='When the sidebar is visible, also show this help text.',
                               field_name='show_sidebar_help'),
+                simple_option(title='Highlight parenthesis',
+                              description='Highlight matching parenthesis, when the cursor is on or right after one.',
+                              field_name='highlight_matching_parenthesis'),
             ]),
             OptionCategory('Colors', [
                 Option(title='Code',

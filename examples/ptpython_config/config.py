@@ -41,6 +41,9 @@ def configure(repl):
     # When the sidebar is visible, also show the help text.
     repl.show_sidebar_help = True
 
+    # Highlight matching parethesis.
+    repl.highlight_matching_parenthesis = True
+
     # Complete while typing. (Don't require tab before the
     # completion menu is shown.)
     repl.complete_while_typing = True
