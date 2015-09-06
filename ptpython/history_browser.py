@@ -49,11 +49,11 @@ Typical usage
 -------------
 
 1. Move the ``cursor up`` in the history pane, until the
-   first line that you want in the output is selected.
+   cursor is on the first desired line.
 2. Hold down the ``space bar``, or press it multiple
    times. Each time it will select one line and move to
    the next one. Each selected line will appear on the
-   right side, under current input.
+   right side.
 3. When all the required lines are displayed on the right
    side, press ``Enter``. This will go back to the Python
    REPL and show these lines as the current input. They
@@ -63,7 +63,7 @@ Key bindings
 ------------
 
 Many Emacs and Vi navigation key bindings should work.
-Press ``F4`` to switch between Emacs andVi mode.
+Press ``F4`` to switch between Emacs and Vi mode.
 
 Additional bindings:
 
@@ -71,13 +71,13 @@ Additional bindings:
 - ``Tab``: Move the focus between the history and input
   pane. (Alternative: ``Ctrl-W``)
 - ``Ctrl-C``: Cancel. Ignore the result and go back to
-  the REPL. (Alternative: ``q``.)
+  the REPL. (Alternatives: ``q`` and ``Control-G``.)
 - ``Enter``: Accept the result and go back to the REPL.
-- ``F1``: Show/hide help. (Alternative ``h``.) Press
-  ``Enter`` to quit this help message.
+- ``F1``: Show/hide help. Press ``Enter`` to quit this
+  help message.
 
 Further, remember that searching works like in Emacs
-(``Ctrl-R``) or Vi (``/``).
+(using ``Ctrl-R``) or Vi (using ``/``).
 """
 
 
@@ -458,6 +458,7 @@ def create_key_bindings(python_input, history_mapping):
 
     @handle(Keys.ControlJ, filter=help_focussed)
     @handle(Keys.ControlC, filter=help_focussed)
+    @handle(Keys.ControlG, filter=help_focussed)
     @handle(Keys.Escape, filter=help_focussed)
     def _(event):
         " Leave help. "
