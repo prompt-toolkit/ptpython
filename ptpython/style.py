@@ -143,6 +143,9 @@ default_ui_style = {
         Token.Window.Border:                          '#bbbbbb',
         Token.Window.Title:                           'bg:#bbbbbb #000000',
 
+        # Meta-enter message.
+        Token.MetaEnterMessage:                       'bg:#ffff88 #444444',
+
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#884444 #ffffff',
 }

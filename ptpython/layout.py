@@ -264,13 +264,12 @@ class PythonToolbar(TokenListToolbar):
             else:
                 append((TB, '  '))
 
+                append((TB.On, '[F3] History  '))
+
                 if python_input.paste_mode:
                     append((TB.On, '[F6] Paste mode (on)   '))
                 else:
                     append((TB.Off, '[F6] Paste mode (off)  '))
-
-                if python_buffer.is_multiline():
-                    append((TB, ' [Meta+Enter] Execute'))
 
             return result
 
@@ -372,6 +371,23 @@ class ExitConfirmation(ConditionalContainer):
             filter=visible)
 
 
+def meta_enter_message(python_input):
+    """
+    Create the `Layout` for the 'Meta+Enter` message.
+    """
+    def get_tokens(cli):
+        return [(Token.MetaEnterMessage, ' [Meta+Enter] Execute ')]
+
+    visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(
+        lambda cli:
+            python_input.show_meta_enter_message and
+            cli.buffers[DEFAULT_BUFFER].is_multiline())
+
+    return ConditionalContainer(
+        content=Window(TokenListControl(get_tokens)),
+        filter=visible)
+
+
 def create_layout(python_input, key_bindings_manager,
                   lexer=PythonLexer,
                   extra_body=None, extra_toolbars=None,
@@ -456,6 +472,8 @@ def create_layout(python_input, key_bindings_manager,
                         Float(left=2,
                               bottom=1,
                               content=ExitConfirmation(python_input)),
+                        Float(bottom=0, right=0, height=1,
+                              content=meta_enter_message(python_input)),
                         Float(bottom=1, left=1, right=0, content=PythonSidebarHelp(python_input)),
                     ]),
                 ArgToolbar(),

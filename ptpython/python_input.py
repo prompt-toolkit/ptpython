@@ -151,6 +151,7 @@ class PythonInput(object):
         # Settings.
         self.show_signature = True
         self.show_docstring = False
+        self.show_meta_enter_message = True
         self.completion_visualisation = CompletionVisualisation.MULTI_COLUMN
         self.completion_menu_scroll_offset = 1
 
@@ -429,6 +430,10 @@ class PythonInput(object):
                 simple_option(title='Show line numbers',
                               description='Show line numbers when the input consists of multiple lines.',
                               field_name='show_line_numbers'),
+                simple_option(title='Show Meta+Enter message',
+                              description='Show the [Meta+Enter] message when this key combination is required to execute commands. ' +
+                                  '(This is the case when a simple [Enter] key press will insert a newline.',
+                              field_name='show_meta_enter_message'),
                 simple_option(title='Show status bar',
                               description='Show the status bar at the bottom of the terminal.',
                               field_name='show_status_bar'),
