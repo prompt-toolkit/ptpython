@@ -386,10 +386,17 @@ def meta_enter_message(python_input):
     def get_tokens(cli):
         return [(Token.AcceptMessage, ' [Meta+Enter] Execute ')]
 
-    visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(
-        lambda cli:
+    def extra_condition(cli):
+        " Only show when... "
+        b = cli.buffers[DEFAULT_BUFFER]
+
+        return (
             python_input.show_meta_enter_message and
-            cli.buffers[DEFAULT_BUFFER].is_multiline())
+            (not b.document.is_cursor_at_the_end or
+                python_input.accept_input_on_enter is None) and
+            b.is_multiline())
+
+    visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(extra_condition)
 
     return ConditionalContainer(
         content=Window(TokenListControl(get_tokens)),

@@ -495,6 +495,7 @@ class PythonInput(object):
         """
         def is_buffer_multiline():
             return (self.paste_mode or
+                    self.accept_input_on_enter is None or
                     document_is_multiline_python(python_buffer.document))
 
         python_buffer = Buffer(
