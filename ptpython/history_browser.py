@@ -25,12 +25,18 @@ from prompt_toolkit.layout.processors import Processor
 from prompt_toolkit.layout.utils import explode_tokens
 from prompt_toolkit.layout.toolbars import TokenListToolbar
 from prompt_toolkit.utils import Callback
-from pygments.lexers import PythonLexer, RstLexer
+from pygments.lexers import RstLexer
 from pygments.token import Token
 
 from ptpython.layout import get_inputmode_tokens
 from functools import partial
 import six
+
+if six.PY3:
+    from pygments.lexers import Python3Lexer as PythonLexer
+else:
+    from pygments.lexers import PythonLexer
+
 
 HISTORY_BUFFER = 'HISTORY_BUFFER'
 HELP_BUFFER = 'HELP_BUFFER'

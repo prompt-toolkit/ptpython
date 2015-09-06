@@ -30,11 +30,14 @@ from ptpython.validator import PythonValidator
 from ptpython.prompt_style import IPythonPrompt, ClassicPrompt
 
 from functools import partial
-from pygments.lexers import PythonLexer
 
 import six
 import __future__
 
+if six.PY3:
+    from pygments.lexers import Python3Lexer as PythonLexer
+else:
+    from pygments.lexers import PythonLexer
 
 __all__ = (
     'PythonInput',
