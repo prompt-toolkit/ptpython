@@ -17,7 +17,7 @@ from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.layout.lexers import PygmentsLexer, SimpleLexer
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
 from .eventloop import create_eventloop
@@ -112,12 +112,10 @@ def create_lexer():
 
     return GrammarLexer(
         g,
-        tokens={
-            'percent': Token.Operator,
-            'magic': Token.Keyword,
-            'filename': Token.Name,
-        },
         lexers={
+            'percent': SimpleLexer(Token.Operator),
+            'magic': SimpleLexer(Token.Keyword),
+            'filename': SimpleLexer(Token.Name),
             'python': PygmentsLexer(PythonLexer),
             'system': PygmentsLexer(BashLexer),
         })
