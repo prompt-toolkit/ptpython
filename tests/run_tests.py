@@ -11,14 +11,15 @@ import unittest
 import ptpython.completer
 import ptpython.filters
 #import ptpython.ipython
+import ptpython.eventloop
+import ptpython.history_browser
+import ptpython.key_bindings
 import ptpython.layout
 import ptpython.python_input
-import ptpython.style
-import ptpython.validator
-import ptpython.eventloop
-import ptpython.key_bindings
 import ptpython.repl
+import ptpython.style
 import ptpython.utils
+import ptpython.validator
 
 
 if __name__ == '__main__':
