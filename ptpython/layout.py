@@ -253,7 +253,7 @@ def status_bar(key_bindings_manager, python_input):
 
         append((TB, ' '))
         result.extend(get_inputmode_tokens(cli, python_input))
-        append((TB, '  '))
+        append((TB, ' '))
 
         # Position in history.
         append((TB, '%i/%i ' % (python_buffer.working_index + 1,
@@ -266,14 +266,17 @@ def status_bar(key_bindings_manager, python_input):
             # Emacs cut/copy keys.
             append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
         else:
-            append((TB, '  '))
-
-            append((TB.On, '[F3] History  '))
+            result.extend([
+                (TB.Key, '[F3]'),
+                (TB, ' History '),
+                (TB.Key, '[F6]'),
+                (TB, ' '),
+            ])
 
             if python_input.paste_mode:
-                append((TB.On, '[F6] Paste mode (on)   '))
+                append((TB.PasteModeOn, 'Paste mode (on)'))
             else:
-                append((TB.Off, '[F6] Paste mode (off)  '))
+                append((TB, 'Paste mode'))
 
         return result
 
@@ -305,7 +308,6 @@ def get_inputmode_tokens(cli, python_input):
         if bool(cli.current_buffer.selection_state):
             if cli.current_buffer.selection_state.type == SelectionType.LINES:
                 append((token.InputMode, 'Vi (VISUAL LINE)'))
-                append((token, ' '))
             elif cli.current_buffer.selection_state.type == SelectionType.CHARACTERS:
                 append((token.InputMode, 'Vi (VISUAL)'))
                 append((token, ' '))
@@ -334,7 +336,8 @@ def show_sidebar_button_info(python_input):
 
     version = sys.version_info
     tokens = [
-        (token, ' [F2] Options'),
+        (token.Key, '[F2]'),
+        (token, ' Menu'),
         (token, ' - '),
         (token.PythonVersion, '%s %i.%i.%i' % (platform.python_implementation(),
                                                version[0], version[1], version[2])),
@@ -381,7 +384,7 @@ def meta_enter_message(python_input):
     Create the `Layout` for the 'Meta+Enter` message.
     """
     def get_tokens(cli):
-        return [(Token.MetaEnterMessage, ' [Meta+Enter] Execute ')]
+        return [(Token.AcceptMessage, ' [Meta+Enter] Execute ')]
 
     visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(
         lambda cli:

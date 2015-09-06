@@ -10,11 +10,11 @@ from prompt_toolkit.application import Application
 from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import Always, Condition, HasFocus
+from prompt_toolkit.filters import Always, Condition, HasFocus, InFocusStack
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Layout
-from prompt_toolkit.layout.controls import BufferControl, FillControl
+from prompt_toolkit.layout.controls import BufferControl, FillControl, TokenListControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin
@@ -133,62 +133,57 @@ def create_layout(python_input, history_mapping):
     """
     Create and return a `Layout` instance for the history application.
     """
-    input_processors = [
+    default_processors = [
         HighlightSearchProcessor(preview_search=Always()),
         HighlightSelectionProcessor()]
 
     help_window = create_popup_window(
         title='History Help',
-        body=Window(content=BufferControl(
-               buffer_name=HELP_BUFFER,
-               default_char=Char(token=Token),
-               lexer=PygmentsLexer(RstLexer)),
-               scroll_offset=2))
+        body=Window(
+            content=BufferControl(
+                buffer_name=HELP_BUFFER,
+                default_char=Char(token=Token),
+                lexer=PygmentsLexer(RstLexer),
+                input_processors=default_processors),
+            scroll_offset=2))
 
     return HSplit([
         #  Top title bar.
         TokenListToolbar(
             get_tokens=_get_top_toolbar_tokens,
             align_center=True,
-            default_char=Char(' ', Token.Sidebar.Title)),
+            default_char=Char(' ', Token.Toolbar.Status)),
         FloatContainer(
             content=VSplit([
                 # Left side: history.
-                HSplit([
-                    TokenListToolbar(
-                        get_tokens=_get_history_toolbar_tokens,
-                        align_center=True,
-                        default_char=Char(' ', Token.Toolbar.Status)),
-                    Window(
-                        content=BufferControl(
-                            margin=HistoryMargin(history_mapping),
-                            buffer_name=HISTORY_BUFFER,
-                            lexer=PygmentsLexer(PythonLexer),
-                            input_processors=input_processors),
-                        scroll_offset=2),
-                ]),
+                Window(
+                    content=BufferControl(
+                        margin=HistoryMargin(history_mapping),
+                        buffer_name=HISTORY_BUFFER,
+                        lexer=PygmentsLexer(PythonLexer),
+                        input_processors=default_processors),
+                    scroll_offset=2),
                 # Separator.
                 Window(width=D.exact(1),
                        content=FillControl(BORDER.LIGHT_VERTICAL, token=Token.Separator)),
                 # Right side: result.
-                HSplit([
-                    TokenListToolbar(
-                        get_tokens=_get_result_toolbar_tokens,
-                        align_center=True,
-                        default_char=Char(' ', Token.Toolbar.Status)),
-                    Window(
-                        content=BufferControl(
-                            margin=ResultMargin(history_mapping),
-                            buffer_name=DEFAULT_BUFFER,
-                            input_processors=input_processors + [GrayExistingText(history_mapping)],
-                            lexer=PygmentsLexer(PythonLexer)),
-                        scroll_offset=2)
-                ])
+                Window(
+                    content=BufferControl(
+                        margin=ResultMargin(history_mapping),
+                        buffer_name=DEFAULT_BUFFER,
+                        input_processors=default_processors + [GrayExistingText(history_mapping)],
+                        lexer=PygmentsLexer(PythonLexer)),
+                    scroll_offset=2)
             ]),
-            # Help text as a float.
-            floats=[Float(width=60, top=3, bottom=2,
-                          content=ConditionalContainer(
-                              content=help_window, filter=HasFocus(HELP_BUFFER)))]
+            floats=[
+                # Help text as a float.
+                Float(width=60, top=3, bottom=2,
+                      content=ConditionalContainer(
+                          # (We use InFocusStack, because it's possible to search
+                          # through the help text as well, and at that point the search
+                          # buffer has the focus.)
+                          content=help_window, filter=InFocusStack(HELP_BUFFER))),
+            ]
         ),
         # Bottom toolbars.
         ArgToolbar(),
@@ -200,15 +195,7 @@ def create_layout(python_input, history_mapping):
 
 
 def _get_top_toolbar_tokens(cli):
-    return [(Token.Sidebar.Title, 'History browser - Insert from history')]
-
-
-def _get_history_toolbar_tokens(cli):
-    return [(Token.Toolbar.Status, ' History (latest %i entries)' % HISTORY_COUNT)]
-
-
-def _get_result_toolbar_tokens(cli):
-    return [(Token.Toolbar.Status, ' Current input')]
+    return [(Token.Toolbar.Status.Title, 'History browser - Insert from history')]
 
 
 def _get_bottom_toolbar_tokens(cli, python_input):
@@ -216,16 +203,14 @@ def _get_bottom_toolbar_tokens(cli, python_input):
         (Token.Toolbar.Status, ' ')
     ] + get_inputmode_tokens(cli, python_input) + [
         (Token.Toolbar.Status, ' '),
-        (Token.Toolbar.Status.Key, '[F1]'),
-        (Token.Toolbar.Status.On, ' Help '),
         (Token.Toolbar.Status.Key, '[Space]'),
-        (Token.Toolbar.Status.On, ' Toggle '),
+        (Token.Toolbar.Status, ' Toggle '),
         (Token.Toolbar.Status.Key, '[Tab]'),
-        (Token.Toolbar.Status.On, ' Focus '),
+        (Token.Toolbar.Status, ' Focus '),
         (Token.Toolbar.Status.Key, '[Enter]'),
-        (Token.Toolbar.Status.On, ' Accept '),
-        (Token.Toolbar.Status.Key, '[Ctrl-C]'),
-        (Token.Toolbar.Status.On, ' Cancel '),
+        (Token.Toolbar.Status, ' Accept '),
+        (Token.Toolbar.Status.Key, '[F1]'),
+        (Token.Toolbar.Status, ' Help '),
     ]
 
 
@@ -341,6 +326,9 @@ class HistoryMapping(object):
 
             for line in entry.splitlines():
                 history_lines.append(line)
+
+        if len(python_history) > HISTORY_COUNT:
+            history_lines[0] = '# *** History has been truncated to %s lines ***' % HISTORY_COUNT
 
         self.history_lines = history_lines
         self.concatenated_history = '\n'.join(history_lines)

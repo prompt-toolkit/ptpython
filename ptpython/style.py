@@ -110,10 +110,10 @@ default_ui_style = {
 
         # Status toolbar.
         Token.Toolbar.Status:                         'bg:#222222 #aaaaaa',
+        Token.Toolbar.Status.Title:                   'underline',
         Token.Toolbar.Status.InputMode:               'bg:#222222 #ffffaa',
-        Token.Toolbar.Status.Key:                     'bg:#bbbbbb #000000',
-        Token.Toolbar.Status.Off:                     'bg:#222222 #aaaaaa',
-        Token.Toolbar.Status.On:                      'bg:#222222 #ffffff',
+        Token.Toolbar.Status.Key:                     'bg:#000000 #888888',
+        Token.Toolbar.Status.PasteModeOn:             'bg:#aa4444 #ffffff',
         Token.Toolbar.Status.PythonVersion:           'bg:#222222 #ffffff bold',
 
         # When Control-C has been pressed. Grayed.
@@ -144,7 +144,7 @@ default_ui_style = {
         Token.Window.Title:                           'bg:#bbbbbb #000000',
 
         # Meta-enter message.
-        Token.MetaEnterMessage:                       'bg:#ffff88 #444444',
+        Token.AcceptMessage:                          'bg:#ffff88 #444444',
 
         # Exit confirmation.
         Token.ExitConfirmation:                       'bg:#884444 #ffffff',
