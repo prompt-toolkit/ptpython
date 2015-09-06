@@ -26,6 +26,10 @@ def run():
     vi_mode = bool(a['--vi'])
     config_dir = os.path.expanduser(a['--config-dir'] or '~/.ptpython/')
 
+    # Create config directory.
+    if not os.path.isdir(config_dir):
+        os.mkdir(config_dir)
+
     # If IPython is not available, show message and exit here with error status
     # code.
     try:
