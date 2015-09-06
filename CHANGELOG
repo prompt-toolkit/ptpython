@@ -1,6 +1,27 @@
 CHANGELOG
 =========
 
+0.22: 2015-09-06
+----------------
+
+Upgrade to prompt_toolkit 0.50
+
+Fixes:
+- Correctly accept file parameter in the print function of
+  asyncssh_repl.ReplSSHServerSession.
+- Create config directory if it doesn't exist yet (For IPython entry point.)
+
+New features:
+- Implementation of history-selection: a tool to select lines from the history.
+- Make exit message configurable.
+- Improve start-up time: Lazy load completer grammar and lazy-import Jedi.
+- Make multi-column the default completion visualisation.
+- Implementation of a custom prompts. In_tokens and out_tokens can be
+  customized.
+- Made an option to show/hide highlighting for matching parenthesis.
+- Some styling improvements.
+
+
 0.21: 2015-08-08
 ---------------
 
