@@ -296,7 +296,7 @@ class GrayExistingText(Processor):
         self._len_before = len(history_mapping.original_document.text_before_cursor)
         self._len_after = len(history_mapping.original_document.text_after_cursor)
 
-    def run(self, cli, document, tokens):
+    def run(self, cli, buffer, tokens):
         if self._len_before or self._len_after:
             tokens = explode_tokens(tokens)
             pos_after = len(tokens) - self._len_after
