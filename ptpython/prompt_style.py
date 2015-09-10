@@ -20,6 +20,16 @@ class PromptStyle(with_metaclass(ABCMeta, object)):
         return []
 
     @abstractmethod
+    def in2_tokens(self, cli, width):
+        """
+        Tokens for every following input line.
+
+        :param width: The available width. This is coming from the width taken
+                      by `in_tokens`.
+        """
+        return []
+
+    @abstractmethod
     def out_tokens(self, cli):
         " Return the output tokens. "
         return []
@@ -39,6 +49,11 @@ class IPythonPrompt(PromptStyle):
             (Token.In, ']: '),
         ]
 
+    def in2_tokens(self, cli, width):
+        return [
+            (Token.In, '...: '.rjust(width)),
+        ]
+
     def out_tokens(self, cli):
         return [
             (Token.Out, 'Out['),
@@ -54,6 +69,9 @@ class ClassicPrompt(PromptStyle):
     """
     def in_tokens(self, cli):
         return [(Token, '>>> ')]
+
+    def in2_tokens(self, cli, width):
+        return [(Token, '...')]
 
     def out_tokens(self, cli):
         return []

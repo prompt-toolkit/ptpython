@@ -58,6 +58,9 @@ def configure(repl):
     # Paste mode. (When True, don't insert whitespace after new line.)
     repl.paste_mode = False
 
+    # Use the classic prompt. (Display '>>>' instead of 'In [1]'.)
+    repl.prompt_style = 'classic'  # 'classic' or 'ipython'
+
     # History Search.
     # When True, going back in history will filter the history on the records
     # starting with the current input. (Like readline.)

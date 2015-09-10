@@ -158,7 +158,7 @@ class PythonInput(object):
         self.completion_visualisation = CompletionVisualisation.MULTI_COLUMN
         self.completion_menu_scroll_offset = 1
 
-        self.show_line_numbers = True
+        self.show_line_numbers = False
         self.show_status_bar = True
         self.complete_while_typing = True
         self.vi_mode = vi_mode
@@ -182,7 +182,7 @@ class PythonInput(object):
         self.exit_message = 'Do you really want to exit?'
 
         # Tokens to be shown at the prompt.
-        self.prompt_style = 'ipython'  # The currently active style.
+        self.prompt_style = 'classic'  # The currently active style.
 
         self.all_prompt_styles = {  # Styles selectable from the menu.
             'ipython': IPythonPrompt(self),
@@ -421,7 +421,7 @@ class PythonInput(object):
                            CompletionVisualisation.TOOLBAR: lambda: enable('completion_visualisation', CompletionVisualisation.TOOLBAR),
                        }),
                 Option(title='Prompt',
-                       description='Visualisation of the prompt.',
+                       description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
                        get_current_value=lambda: self.prompt_style,
                        get_values=lambda: dict((s, partial(enable, 'prompt_style', s)) for s in self.all_prompt_styles)),
                 simple_option(title='Show signature',

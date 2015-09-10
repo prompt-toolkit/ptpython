@@ -3,7 +3,6 @@ from __future__ import unicode_literals
 from prompt_toolkit.filters import Filter
 
 __all__ = (
-    'ShowLineNumbersFilter',
     'HasSignature',
     'ShowSidebar',
     'ShowDocstring',
@@ -16,12 +15,6 @@ class PythonInputFilter(Filter):
 
     def __call__(self, cli):
         raise NotImplementedError
-
-
-class ShowLineNumbersFilter(PythonInputFilter):
-    def __call__(self, cli):
-        return ('\n' in cli.buffers['default'].text and
-                self.python_input.show_line_numbers)
 
 
 class HasSignature(PythonInputFilter):

@@ -13,11 +13,11 @@ from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Always, Condition, HasFocus, InFocusStack
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Layout
-from prompt_toolkit.layout.controls import BufferControl, FillControl, TokenListControl
+from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Layout, ScrollOffsets
+from prompt_toolkit.layout.controls import BufferControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
 from prompt_toolkit.layout.lexers import PygmentsLexer
-from prompt_toolkit.layout.margins import Margin
+from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
 from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
@@ -41,7 +41,7 @@ else:
 HISTORY_BUFFER = 'HISTORY_BUFFER'
 HELP_BUFFER = 'HELP_BUFFER'
 
-HISTORY_COUNT = 500
+HISTORY_COUNT = 2000
 
 __all__ = (
     'create_history_application',
@@ -151,7 +151,8 @@ def create_layout(python_input, history_mapping):
                 default_char=Char(token=Token),
                 lexer=PygmentsLexer(RstLexer),
                 input_processors=default_processors),
-            scroll_offset=2))
+            right_margins=[ScrollbarMargin()],
+            scroll_offsets=ScrollOffsets(top=2, bottom=2)))
 
     return HSplit([
         #  Top title bar.
@@ -164,22 +165,24 @@ def create_layout(python_input, history_mapping):
                 # Left side: history.
                 Window(
                     content=BufferControl(
-                        margin=HistoryMargin(history_mapping),
                         buffer_name=HISTORY_BUFFER,
+                        wrap_lines=False,
                         lexer=PygmentsLexer(PythonLexer),
                         input_processors=default_processors),
-                    scroll_offset=2),
+                    left_margins=[HistoryMargin(history_mapping)],
+                    scroll_offsets=ScrollOffsets(top=2, bottom=2)),
                 # Separator.
                 Window(width=D.exact(1),
                        content=FillControl(BORDER.LIGHT_VERTICAL, token=Token.Separator)),
                 # Right side: result.
                 Window(
                     content=BufferControl(
-                        margin=ResultMargin(history_mapping),
                         buffer_name=DEFAULT_BUFFER,
+                        wrap_lines=False,
                         input_processors=default_processors + [GrayExistingText(history_mapping)],
                         lexer=PygmentsLexer(PythonLexer)),
-                    scroll_offset=2)
+                    left_margins=[ResultMargin(history_mapping)],
+                    scroll_offsets=ScrollOffsets(top=2, bottom=2)),
             ]),
             floats=[
                 # Help text as a float.
@@ -228,13 +231,23 @@ class HistoryMargin(Margin):
     def __init__(self, history_mapping):
         self.history_mapping = history_mapping
 
-    def create_handler(self, cli, document):
+    def get_width(self, cli):
+        return 2
+
+    def create_margin(self, cli, window_render_info, width, height):
+        document = cli.buffers[HISTORY_BUFFER].document
+
         lines_starting_new_entries = self.history_mapping.lines_starting_new_entries
         selected_lines = self.history_mapping.selected_lines
 
         current_lineno = document.cursor_position_row
 
-        def margin(line_number):
+        visible_line_to_input_line = window_render_info.visible_line_to_input_line
+        result = []
+
+        for y in range(height):
+            line_number = visible_line_to_input_line.get(y)
+
             # Show stars at the start of each entry.
             # (Visualises multiline entries.)
             if line_number in lines_starting_new_entries:
@@ -250,14 +263,10 @@ class HistoryMargin(Margin):
             if line_number == current_lineno:
                 t = t.Current
 
-            return [(t, char), (Token, ' ')]
-        return margin
+            result.append((t, char))
+            result.append((Token, '\n'))
 
-    def invalidation_hash(self, cli, document):
-        return (
-            frozenset(self.history_mapping.selected_lines),
-            document.cursor_position_row,
-        )
+        return result
 
 
 class ResultMargin(Margin):
@@ -267,11 +276,22 @@ class ResultMargin(Margin):
     def __init__(self, history_mapping):
         self.history_mapping = history_mapping
 
-    def create_handler(self, cli, document):
+    def get_width(self, cli):
+        return 2
+
+    def create_margin(self, cli, window_render_info, width, height):
+        document = cli.buffers[DEFAULT_BUFFER].document
+
         current_lineno = document.cursor_position_row
         offset = self.history_mapping.result_line_offset #original_document.cursor_position_row
 
-        def margin(line_number):
+        visible_line_to_input_line = window_render_info.visible_line_to_input_line
+
+        result = []
+
+        for y in range(height):
+            line_number = visible_line_to_input_line.get(y)
+
             if (line_number is None or line_number < offset or
                     line_number >= offset + len(self.history_mapping.selected_lines)):
                 t = Token
@@ -280,8 +300,10 @@ class ResultMargin(Margin):
             else:
                 t = Token.History.Line.Selected
 
-            return [(t, ' '), (Token, ' ')]
-        return margin
+            result.append((t, ' '))
+            result.append((Token, '\n'))
+
+        return result
 
     def invalidation_hash(self, cli, document):
         return document.cursor_position_row
