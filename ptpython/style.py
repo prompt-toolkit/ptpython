@@ -76,7 +76,11 @@ win32_code_style = {
 
 
 default_ui_style = {
-        # (Python) Prompt: "In [1]:"
+        # Classic prompt.
+        Token.Prompt:                                 'bold',
+        Token.Prompt.Dots:                            'noinherit',
+
+        # (IPython) Prompt: "In [1]:"
         Token.In:                                     'bold #008800',
         Token.In.Number:                              '',
 

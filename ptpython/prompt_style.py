@@ -68,10 +68,10 @@ class ClassicPrompt(PromptStyle):
     The classic Python prompt.
     """
     def in_tokens(self, cli):
-        return [(Token, '>>> ')]
+        return [(Token.Prompt, '>>> ')]
 
     def in2_tokens(self, cli, width):
-        return [(Token, '...')]
+        return [(Token.Prompt.Dots, '...')]
 
     def out_tokens(self, cli):
         return []
