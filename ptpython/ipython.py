@@ -48,6 +48,10 @@ class IPythonPrompt(PromptStyle):
         text = self.prompt_manager.render('in', color=False, just=False)
         return [(Token.In, text)]
 
+    def in2_tokens(self, cli, width):
+        text = self.prompt_manager.render('in2', color=False, just=False)
+        return [(Token.In, text.rjust(width))]
+
     def out_tokens(self, cli):
         # This function is currently not used by IPython. But for completeness,
         # it would look like this.
