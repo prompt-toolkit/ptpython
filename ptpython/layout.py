@@ -469,6 +469,7 @@ def create_layout(python_input, key_bindings_manager,
                                       filter=HasFocus(SEARCH_BUFFER)),
                                   HighlightSelectionProcessor()] + extra_buffer_processors,
                 menu_position=menu_position,
+                wrap_lines=Condition(lambda cli: python_input.wrap_lines),
 
                 # Make sure that we always see the result of an reverse-i-search:
                 preview_search=Always(),

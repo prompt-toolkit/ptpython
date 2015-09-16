@@ -160,6 +160,7 @@ class PythonInput(object):
 
         self.show_line_numbers = False
         self.show_status_bar = True
+        self.wrap_lines = True
         self.complete_while_typing = True
         self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
@@ -437,6 +438,9 @@ class PythonInput(object):
                               description='Show the [Meta+Enter] message when this key combination is required to execute commands. ' +
                                   '(This is the case when a simple [Enter] key press will insert a newline.',
                               field_name='show_meta_enter_message'),
+                simple_option(title='Wrap lines',
+                              description='Wrap lines instead of scrolling horizontally.',
+                              field_name='wrap_lines'),
                 simple_option(title='Show status bar',
                               description='Show the status bar at the bottom of the terminal.',
                               field_name='show_status_bar'),
