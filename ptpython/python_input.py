@@ -19,7 +19,8 @@ from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAc
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.utils import Callback, is_windows
-from prompt_toolkit.validation import SwitchableValidator
+from prompt_toolkit.validation import ConditionalValidator
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 
 from ptpython.completer import PythonCompleter
 from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
@@ -170,6 +171,7 @@ class PythonInput(object):
         self.enable_open_in_editor = True
         self.enable_system_bindings = True
         self.enable_input_validation = True
+        self.enable_auto_suggest = False
         self.enable_history_search = False  # When True, like readline, going
                                             # back in history will filter the
                                             # history on the records starting
@@ -222,6 +224,7 @@ class PythonInput(object):
             enable_vi_mode=Condition(lambda cli: self.vi_mode),
             enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
             enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
+            enable_auto_suggest_bindings=Condition(lambda cli: self.enable_auto_suggest),
 
             # Disable all default key bindings when the sidebar or the exit confirmation
             # are shown.
@@ -400,6 +403,10 @@ class PythonInput(object):
                               description='In case of syntax errors, move the cursor to the error '
                                           'instead of showing a traceback of a SyntaxError.',
                               field_name='enable_input_validation'),
+                simple_option(title='Auto suggestion',
+                              description='Auto suggest inputs by looking at the history.'
+                                          'Pressing right arrow or Ctrl-E will complete the entry.',
+                              field_name='enable_auto_suggest'),
                 Option(title='Accept input on enter',
                        description='Amount of ENTER presses required to execute input when the cursor '
                                    'is at the end of the input. (Note that META+ENTER will always execute.)',
@@ -512,9 +519,12 @@ class PythonInput(object):
             tempfile_suffix='.py',
             history=self.history,
             completer=self._completer,
-            validator=SwitchableValidator(
+            validator=ConditionalValidator(
                 self._validator,
                 Condition(lambda: self.enable_input_validation)),
+            auto_suggest=ConditionalAutoSuggest(
+                AutoSuggestFromHistory(),
+                Condition(lambda cli: self.enable_auto_suggest)),
             accept_action=self._accept_action)
 
         return python_buffer
