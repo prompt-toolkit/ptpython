@@ -48,6 +48,9 @@ def configure(repl):
     # Highlight matching parethesis.
     repl.highlight_matching_parenthesis = True
 
+    # Line wrapping. (Instead of horizontal scrolling.)
+    repl.wrap_lines = True
+
     # Complete while typing. (Don't require tab before the
     # completion menu is shown.)
     repl.complete_while_typing = True
@@ -68,6 +71,10 @@ def configure(repl):
     #       otherwise, when there is a completion available, the arrows will
     #       browse through the available completions instead of the history.
     repl.enable_history_search = False
+
+    # Enable auto suggestions. (Pressing right arrow will complete the input,
+    # based on the history.)
+    repl.enable_auto_suggest = False
 
     # Enable open-in-editor. Pressing C-X C-E in emacs mode or 'v' in
     # Vi navigation mode will open the input in the current editor.
