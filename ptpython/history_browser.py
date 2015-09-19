@@ -21,7 +21,7 @@ from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
 from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
-from prompt_toolkit.layout.processors import Processor
+from prompt_toolkit.layout.processors import Processor, Transformation
 from prompt_toolkit.layout.utils import explode_tokens
 from prompt_toolkit.layout.toolbars import TokenListToolbar
 from prompt_toolkit.utils import Callback
@@ -318,7 +318,7 @@ class GrayExistingText(Processor):
         self._len_before = len(history_mapping.original_document.text_before_cursor)
         self._len_after = len(history_mapping.original_document.text_after_cursor)
 
-    def run(self, cli, buffer, tokens):
+    def apply_transformation(self, cli, buffer, tokens):
         if self._len_before or self._len_after:
             tokens = explode_tokens(tokens)
             pos_after = len(tokens) - self._len_after
@@ -326,13 +326,13 @@ class GrayExistingText(Processor):
             text_before = ''.join(t[1] for t in tokens[:self._len_before])
             text_after = ''.join(t[1] for t in tokens[pos_after:])
 
-            return (
+            return Transformation(
                 [(Token.History.ExistingInput, text_before)] +
                 tokens[self._len_before:pos_after] +
                 [(Token.History.ExistingInput, text_after)]
-            ), lambda i: i
+            )
         else:
-            return tokens, lambda i: i
+            return Transformation(tokens)
 
 
 class HistoryMapping(object):
