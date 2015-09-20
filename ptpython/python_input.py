@@ -172,6 +172,7 @@ class PythonInput(object):
         self.enable_system_bindings = True
         self.enable_input_validation = True
         self.enable_auto_suggest = False
+        self.enable_mouse_support = False
         self.enable_history_search = False  # When True, like readline, going
                                             # back in history will filter the
                                             # history on the records starting
@@ -396,6 +397,10 @@ class PythonInput(object):
                            'on': lambda: enable('enable_history_search') and disable('complete_while_typing'),
                            'off': lambda: disable('enable_history_search'),
                        }),
+                simple_option(title='Mouse support',
+                              description='Respond to mouse clicks and scrolling for positioning the cursor, '
+                                          'selecting text and scrolling through windows.',
+                              field_name='enable_mouse_support'),
                 simple_option(title='Confirm on exit',
                               description='Require confirmation when exiting.',
                               field_name='confirm_exit'),
@@ -496,6 +501,7 @@ class PythonInput(object):
             buffers=buffers,
             key_bindings_registry=self.key_bindings_registry,
             paste_mode=Condition(lambda cli: self.paste_mode),
+            mouse_support=Condition(lambda cli: self.enable_mouse_support),
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
             get_style=lambda: self._current_style,

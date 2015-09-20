@@ -579,6 +579,7 @@ def create_history_application(python_input, original_document):
         },
         initial_focussed_buffer=HISTORY_BUFFER,
         style=python_input._current_style,
+        mouse_support=Condition(lambda cli: python_input.enable_mouse_support),
         key_bindings_registry=create_key_bindings(python_input, history_mapping)
     )
     return application
