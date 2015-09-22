@@ -179,7 +179,7 @@ def create_layout(python_input, history_mapping):
                     content=BufferControl(
                         buffer_name=DEFAULT_BUFFER,
                         wrap_lines=False,
-                        input_processors=default_processors + [GrayExistingText(history_mapping)],
+                        input_processors=[GrayExistingText(history_mapping)] + default_processors,
                         lexer=PygmentsLexer(PythonLexer)),
                     left_margins=[ResultMargin(history_mapping)],
                     scroll_offsets=ScrollOffsets(top=2, bottom=2)),
@@ -318,7 +318,7 @@ class GrayExistingText(Processor):
         self._len_before = len(history_mapping.original_document.text_before_cursor)
         self._len_after = len(history_mapping.original_document.text_after_cursor)
 
-    def apply_transformation(self, cli, buffer, tokens):
+    def apply_transformation(self, cli, document, tokens):
         if self._len_before or self._len_after:
             tokens = explode_tokens(tokens)
             pos_after = len(tokens) - self._len_after
@@ -327,12 +327,12 @@ class GrayExistingText(Processor):
             text_after = ''.join(t[1] for t in tokens[pos_after:])
 
             return Transformation(
-                [(Token.History.ExistingInput, text_before)] +
-                tokens[self._len_before:pos_after] +
-                [(Token.History.ExistingInput, text_after)]
-            )
+                document=document,
+                tokens=explode_tokens([(Token.History.ExistingInput, text_before)] +
+                       tokens[self._len_before:pos_after] +
+                       [(Token.History.ExistingInput, text_after)]))
         else:
-            return Transformation(tokens)
+            return Transformation(document, tokens)
 
 
 class HistoryMapping(object):
