@@ -51,6 +51,9 @@ def configure(repl):
     # Line wrapping. (Instead of horizontal scrolling.)
     repl.wrap_lines = True
 
+    # Mouse support.
+    repl.enable_mouse_support = True
+
     # Complete while typing. (Don't require tab before the
     # completion menu is shown.)
     repl.complete_while_typing = True
