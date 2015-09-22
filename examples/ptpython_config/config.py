@@ -95,8 +95,10 @@ def configure(repl):
     repl.use_code_colorscheme('pastie')
 
     # Install custom colorscheme named 'my-colorscheme' and use it.
+    """
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
     repl.use_ui_colorscheme('my-colorscheme')
+    """
 
     # Add custom key binding for PDB.
     @repl.add_key_binding(Keys.ControlB)
@@ -112,6 +114,7 @@ def configure(repl):
         if b.accept_action.is_returnable:
             b.accept_action.validate_and_handle(event.cli, b)
 
+    """
     # Custom key binding for some simple autocorrection while typing.
     corrections = {
         'impotr': 'import',
@@ -130,6 +133,7 @@ def configure(repl):
                 b.insert_text(corrections[w])
 
         b.insert_text(' ')
+    """
 
 
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
