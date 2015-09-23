@@ -411,7 +411,7 @@ class PythonInput(object):
                                           'instead of showing a traceback of a SyntaxError.',
                               field_name='enable_input_validation'),
                 simple_option(title='Auto suggestion',
-                              description='Auto suggest inputs by looking at the history.'
+                              description='Auto suggest inputs by looking at the history. '
                                           'Pressing right arrow or Ctrl-E will complete the entry.',
                               field_name='enable_auto_suggest'),
                 Option(title='Accept input on enter',
