@@ -222,6 +222,8 @@ class PythonInput(object):
 
         # Use a KeyBindingManager for loading the key bindings.
         self.key_bindings_manager = KeyBindingManager(
+            enable_abort_and_exit_bindings=True,
+            enable_search=True,
             enable_vi_mode=Condition(lambda cli: self.vi_mode),
             enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
             enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
