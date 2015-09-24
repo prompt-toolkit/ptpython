@@ -475,7 +475,9 @@ def create_layout(python_input, key_bindings_manager,
                                       processor=HighlightSearchProcessor(preview_search=Always()),
                                       filter=HasFocus(SEARCH_BUFFER)),
                                   HighlightSelectionProcessor(),
-                                  AppendAutoSuggestion(),
+                                  ConditionalProcessor(
+                                      processor=AppendAutoSuggestion(),
+                                      filter=~IsDone())
                                   ] + extra_buffer_processors,
                 menu_position=menu_position,
                 wrap_lines=Condition(lambda cli: python_input.wrap_lines),
