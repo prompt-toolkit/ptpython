@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+0.23: 2015-09-24
+----------------
+
+Upgrade to prompt_toolkit 0.51
+
+New features:
+- Mouse support
+- Fish style auto suggestion.
+- Optionally disabling of line wraps.
+- Use Python3Lexer for Python 3.
+
+
 0.22: 2015-09-06
 ----------------
 
