@@ -403,6 +403,7 @@ def create_key_bindings(python_input, history_mapping):
     Key bindings.
     """
     manager = KeyBindingManager(
+        enable_search=True,
         enable_vi_mode=Condition(lambda cli: python_input.vi_mode),
         enable_extra_page_navigation=True,
         vi_state=python_input.key_bindings_manager.vi_state)
