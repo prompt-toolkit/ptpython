@@ -22,7 +22,8 @@ import os
 import six
 import sys
 
-from ptpython.repl import embed, enable_deprecation_warnings, run_config
+from ptpython.repl import (embed, enable_deprecation_warnings,
+                           load_config, run_config)
 
 
 def run():
@@ -59,6 +60,9 @@ def run():
 
         # Apply config file
         def configure(repl):
+            path = os.path.join(config_dir, 'conf.cfg')
+            if os.path.exists(path):
+                load_config(repl, path)
             path = os.path.join(config_dir, 'config.py')
             if os.path.exists(path):
                 run_config(repl, path)

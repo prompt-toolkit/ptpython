@@ -43,15 +43,15 @@ class CompletionVisualisation:
 
 
 def show_completions_toolbar(python_input):
-    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.TOOLBAR)
+    return Condition(lambda cli: python_input.settings.completion_visualisation == 'CompletionVisualisation.TOOLBAR')
 
 
 def show_completions_menu(python_input):
-    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.POP_UP)
+    return Condition(lambda cli: python_input.settings.completion_visualisation == 'CompletionVisualisation.POP_UP')
 
 
 def show_multi_column_completions_menu(python_input):
-    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.MULTI_COLUMN)
+    return Condition(lambda cli: python_input.settings.completion_visualisation == 'CompletionVisualisation.MULTI_COLUMN')
 
 
 def python_sidebar(python_input):
@@ -171,7 +171,7 @@ def python_sidebar_help(python_input):
             TokenListControl(get_tokens, Char(token=token)),
             height=LayoutDimension(min=3)),
         filter=ShowSidebar(python_input) &
-               Condition(lambda cli: python_input.show_sidebar_help) & ~IsDone())
+               Condition(lambda cli: python_input.settings.show_sidebar_help) & ~IsDone())
 
 
 def signature_toolbar(python_input):
@@ -245,7 +245,7 @@ class PromptMargin(Margin):
         self.python_input = python_input
 
     def _get_prompt_style(self):
-        return self.python_input.all_prompt_styles[self.python_input.prompt_style]
+        return self.python_input.all_prompt_styles[self.python_input.settings.prompt_style]
 
     def get_width(self, cli):
         # Take the width from the first line.
@@ -260,7 +260,7 @@ class PromptMargin(Margin):
 
         # Next lines. (Show line numbering when numbering is enabled.)
         tokens2 = style.in2_tokens(cli, width)
-        show_numbers = self.python_input.show_line_numbers
+        show_numbers = self.python_input.settings.show_line_numbers
         visible_line_to_input_line = window_render_info.visible_line_to_input_line
 
         for y in range(1, min(window_render_info.content_height, height)):
@@ -295,9 +295,9 @@ def status_bar(key_bindings_manager, python_input):
                                 len(python_buffer._working_lines))))
 
         # Shortcuts.
-        if not python_input.vi_mode and cli.focus_stack.current == 'search':
+        if not python_input.settings.vi_mode and cli.focus_stack.current == 'search':
             append((TB, '[Ctrl-G] Cancel search [Enter] Go to this position.'))
-        elif bool(cli.current_buffer.selection_state) and not python_input.vi_mode:
+        elif bool(cli.current_buffer.selection_state) and not python_input.settings.vi_mode:
             # Emacs cut/copy keys.
             append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
         else:
@@ -308,7 +308,7 @@ def status_bar(key_bindings_manager, python_input):
                 (TB, ' '),
             ])
 
-            if python_input.paste_mode:
+            if python_input.settings.paste_mode:
                 append((TB.PasteModeOn, 'Paste mode (on)'))
             else:
                 append((TB, 'Paste mode'))
@@ -319,8 +319,8 @@ def status_bar(key_bindings_manager, python_input):
         get_tokens,
         default_char=Char(token=TB),
         filter=~IsDone() & RendererHeightIsKnown() &
-            Condition(lambda cli: python_input.show_status_bar and
-                                  not python_input.show_exit_confirmation))
+            Condition(lambda cli: python_input.settings.show_status_bar and
+                                  not python_input.settings.show_exit_confirmation))
 
 
 def get_inputmode_tokens(cli, python_input):
@@ -339,7 +339,7 @@ def get_inputmode_tokens(cli, python_input):
     append((token.InputMode, '[F4] '))
 
     # InputMode
-    if python_input.vi_mode:
+    if python_input.settings.vi_mode:
         if bool(cli.current_buffer.selection_state):
             if cli.current_buffer.selection_state.type == SelectionType.LINES:
                 append((token.InputMode, 'Vi (VISUAL LINE)'))
@@ -390,8 +390,8 @@ def show_sidebar_button_info(python_input):
             height=LayoutDimension.exact(1),
             width=LayoutDimension.exact(width)),
         filter=~IsDone() & RendererHeightIsKnown() &
-            Condition(lambda cli: python_input.show_status_bar and
-                                  not python_input.show_exit_confirmation))
+            Condition(lambda cli: python_input.settings.show_status_bar and
+                                  not python_input.settings.show_exit_confirmation))
 
 
 def exit_confirmation(python_input, token=Token.ExitConfirmation):
@@ -401,12 +401,12 @@ def exit_confirmation(python_input, token=Token.ExitConfirmation):
     def get_tokens(cli):
         # Show "Do you really want to exit?"
         return [
-            (token, '\n %s ([y]/n)' % python_input.exit_message),
+            (token, '\n %s ([y]/n)' % python_input.settings.exit_message),
             (Token.SetCursorPosition, ''),
             (token, '  \n'),
         ]
 
-    visible = ~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation)
+    visible = ~IsDone() & Condition(lambda cli: python_input.settings.show_exit_confirmation)
 
     return ConditionalContainer(
         content=Window(TokenListControl(
@@ -426,9 +426,9 @@ def meta_enter_message(python_input):
         b = cli.buffers[DEFAULT_BUFFER]
 
         return (
-            python_input.show_meta_enter_message and
+            python_input.settings.show_meta_enter_message and
             (not b.document.is_cursor_at_the_end or
-                python_input.accept_input_on_enter is None) and
+                python_input.settings.accept_input_on_enter is None) and
             b.is_multiline())
 
     visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(extra_condition)
@@ -470,7 +470,7 @@ def create_layout(python_input, key_bindings_manager,
                                   ConditionalProcessor(
                                       processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                                       filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                                          Condition(lambda cli: python_input.highlight_matching_parenthesis)),
+                                          Condition(lambda cli: python_input.settings.highlight_matching_parenthesis)),
                                   ConditionalProcessor(
                                       processor=HighlightSearchProcessor(preview_search=Always()),
                                       filter=HasFocus(SEARCH_BUFFER)),
@@ -480,7 +480,7 @@ def create_layout(python_input, key_bindings_manager,
                                       filter=~IsDone())
                                   ] + extra_buffer_processors,
                 menu_position=menu_position,
-                wrap_lines=Condition(lambda cli: python_input.wrap_lines),
+                wrap_lines=Condition(lambda cli: python_input.settings.wrap_lines),
 
                 # Make sure that we always see the result of an reverse-i-search:
                 preview_search=Always(),
@@ -491,7 +491,7 @@ def create_layout(python_input, key_bindings_manager,
             scroll_offsets=ScrollOffsets(bottom=1, left=4, right=4),
             # As long as we're editing, prefer a minimal height of 6.
             get_height=(lambda cli: (
-                None if cli.is_done or python_input.show_exit_confirmation
+                None if cli.is_done or python_input.settings.show_exit_confirmation
                         else input_buffer_height)),
         )
 
@@ -507,7 +507,7 @@ def create_layout(python_input, key_bindings_manager,
                               ycursor=True,
                               content=CompletionsMenu(
                                   scroll_offset=Integer.from_callable(
-                                      lambda: python_input.completion_menu_scroll_offset),
+                                      lambda: python_input.settings.completion_menu_scroll_offset),
                                   max_height=12,
                                   extra_filter=show_completions_menu(python_input))),
                         Float(xcursor=True,

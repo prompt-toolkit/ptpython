@@ -18,6 +18,7 @@ from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.utils import DummyContext, Callback
 
+from .config import Settings
 from .python_input import PythonInput
 from .eventloop import create_eventloop
 
@@ -43,7 +44,8 @@ class PythonRepl(PythonInput):
             '_accept_action': AcceptAction.run_in_terminal(
                 handler=self._process_document, render_cli_done=True),
             '_on_start': Callback(self._on_start),
-            '_on_exit': AbortAction.RETURN_NONE,
+            # '_on_exit': AbortAction.RETURN_NONE,
+            '_on_exit': Callback(self._on_exit),
         })
 
         super(PythonRepl, self).__init__(*a, **kw)
@@ -62,6 +64,10 @@ class PythonRepl(PythonInput):
                     output = self.cli.output
                     output.write('WARNING | File not found: {}\n\n'.format(path))
 
+    def _on_exit(self):
+        import pdb; pdb.set_trace()
+        self.settings.save_config()
+                    
     def _process_document(self, cli, buffer):
         line = buffer.text
 
@@ -198,6 +204,10 @@ def enable_deprecation_warnings():
                             module='__main__')
 
 
+def load_config(repl, config_file='~/.ptpython/conf.cfg'):
+    repl.settings.update_from(config_file)
+
+    
 def run_config(repl, config_file='~/.ptpython/config.py'):
     """
     Execute REPL config file.
@@ -284,7 +294,7 @@ def embed(globals=None, locals=None, configure=None,
                       startup_paths=startup_paths)
 
     if title:
-        repl.terminal_title = title
+        repl.settings.terminal_title = title
 
     if configure:
         configure(repl)

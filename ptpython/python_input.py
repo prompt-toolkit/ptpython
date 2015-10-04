@@ -22,6 +22,7 @@ from prompt_toolkit.utils import Callback, is_windows
 from prompt_toolkit.validation import ConditionalValidator
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 
+from ptpython.config import Settings
 from ptpython.completer import PythonCompleter
 from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
 from ptpython.layout import create_layout, CompletionVisualisation
@@ -153,40 +154,42 @@ class PythonInput(object):
         self._extra_buffer_processors = _extra_buffer_processors or []
 
         # Settings.
-        self.show_signature = True
-        self.show_docstring = False
-        self.show_meta_enter_message = True
-        self.completion_visualisation = CompletionVisualisation.MULTI_COLUMN
-        self.completion_menu_scroll_offset = 1
-
-        self.show_line_numbers = False
-        self.show_status_bar = True
-        self.wrap_lines = True
-        self.complete_while_typing = True
-        self.vi_mode = vi_mode
-        self.paste_mode = False  # When True, don't insert whitespace after newline.
-        self.confirm_exit = True  # Ask for confirmation when Control-D is pressed.
-        self.accept_input_on_enter = 2  # Accept when pressing Enter 'n' times.
-                                        # 'None' means that meta-enter is always required.
-        self.enable_open_in_editor = True
-        self.enable_system_bindings = True
-        self.enable_input_validation = True
-        self.enable_auto_suggest = False
-        self.enable_mouse_support = False
-        self.enable_history_search = False  # When True, like readline, going
-                                            # back in history will filter the
-                                            # history on the records starting
-                                            # with the current input.
-
-        self.highlight_matching_parenthesis = True
-        self.show_sidebar = False  # Currently show the sidebar.
-        self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
-        self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
-        self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
-        self.exit_message = 'Do you really want to exit?'
-
-        # Tokens to be shown at the prompt.
-        self.prompt_style = 'classic'  # The currently active style.
+        self.settings = Settings({
+            'show_signature': True,
+            'show_docstring': False,
+            'show_meta_enter_message': True,
+            'completion_visualisation': 'CompletionVisualisation.MULTI_COLUMN',
+            'completion_menu_scroll_offset': 1,
+            
+            'show_line_numbers': False,
+            'show_status_bar': True,
+            'wrap_lines': True,
+            'complete_while_typing': True,
+            'vi_mode': vi_mode,
+            'paste_mode': False,  # When True, don't insert whitespace after newline.
+            'confirm_exit': True,  # Ask for confirmation when Control-D is pressed.
+            'accept_input_on_enter': 2,  # Accept when pressing Enter 'n' times.
+                                         # 'None' means that meta-enter is always required.
+            'enable_open_in_editor': True,
+            'enable_system_bindings': True,
+            'enable_input_validation': True,
+            'enable_auto_suggest': False,
+            'enable_mouse_support': False,
+            'enable_history_search': False,  # When True, like readline, going
+                                             # back in history will filter the
+                                             # history on the records starting
+                                             # with the current input.
+            
+            'highlight_matching_parenthesis': True,
+            'show_sidebar': False,  # Currently show the sidebar.
+            'show_sidebar_help': True, # When the sidebar is visible, also show the help text.
+            'show_exit_confirmation': False,  # Currently show 'Do you really want to exit?'
+            'terminal_title': None,  # The title to be displayed in the terminal. (None or string.)
+            'exit_message': 'Do you really want to exit?',
+            
+            # Tokens to be shown at the prompt.
+            'prompt_style': 'classic'  # The currently active style.
+        })
 
         self.all_prompt_styles = {  # Styles selectable from the menu.
             'ipython': IPythonPrompt(self),
@@ -194,10 +197,10 @@ class PythonInput(object):
         }
 
         self.get_input_prompt_tokens = lambda cli: \
-            self.all_prompt_styles[self.prompt_style].in_tokens(cli)
+            self.all_prompt_styles[self.settings.prompt_style].in_tokens(cli)
 
         self.get_output_prompt_tokens = lambda cli: \
-            self.all_prompt_styles[self.prompt_style].out_tokens(cli)
+            self.all_prompt_styles[self.settings.prompt_style].out_tokens(cli)
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
@@ -224,14 +227,14 @@ class PythonInput(object):
         self.key_bindings_manager = KeyBindingManager(
             enable_abort_and_exit_bindings=True,
             enable_search=True,
-            enable_vi_mode=Condition(lambda cli: self.vi_mode),
-            enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
-            enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
-            enable_auto_suggest_bindings=Condition(lambda cli: self.enable_auto_suggest),
+            enable_vi_mode=Condition(lambda cli: self.settings.vi_mode),
+            enable_open_in_editor=Condition(lambda cli: self.settings.enable_open_in_editor),
+            enable_system_bindings=Condition(lambda cli: self.settings.enable_system_bindings),
+            enable_auto_suggest_bindings=Condition(lambda cli: self.settings.enable_auto_suggest),
 
             # Disable all default key bindings when the sidebar or the exit confirmation
             # are shown.
-            enable_all=Condition(lambda cli: not (self.show_sidebar or self.show_exit_confirmation)))
+            enable_all=Condition(lambda cli: not (self.settings.show_sidebar or self.settings.show_exit_confirmation)))
 
         load_python_bindings(self.key_bindings_manager, self)
         load_sidebar_bindings(self.key_bindings_manager, self)
@@ -288,7 +291,7 @@ class PythonInput(object):
                 ...
         """
         # Extra key bindings should not be active when the sidebar is visible.
-        sidebar_visible = Condition(lambda cli: self.show_sidebar)
+        sidebar_visible = Condition(lambda cli: self.settings.show_sidebar)
 
         def add_binding_decorator(*keys, **kw):
             # Pop default filter keyword argument.
@@ -348,21 +351,24 @@ class PythonInput(object):
         Create a list of `Option` instances for the options sidebar.
         """
         def enable(attribute, value=True):
-            setattr(self, attribute, value)
+            setattr(self.settings, attribute, value)
 
             # Return `True`, to be able to chain this in the lambdas below.
             return True
 
         def disable(attribute):
-            setattr(self, attribute, False)
+            setattr(self.settings, attribute, False)
             return True
 
+        def load(object):
+            pass
+        
         def simple_option(title, description, field_name, values=None):
             " Create Simple on/of option. "
             values = values or ['off', 'on']
 
             def get_current_value():
-                return values[bool(getattr(self, field_name))]
+                return values[bool(getattr(self.settings, field_name))]
 
             def get_values():
                 return {
@@ -386,7 +392,7 @@ class PythonInput(object):
                 Option(title='Complete while typing',
                        description="Generate autocompletions automatically while typing. "
                                    'Don\'t require pressing TAB. (Not compatible with "History search".)',
-                       get_current_value=lambda: ['off', 'on'][self.complete_while_typing],
+                       get_current_value=lambda: ['off', 'on'][self.settings.complete_while_typing],
                        get_values=lambda: {
                            'on': lambda: enable('complete_while_typing') and disable('enable_history_search'),
                            'off': lambda: disable('complete_while_typing'),
@@ -394,7 +400,7 @@ class PythonInput(object):
                 Option(title='History search',
                        description='When pressing the up-arrow, filter the history on input starting '
                                    'with the current text. (Not compatible with "Complete while typing".)',
-                       get_current_value=lambda: ['off', 'on'][self.enable_history_search],
+                       get_current_value=lambda: ['off', 'on'][self.settings.enable_history_search],
                        get_values=lambda: {
                            'on': lambda: enable('enable_history_search') and disable('complete_while_typing'),
                            'off': lambda: disable('enable_history_search'),
@@ -417,7 +423,7 @@ class PythonInput(object):
                 Option(title='Accept input on enter',
                        description='Amount of ENTER presses required to execute input when the cursor '
                                    'is at the end of the input. (Note that META+ENTER will always execute.)',
-                       get_current_value=lambda: str(self.accept_input_on_enter or 'meta-enter'),
+                       get_current_value=lambda: str(self.settings.accept_input_on_enter or 'meta-enter'),
                        get_values=lambda: {
                            '2': lambda: enable('accept_input_on_enter', 2),
                            '3': lambda: enable('accept_input_on_enter', 3),
@@ -428,7 +434,8 @@ class PythonInput(object):
             OptionCategory('Display', [
                 Option(title='Completions',
                        description='Visualisation to use for displaying the completions. (Multiple columns, one column, a toolbar or nothing.)',
-                       get_current_value=lambda: self.completion_visualisation,
+                       get_current_value=lambda: getattr(globals()[self.settings.completion_visualisation.split('.')[0]],
+                                                         self.settings.completion_visualisation.split('.')[1]),
                        get_values=lambda: {
                            CompletionVisualisation.NONE: lambda: enable('completion_visualisation', CompletionVisualisation.NONE),
                            CompletionVisualisation.POP_UP: lambda: enable('completion_visualisation', CompletionVisualisation.POP_UP),
@@ -437,7 +444,7 @@ class PythonInput(object):
                        }),
                 Option(title='Prompt',
                        description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
-                       get_current_value=lambda: self.prompt_style,
+                       get_current_value=lambda: self.settings.prompt_style,
                        get_values=lambda: dict((s, partial(enable, 'prompt_style', s)) for s in self.all_prompt_styles)),
                 simple_option(title='Show signature',
                               description='Display function signatures.',
@@ -502,12 +509,12 @@ class PythonInput(object):
             buffer=self._create_buffer(),
             buffers=buffers,
             key_bindings_registry=self.key_bindings_registry,
-            paste_mode=Condition(lambda cli: self.paste_mode),
-            mouse_support=Condition(lambda cli: self.enable_mouse_support),
+            paste_mode=Condition(lambda cli: self.settings.paste_mode),
+            mouse_support=Condition(lambda cli: self.settings.enable_mouse_support),
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
             get_style=lambda: self._current_style,
-            get_title=lambda: self.terminal_title,
+            get_title=lambda: self.settings.terminal_title,
             on_start=self._on_start,
             on_input_timeout=Callback(self._on_input_timeout))
 
@@ -516,23 +523,23 @@ class PythonInput(object):
         Create the `Buffer` for the Python input.
         """
         def is_buffer_multiline():
-            return (self.paste_mode or
-                    self.accept_input_on_enter is None or
+            return (self.settings.paste_mode or
+                    self.settings.accept_input_on_enter is None or
                     document_is_multiline_python(python_buffer.document))
 
         python_buffer = Buffer(
             is_multiline=Condition(is_buffer_multiline),
-            complete_while_typing=Condition(lambda: self.complete_while_typing),
-            enable_history_search=Condition(lambda: self.enable_history_search),
+            complete_while_typing=Condition(lambda: self.settings.complete_while_typing),
+            enable_history_search=Condition(lambda: self.settings.enable_history_search),
             tempfile_suffix='.py',
             history=self.history,
             completer=self._completer,
             validator=ConditionalValidator(
                 self._validator,
-                Condition(lambda: self.enable_input_validation)),
+                Condition(lambda: self.settings.enable_input_validation)),
             auto_suggest=ConditionalAutoSuggest(
                 AutoSuggestFromHistory(),
-                Condition(lambda cli: self.enable_auto_suggest)),
+                Condition(lambda cli: self.settings.enable_auto_suggest)),
             accept_action=self._accept_action)
 
         return python_buffer
