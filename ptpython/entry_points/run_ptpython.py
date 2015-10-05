@@ -67,9 +67,16 @@ def run():
             if os.path.exists(path):
                 run_config(repl, path)
 
+        # Save user settings in config file when repl is done
+        def done(repl):
+            path = os.path.join(config_dir, 'conf.cfg')
+            # Create the file if it doesn't exist
+            repl.settings.save_config(path)
+
         embed(vi_mode=vi_mode,
               history_filename=os.path.join(config_dir, 'history'),
               configure=configure,
+              done=done,
               startup_paths=startup_paths,
               title='Python REPL (ptpython)')
 

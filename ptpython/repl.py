@@ -44,8 +44,7 @@ class PythonRepl(PythonInput):
             '_accept_action': AcceptAction.run_in_terminal(
                 handler=self._process_document, render_cli_done=True),
             '_on_start': Callback(self._on_start),
-            # '_on_exit': AbortAction.RETURN_NONE,
-            '_on_exit': Callback(self._on_exit),
+            '_on_exit': AbortAction.RETURN_NONE,
         })
 
         super(PythonRepl, self).__init__(*a, **kw)
@@ -64,10 +63,6 @@ class PythonRepl(PythonInput):
                     output = self.cli.output
                     output.write('WARNING | File not found: {}\n\n'.format(path))
 
-    def _on_exit(self):
-        import pdb; pdb.set_trace()
-        self.settings.save_config()
-                    
     def _process_document(self, cli, buffer):
         line = buffer.text
 
@@ -205,6 +200,19 @@ def enable_deprecation_warnings():
 
 
 def load_config(repl, config_file='~/.ptpython/conf.cfg'):
+    """
+    Load REPL user settings from config file.
+
+    :param repl: `PythonInput` instance.
+    :param config_file: Path of the .cfg user settings file.
+    """
+    assert isinstance(repl, PythonInput)
+    assert isinstance(config_file, six.text_type)
+
+    # Expand tildes.
+    config_file = os.path.expanduser(config_file)
+
+    # Load the settings from the file
     repl.settings.update_from(config_file)
 
     
@@ -248,7 +256,7 @@ def run_config(repl, config_file='~/.ptpython/config.py'):
          enter_to_continue()
 
 
-def embed(globals=None, locals=None, configure=None,
+def embed(globals=None, locals=None, configure=None, done=None,
           vi_mode=False, history_filename=None, title=None,
           startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
     """
@@ -313,3 +321,6 @@ def embed(globals=None, locals=None, configure=None,
     else:
         with patch_context:
             cli.run()
+
+    if done:
+        done(repl)
