@@ -5,7 +5,7 @@ import copy
 import os
 import re
 import six
-from configparser import ConfigParser
+from six.moves.configparser import ConfigParser
 
 
 option_re = re.compile('^(?P<option>\w+)\s+=.+(?P<comment>#.*)?$')
