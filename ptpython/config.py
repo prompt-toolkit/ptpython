@@ -17,9 +17,8 @@ class Settings:
 
     :param defaults: dictionary with repl's settings customisable in conf.cfg.
     """
-    user_defined = {}
-
     def __init__(self, defaults=None):
+        self.user_defined = {}
         if defaults:
             for k, v in defaults.items():
                 self.user_defined[k] = v
@@ -101,29 +100,27 @@ class Settings:
             with open(file_path, 'r') as f:
                 current_lines = f.readlines()
 
-        cfg_file = open(file_path, 'w')
-        for line in current_lines:
-            if line[0] in ['#', '[', '\n']:
-                cfg_file.write(line)
-            elif line[0].isalpha():
-                match = option_re.search(line)
-                if match:
-                    key = match.group('option')
-                    cmt = match.group('comment')
-                    if cmt:
-                        newline = '%s = %s # %s\n' % (key, str(settings.pop(key)), cmt)
-                    else:
-                        newline = '%s = %s\n' % (key, str(settings.pop(key)))
-                    cfg_file.write(newline)
+        with open(file_path, 'w') as cfg_file:
+            for line in current_lines:
+                if line[0] in ['#', '[', '\n']:
+                    cfg_file.write(line)
+                elif line[0].isalpha():
+                    match = option_re.search(line)
+                    if match:
+                        key = match.group('option')
+                        cmt = match.group('comment')
+                        if cmt:
+                            newline = '%s = %s # %s\n' % (key, str(settings.pop(key)), cmt)
+                        else:
+                            newline = '%s = %s\n' % (key, str(settings.pop(key)))
+                        cfg_file.write(newline)
 
-        if len(current_lines) == 0:
-            # The conf.cfg file didn't exit before. The first line of the
-            # file must be the section name between brackets.
-            cfg_file.write('[ptpython]\n')
+            if len(current_lines) == 0:
+                # The conf.cfg file didn't exit before. The first line of the
+                # file must be the section name between brackets.
+                cfg_file.write('[ptpython]\n')
 
-        # Write down the rest of the settings.
-        for k, v in settings.items():
-            newline = "%s = %s\n" % (k, str(v))
-            cfg_file.write(newline)
-
-        cfg_file.close()
+            # Write down the rest of the settings.
+            for k, v in settings.items():
+                newline = "%s = %s\n" % (k, str(v))
+                cfg_file.write(newline)
