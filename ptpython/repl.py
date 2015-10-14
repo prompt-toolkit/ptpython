@@ -17,6 +17,7 @@ from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.utils import DummyContext, Callback
+from prompt_toolkit.enums import DEFAULT_BUFFER
 
 from .python_input import PythonInput
 from .eventloop import create_eventloop
@@ -79,7 +80,7 @@ class PythonRepl(PythonInput):
 
             # Append to history and reset.
             cli.search_state.text = ''
-            cli.buffers['default'].reset(append_to_history=True)
+            cli.buffers[DEFAULT_BUFFER].reset(append_to_history=True)
             self.key_bindings_manager.reset()
 
     def _execute(self, cli, line):
