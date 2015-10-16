@@ -10,6 +10,7 @@ This can be used for creation of Python REPLs.
 from __future__ import unicode_literals
 
 from prompt_toolkit import AbortAction
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
@@ -18,9 +19,9 @@ from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.utils import Callback, is_windows
 from prompt_toolkit.validation import ConditionalValidator
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 
 from ptpython.completer import PythonCompleter
 from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
@@ -506,7 +507,7 @@ class PythonInput(object):
             mouse_support=Condition(lambda cli: self.enable_mouse_support),
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
-            get_style=lambda: self._current_style,
+            style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
             on_start=self._on_start,
             on_input_timeout=Callback(self._on_input_timeout))

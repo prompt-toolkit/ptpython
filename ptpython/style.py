@@ -3,7 +3,7 @@ from __future__ import unicode_literals
 from pygments.token import Token, Keyword, Name, Comment, String, Operator, Number
 from pygments.style import Style
 from pygments.styles import get_style_by_name, get_all_styles
-from prompt_toolkit.styles import default_style_extensions
+from prompt_toolkit.styles import default_style_extensions, PygmentsStyle
 from prompt_toolkit.utils import is_windows, is_conemu_ansi
 
 __all__ = (
@@ -46,7 +46,7 @@ def generate_style(python_style, ui_style):
         styles.update(python_style)
         styles.update(ui_style)
 
-    return PythonStyle
+    return PygmentsStyle(PythonStyle)
 
 
 # Code style for Windows consoles. They support only 16 colors,
