@@ -64,6 +64,9 @@ def get_jedi_script_from_document(document, locals, globals):
     except KeyError:
         # Workaroud for a crash when the input is "u'", the start of a unicode string.
         return None
+    except jedi.ParseError:
+        # Workaround for: ParseError: incomplete input: type='ENDMARKER', value='', start_pos=(4, 0)
+        return None
 
 
 _multiline_string_delims = re.compile('''[']{3}|["]{3}''')
@@ -89,8 +92,11 @@ def document_is_multiline_python(document):
     if '\n' in document.text or ends_in_multiline_string():
         return True
 
+    def line_ends_with_colon():
+        return document.current_line.rstrip()[-1:] == ':'
+
     # If we just typed a colon, or still have open brackets, always insert a real newline.
-    if document.text_before_cursor.rstrip()[-1:] == ':' or \
+    if line_ends_with_colon() or \
             (document.is_cursor_at_the_end and
              has_unclosed_brackets(document.text_before_cursor)) or \
             document.text.startswith('@'):

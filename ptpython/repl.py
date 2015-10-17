@@ -17,6 +17,8 @@ from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.utils import DummyContext, Callback
+from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.styles import PygmentsStyle
 
 from .config import Settings
 from .python_input import PythonInput
@@ -80,7 +82,7 @@ class PythonRepl(PythonInput):
 
             # Append to history and reset.
             cli.search_state.text = ''
-            cli.buffers['default'].reset(append_to_history=True)
+            cli.buffers[DEFAULT_BUFFER].reset(append_to_history=True)
             self.key_bindings_manager.reset()
 
     def _execute(self, cli, line):
@@ -162,7 +164,7 @@ class PythonRepl(PythonInput):
         # (We use the default style. Most other styles result
         # in unreadable colors for the traceback.)
         tokens = _lex_python_traceback(tb)
-        cli.print_tokens(tokens, style=DefaultStyle)
+        cli.print_tokens(tokens, style=PygmentsStyle(DefaultStyle))
 
         output.write('%s\n\n' % e)
         output.flush()

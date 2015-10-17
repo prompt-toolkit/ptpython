@@ -13,7 +13,7 @@ from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Always, Condition, HasFocus, InFocusStack
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Layout, ScrollOffsets
+from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
 from prompt_toolkit.layout.lexers import PygmentsLexer
@@ -104,7 +104,7 @@ def create_popup_window(title, body):
     the `title` text, and a body layout. The window is surrounded by borders.
     """
     assert isinstance(title, six.text_type)
-    assert isinstance(body, Layout)
+    assert isinstance(body, Container)
 
     return HSplit([
         VSplit([
@@ -137,7 +137,8 @@ def create_popup_window(title, body):
 
 def create_layout(python_input, history_mapping):
     """
-    Create and return a `Layout` instance for the history application.
+    Create and return a `Container` instance for the history
+    application.
     """
     default_processors = [
         HighlightSearchProcessor(preview_search=Always()),

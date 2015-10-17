@@ -77,7 +77,7 @@ class Settings:
         dirlist.sort()
         return dirlist
 
-    # ConfigParser write method doesn't preserve comments.
+    # ConfigParser's write method does not preserve comments.
     # This is a rudimentary replacement to keep them that
     # works only for this very specific, one section based,
     # config file.
