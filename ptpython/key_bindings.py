@@ -139,7 +139,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         Override Control-D exit, to ask for confirmation.
         """
-        python_input.settings.show_exit_confirmation = True
+        python_input.show_exit_confirmation = True
 
 
 def load_sidebar_bindings(key_bindings_manager, python_input):
@@ -195,7 +195,7 @@ def load_confirm_exit_bindings(key_bindings_manager, python_input):
     Handle yes/no key presses when the exit confirmation is shown.
     """
     handle = key_bindings_manager.registry.add_binding
-    confirmation_visible = Condition(lambda cli: python_input.settings.show_exit_confirmation)
+    confirmation_visible = Condition(lambda cli: python_input.show_exit_confirmation)
 
     @handle('y', filter=confirmation_visible)
     @handle('Y', filter=confirmation_visible)
@@ -211,7 +211,7 @@ def load_confirm_exit_bindings(key_bindings_manager, python_input):
         """
         Cancel exit.
         """
-        python_input.settings.show_exit_confirmation = False
+        python_input.show_exit_confirmation = False
 
 
 def auto_newline(buffer):

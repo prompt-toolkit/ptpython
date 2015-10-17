@@ -9,6 +9,7 @@ This can be used for creation of Python REPLs.
 """
 from __future__ import unicode_literals
 
+import warnings
 from prompt_toolkit import AbortAction
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 from prompt_toolkit.buffer import Buffer
@@ -23,7 +24,7 @@ from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.utils import Callback, is_windows
 from prompt_toolkit.validation import ConditionalValidator
 
-from ptpython.config import Settings
+from ptpython.config import dynamic_settings, Settings
 from ptpython.completer import PythonCompleter
 from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
 from ptpython.layout import create_layout, CompletionVisualisation
@@ -184,13 +185,14 @@ class PythonInput(object):
             'highlight_matching_parenthesis': True,
             'show_sidebar': False,  # Currently show the sidebar.
             'show_sidebar_help': True, # When the sidebar is visible, also show the help text.
-            'show_exit_confirmation': False,  # Currently show 'Do you really want to exit?'
             'terminal_title': None,  # The title to be displayed in the terminal. (None or string.)
             'exit_message': 'Do you really want to exit?',
             
             # Tokens to be shown at the prompt.
             'prompt_style': 'classic'  # The currently active style.
         })
+
+        self.show_exit_confirmation = False
 
         self.all_prompt_styles = {  # Styles selectable from the menu.
             'ipython': IPythonPrompt(self),
@@ -235,7 +237,7 @@ class PythonInput(object):
 
             # Disable all default key bindings when the sidebar or the exit confirmation
             # are shown.
-            enable_all=Condition(lambda cli: not (self.settings.show_sidebar or self.settings.show_exit_confirmation)))
+            enable_all=Condition(lambda cli: not (self.settings.show_sidebar or self.show_exit_confirmation)))
 
         load_python_bindings(self.key_bindings_manager, self)
         load_sidebar_bindings(self.key_bindings_manager, self)
@@ -244,6 +246,22 @@ class PythonInput(object):
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
         self._get_signatures_thread_running = False
+
+    #------------------------------
+    # Keep this method while both settings style coexist:
+    #  * The old one with settings as attributes
+    #    of repl, in ~/.ptpython/config.py
+    #  * The new one with settings dynamically stored
+    #    in ~/.ptpython/conf.cfg
+    def __setattr__(self, name, value):
+        if name in dynamic_settings:
+            msg = ("'repl.%s' is deprecated, use 'repl.settings.%s' instead "
+                   "in your config.py." % (name, name))
+            warnings.warn(msg, FutureWarning, stacklevel=2)
+            setattr(self.settings, name, value)
+        else:
+            super(PythonInput, self).__setattr__(name, value)
+    #------------------------------
 
     @property
     def option_count(self):

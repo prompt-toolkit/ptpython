@@ -320,7 +320,7 @@ def status_bar(key_bindings_manager, python_input):
         default_char=Char(token=TB),
         filter=~IsDone() & RendererHeightIsKnown() &
             Condition(lambda cli: python_input.settings.show_status_bar and
-                                  not python_input.settings.show_exit_confirmation))
+                                  not python_input.show_exit_confirmation))
 
 
 def get_inputmode_tokens(cli, python_input):
@@ -391,7 +391,7 @@ def show_sidebar_button_info(python_input):
             width=LayoutDimension.exact(width)),
         filter=~IsDone() & RendererHeightIsKnown() &
             Condition(lambda cli: python_input.settings.show_status_bar and
-                                  not python_input.settings.show_exit_confirmation))
+                                  not python_input.show_exit_confirmation))
 
 
 def exit_confirmation(python_input, token=Token.ExitConfirmation):
@@ -406,7 +406,7 @@ def exit_confirmation(python_input, token=Token.ExitConfirmation):
             (token, '  \n'),
         ]
 
-    visible = ~IsDone() & Condition(lambda cli: python_input.settings.show_exit_confirmation)
+    visible = ~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation)
 
     return ConditionalContainer(
         content=Window(TokenListControl(
@@ -491,7 +491,7 @@ def create_layout(python_input, key_bindings_manager,
             scroll_offsets=ScrollOffsets(bottom=1, left=4, right=4),
             # As long as we're editing, prefer a minimal height of 6.
             get_height=(lambda cli: (
-                None if cli.is_done or python_input.settings.show_exit_confirmation
+                None if cli.is_done or python_input.show_exit_confirmation
                         else input_buffer_height)),
         )
 

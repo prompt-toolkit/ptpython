@@ -10,6 +10,30 @@ from six.moves.configparser import ConfigParser
 
 option_re = re.compile('^(?P<option>\w+)\s+=.+(?P<comment>#.*)?$')
 
+dynamic_settings = ['show_signature',
+                    'show_docstring',
+                    'show_meta_enter_message',
+                    'completion_visualisation',
+                    'completion_menu_scroll_offset',
+                    'show_line_numbers',
+                    'show_status_bar',
+                    'wrap_lines',
+                    'complete_while_typing',
+                    'vi_mode', 'paste_mode',
+                    'confirm_exit',
+                    'accept_input_on_enter',
+                    'enable_open_in_editor',
+                    'enable_system_bindings',
+                    'enable_input_validation',
+                    'enable_auto_suggest',
+                    'enable_mouse_support',
+                    'enable_history_search',
+                    'highlight_matching_parenthesis',
+                    'show_sidebar',
+                    'show_sidebar_help',
+                    'terminal_title',
+                    'exit_message',
+                    'prompt_style']
 
 class Settings:
     """
@@ -60,16 +84,18 @@ class Settings:
                 self.user_defined[key] = ptpycfg.get(key, '')
     
     def __getattr__(self, name):
-        if name in self.user_defined:
+        if name in dynamic_settings and name in self.user_defined:
             return self.user_defined[name]
         else:
-            raise AttributeError()
+            raise AttributeError("setting '%s' is not supported" % name)
 
     def __setattr__(self, name, value):
         if name == 'user_defined':
             super(Settings, self).__setattr__(name, value)
-        else:
+        elif name in dynamic_settings:
             self.user_defined[name] = value
+        else:
+            raise AttributeError("setting '%s' is not supported" % name)
 
     def __dir__(self):
         dirlist = super(Settings, self).__dir__()
