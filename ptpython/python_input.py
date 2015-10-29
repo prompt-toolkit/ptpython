@@ -154,7 +154,7 @@ class PythonInput(object):
         self._extra_buffer_processors = _extra_buffer_processors or []
 
         # Settings.
-        self.show_signature = True
+        self.show_signature = False
         self.show_docstring = False
         self.show_meta_enter_message = True
         self.completion_visualisation = CompletionVisualisation.MULTI_COLUMN
@@ -179,7 +179,7 @@ class PythonInput(object):
                                             # history on the records starting
                                             # with the current input.
 
-        self.highlight_matching_parenthesis = True
+        self.highlight_matching_parenthesis = False
         self.show_sidebar = False  # Currently show the sidebar.
         self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
