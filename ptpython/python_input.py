@@ -379,9 +379,6 @@ class PythonInput(object):
             setattr(self.settings, attribute, False)
             return True
 
-        def load(object):
-            pass
-        
         def simple_option(title, description, field_name, values=None):
             " Create Simple on/of option. "
             values = values or ['off', 'on']

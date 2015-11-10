@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.25: 2015-10-29
+----------------
+
+Upgrade to prompt_toolkit 0.54
+
+Fixes:
+- Consider input multiline when there's a colon at the end of the line.
+- Handle bug in Jedi.
+- Enable search bindings in history browser.
+
+
 0.24: 2015-09-24
 ----------------
 
