@@ -204,7 +204,7 @@ def load_confirm_exit_bindings(key_bindings_manager, python_input):
         """
         Really quit.
         """
-        event.cli.set_exit()
+        event.cli.exit()
 
     @handle(Keys.Any, filter=confirmation_visible)
     def _(event):
