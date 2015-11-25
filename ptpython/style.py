@@ -126,7 +126,7 @@ default_ui_style = {
         # The options sidebar.
         Token.Sidebar:                                'bg:#bbbbbb #000000',
         Token.Sidebar.Title:                          'bg:#668866 #ffffff',
-        Token.Sidebar.Label:                          'bg:#bbbbbb #222222 italic',
+        Token.Sidebar.Label:                          'bg:#bbbbbb #222222',
         Token.Sidebar.Status:                         'bg:#dddddd #000011',
         Token.Sidebar.Selected.Label:                 'bg:#222222 #eeeeee',
         Token.Sidebar.Selected.Status:                'bg:#444444 #ffffff bold',
