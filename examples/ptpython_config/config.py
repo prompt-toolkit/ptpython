@@ -7,6 +7,7 @@ from __future__ import unicode_literals
 from prompt_toolkit.filters import ViInsertMode
 from prompt_toolkit.key_binding.input_processor import KeyPress
 from prompt_toolkit.keys import Keys
+from prompt_toolkit.clipboard.pyperclip import PyperclipClipboard
 from pygments.token import Token
 
 from ptpython.layout import CompletionVisualisation
@@ -155,6 +156,9 @@ def configure(repl):
 
         b.insert_text(' ')
     """
+
+    # Use system clipboard.
+    repl.clipboard = PyperclipClipboard()
 
 
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
