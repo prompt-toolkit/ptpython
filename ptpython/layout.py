@@ -16,6 +16,7 @@ from prompt_toolkit.layout.processors import HighlightSearchProcessor, Highlight
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
+from prompt_toolkit.mouse_events import MouseEventTypes
 from prompt_toolkit.reactive import Integer
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.utils import get_cwidth
@@ -280,6 +281,12 @@ def status_bar(key_bindings_manager, python_input):
     """
     TB = Token.Toolbar.Status
 
+    def toggle_paste_mode(cli, mouse_event):
+        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
+            python_input.paste_mode = not python_input.paste_mode
+        else:
+            return NotImplemented
+
     def get_tokens(cli):
         python_buffer = cli.buffers[DEFAULT_BUFFER]
 
@@ -304,14 +311,14 @@ def status_bar(key_bindings_manager, python_input):
             result.extend([
                 (TB.Key, '[F3]'),
                 (TB, ' History '),
-                (TB.Key, '[F6]'),
-                (TB, ' '),
+                (TB.Key, '[F6]', toggle_paste_mode),
+                (TB, ' ', toggle_paste_mode),
             ])
 
             if python_input.paste_mode:
-                append((TB.PasteModeOn, 'Paste mode (on)'))
+                append((TB.PasteModeOn, 'Paste mode (on)', toggle_paste_mode))
             else:
-                append((TB, 'Paste mode'))
+                append((TB, 'Paste mode', toggle_paste_mode))
 
         return result
 
@@ -330,33 +337,39 @@ def get_inputmode_tokens(cli, python_input):
 
     :param cli: `CommandLineInterface` instance.
     """
+    def toggle_vi_mode(cli, mouse_event):
+        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
+            python_input.vi_mode = not python_input.vi_mode
+        else:
+            return NotImplemented
+
     token = Token.Toolbar.Status
 
     mode = python_input.key_bindings_manager.vi_state.input_mode
     result = []
     append = result.append
 
-    append((token.InputMode, '[F4] '))
+    append((token.InputMode, '[F4] ', toggle_vi_mode))
 
     # InputMode
     if python_input.vi_mode:
         if bool(cli.current_buffer.selection_state):
             if cli.current_buffer.selection_state.type == SelectionType.LINES:
-                append((token.InputMode, 'Vi (VISUAL LINE)'))
+                append((token.InputMode, 'Vi (VISUAL LINE)', toggle_vi_mode))
             elif cli.current_buffer.selection_state.type == SelectionType.CHARACTERS:
-                append((token.InputMode, 'Vi (VISUAL)'))
+                append((token.InputMode, 'Vi (VISUAL)', toggle_vi_mode))
                 append((token, ' '))
         elif mode == InputMode.INSERT:
-            append((token.InputMode, 'Vi (INSERT)'))
+            append((token.InputMode, 'Vi (INSERT)', toggle_vi_mode))
             append((token, '  '))
         elif mode == InputMode.NAVIGATION:
-            append((token.InputMode, 'Vi (NAV)'))
+            append((token.InputMode, 'Vi (NAV)', toggle_vi_mode))
             append((token, '     '))
         elif mode == InputMode.REPLACE:
-            append((token.InputMode, 'Vi (REPLACE)'))
+            append((token.InputMode, 'Vi (REPLACE)', toggle_vi_mode))
             append((token, ' '))
     else:
-        append((token.InputMode, 'Emacs'))
+        append((token.InputMode, 'Emacs', toggle_vi_mode))
         append((token, ' '))
 
     return result
@@ -367,12 +380,19 @@ def show_sidebar_button_info(python_input):
     Create `Layout` for the information in the right-bottom corner.
     (The right part of the status bar.)
     """
+    def toggle_sidebar(cli, mouse_event):
+        " Click handler for the menu. "
+        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
+            python_input.show_sidebar = not python_input.show_sidebar
+        else:
+            return NotImplemented
+
     token = Token.Toolbar.Status
 
     version = sys.version_info
     tokens = [
-        (token.Key, '[F2]'),
-        (token, ' Menu'),
+        (token.Key, '[F2]', toggle_sidebar),
+        (token, ' Menu', toggle_sidebar),
         (token, ' - '),
         (token.PythonVersion, '%s %i.%i.%i' % (platform.python_implementation(),
                                                version[0], version[1], version[2])),
