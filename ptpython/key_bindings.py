@@ -94,7 +94,7 @@ def load_python_bindings(key_bindings_manager, python_input):
 
     @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
             ~(vi_mode_enabled &
-              ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION)) &
+              ViStateFilter(key_bindings_manager.get_vi_state, InputMode.NAVIGATION)) &
             HasFocus(DEFAULT_BUFFER) & IsMultiline())
     def _(event):
         """

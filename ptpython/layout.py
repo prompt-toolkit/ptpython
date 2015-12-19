@@ -345,7 +345,7 @@ def get_inputmode_tokens(cli, python_input):
 
     token = Token.Toolbar.Status
 
-    mode = python_input.key_bindings_manager.vi_state.input_mode
+    mode = python_input.key_bindings_manager.get_vi_state(cli).input_mode
     result = []
     append = result.append
 
