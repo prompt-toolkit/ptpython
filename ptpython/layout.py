@@ -12,7 +12,8 @@ from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import Margin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
-from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, ConditionalProcessor, AppendAutoSuggestion
+from prompt_toolkit.layout.highlighters import SearchHighlighter, SelectionHighlighter, MatchingBracketHighlighter, ConditionalHighlighter
+from prompt_toolkit.layout.processors import HighlightMatchingBracketProcessor, ConditionalProcessor, AppendAutoSuggestion
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
@@ -485,20 +486,22 @@ def create_layout(python_input, key_bindings_manager,
             BufferControl(
                 buffer_name=DEFAULT_BUFFER,
                 lexer=lexer,
+                highlighters=[
+                    # Show matching parentheses, but only while editing.
+                    ConditionalHighlighter(
+                        highlighter=MatchingBracketHighlighter(chars='[](){}'),
+                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
+                            Condition(lambda cli: python_input.highlight_matching_parenthesis)),
+                    ConditionalHighlighter(
+                        highlighter=SearchHighlighter(preview_search=Always()),
+                        filter=HasFocus(SEARCH_BUFFER)),
+                    SelectionHighlighter(),
+                ],
                 input_processors=[
-                                  # Show matching parentheses, but only while editing.
-                                  ConditionalProcessor(
-                                      processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                                      filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                                          Condition(lambda cli: python_input.highlight_matching_parenthesis)),
-                                  ConditionalProcessor(
-                                      processor=HighlightSearchProcessor(preview_search=Always()),
-                                      filter=HasFocus(SEARCH_BUFFER)),
-                                  HighlightSelectionProcessor(),
-                                  ConditionalProcessor(
-                                      processor=AppendAutoSuggestion(),
-                                      filter=~IsDone())
-                                  ] + extra_buffer_processors,
+                    ConditionalProcessor(
+                        processor=AppendAutoSuggestion(),
+                        filter=~IsDone())
+                ] + extra_buffer_processors,
                 menu_position=menu_position,
                 wrap_lines=Condition(lambda cli: python_input.wrap_lines),
 
