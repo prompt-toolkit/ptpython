@@ -60,13 +60,13 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         Select from the history.
         """
-        python_input.key_bindings_manager.vi_state.input_mode = InputMode.NAVIGATION
+        python_input.key_bindings_manager.get_vi_state(event.cli).input_mode = InputMode.NAVIGATION
 
         def done(result):
             if result is not None:
                 event.cli.buffers[DEFAULT_BUFFER].document = result
 
-            python_input.key_bindings_manager.vi_state.input_mode = InputMode.INSERT
+            python_input.key_bindings_manager.get_vi_state(event.cli).input_mode = InputMode.INSERT
 
         event.cli.run_sub_application(create_history_application(
             python_input, event.cli.buffers[DEFAULT_BUFFER].document), done)
@@ -94,7 +94,7 @@ def load_python_bindings(key_bindings_manager, python_input):
 
     @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
             ~(vi_mode_enabled &
-              ViStateFilter(key_bindings_manager.vi_state, InputMode.NAVIGATION)) &
+              ViStateFilter(key_bindings_manager.get_vi_state, InputMode.NAVIGATION)) &
             HasFocus(DEFAULT_BUFFER) & IsMultiline())
     def _(event):
         """
