@@ -161,7 +161,8 @@ class IPythonInput(PythonInput):
                                             ipython_shell.magics_manager,
                                             ipython_shell.alias_manager)
         kw['_lexer'] = create_lexer()
-        kw['_validator'] = IPythonValidator()
+        kw['_validator'] = IPythonValidator(
+            get_compiler_flags=self.get_compiler_flags)
 
         super(IPythonInput, self).__init__(*a, **kw)
         self.ipython_shell = ipython_shell
