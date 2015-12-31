@@ -407,7 +407,7 @@ def create_key_bindings(python_input, history_mapping):
         enable_search=True,
         enable_vi_mode=Condition(lambda cli: python_input.vi_mode),
         enable_extra_page_navigation=True,
-        vi_state=python_input.key_bindings_manager.vi_state)
+        get_vi_state=python_input.key_bindings_manager.get_vi_state)
     handle = manager.registry.add_binding
 
     @handle(' ', filter=HasFocus(HISTORY_BUFFER))
