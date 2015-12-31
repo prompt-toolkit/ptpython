@@ -143,6 +143,10 @@ class PythonCompleter(Completer):
                     # Jedi issue: "KeyError: u'a_lambda'."
                     # https://github.com/jonathanslenders/ptpython/issues/89
                     pass
+                except IOError:
+                    # Jedi issue: "IOError: No such file or directory."
+                    # https://github.com/jonathanslenders/ptpython/issues/71
+                    pass
                 else:
                     for c in completions:
                         yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
