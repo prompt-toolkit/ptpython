@@ -139,6 +139,10 @@ class PythonCompleter(Completer):
                 except ValueError:
                     # Jedi issue: "ValueError: invalid \x escape"
                     pass
+                except KeyError:
+                    # Jedi issue: "KeyError: u'a_lambda'."
+                    # https://github.com/jonathanslenders/ptpython/issues/89
+                    pass
                 else:
                     for c in completions:
                         yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
