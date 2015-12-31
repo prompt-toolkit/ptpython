@@ -4,7 +4,7 @@ ptipython: IPython interactive shell with the `prompt_toolkit` front-end.
 Usage:
     ptpython [ --vi ]
              [ --config-dir=<directory> ] [ --interactive=<filename> ]
-             [--] [ <file> <arg>... ]
+             [--] [ <arg>... ]
     ptpython -h | --help
 
 Options:
@@ -46,9 +46,9 @@ def run():
         sys.path.insert(0, '')
 
     # When a file has been given, run that, otherwise start the shell.
-    if a['<file>']:
-        sys.argv = [a['<file>']] + a['<arg>']
-        six.exec_(compile(open(a['<file>'], "rb").read(), a['<file>'], 'exec'))
+    if a['<arg>'] and not a['--interactive']:
+        sys.argv = a['<arg>']
+        six.exec_(compile(open(a['<arg>'][0], "rb").read(), a['<arg>'][0], 'exec'))
     else:
         enable_deprecation_warnings()
 
@@ -60,6 +60,7 @@ def run():
         # --interactive
         if a['--interactive']:
             path = a['--interactive']
+            sys.argv = [a['--interactive']] + a['<arg>']
 
             if os.path.exists(path):
                 with open(path, 'r') as f:

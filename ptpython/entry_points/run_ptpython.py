@@ -4,7 +4,7 @@ ptpython: Interactive Python shell.
 Usage:
     ptpython [ --vi ]
              [ --config-dir=<directory> ] [ --interactive=<filename> ]
-             [--] [ <file> <arg>... ]
+             [--] [ <arg>... ]
     ptpython -h | --help
 
 Options:
@@ -43,15 +43,16 @@ def run():
     # --interactive
     if a['--interactive']:
         startup_paths.append(a['--interactive'])
+        sys.argv = [a['--interactive']] + a['<arg>']
 
     # Add the current directory to `sys.path`.
     if sys.path[0] != '':
         sys.path.insert(0, '')
 
     # When a file has been given, run that, otherwise start the shell.
-    if a['<file>']:
-        sys.argv = [a['<file>']] + a['<arg>']
-        six.exec_(compile(open(a['<file>'], "rb").read(), a['<file>'], 'exec'))
+    if a['<arg>'] and not a['--interactive']:
+        sys.argv = a['<arg>']
+        six.exec_(compile(open(a['<arg>'][0], "rb").read(), a['<arg>'][0], 'exec'))
 
     # Run interactive shell.
     else:
