@@ -22,7 +22,8 @@ import os
 import six
 import sys
 
-from ptpython.repl import embed, enable_deprecation_warnings, run_config
+from ptpython.repl import (embed, enable_deprecation_warnings,
+                           load_config, run_config)
 
 
 def run():
@@ -60,13 +61,23 @@ def run():
 
         # Apply config file
         def configure(repl):
+            path = os.path.join(config_dir, 'conf.cfg')
+            if os.path.exists(path):
+                load_config(repl, path)
             path = os.path.join(config_dir, 'config.py')
             if os.path.exists(path):
                 run_config(repl, path)
 
+        # Save user settings in config file when repl is done
+        def done(repl):
+            path = os.path.join(config_dir, 'conf.cfg')
+            # Create the file if it doesn't exist
+            repl.settings.save_config(path)
+
         embed(vi_mode=vi_mode,
               history_filename=os.path.join(config_dir, 'history'),
               configure=configure,
+              done=done,
               startup_paths=startup_paths,
               title='Python REPL (ptpython)')
 

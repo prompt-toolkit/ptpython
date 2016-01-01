@@ -31,7 +31,7 @@ def configure(repl):
             ]
 
     repl.all_prompt_styles['custom'] = CustomPrompt()
-    repl.prompt_style = 'custom'
+    repl.settings.prompt_style = 'custom'
 
     # 2. Assign a new callable to `get_input_prompt_tokens`. This will always take effect.
     ## repl.get_input_prompt_tokens = lambda cli: [(Token.In, '[hello] >>> ')]

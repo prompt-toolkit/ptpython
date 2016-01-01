@@ -36,10 +36,10 @@ def load_python_bindings(key_bindings_manager, python_input):
     """
     Custom key bindings.
     """
-    sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
+    sidebar_visible = Condition(lambda cli: python_input.settings.show_sidebar)
     handle = key_bindings_manager.registry.add_binding
     has_selection = HasSelection()
-    vi_mode_enabled = Condition(lambda cli: python_input.vi_mode)
+    vi_mode_enabled = Condition(lambda cli: python_input.settings.vi_mode)
 
     @handle(Keys.ControlL)
     def _(event):
@@ -53,7 +53,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         Show/hide sidebar.
         """
-        python_input.show_sidebar = not python_input.show_sidebar
+        python_input.settings.show_sidebar = not python_input.settings.show_sidebar
 
     @handle(Keys.F3)
     def _(event):
@@ -76,14 +76,14 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         Toggle between Vi and Emacs mode.
         """
-        python_input.vi_mode = not python_input.vi_mode
+        python_input.settings.vi_mode = not python_input.settings.vi_mode
 
     @handle(Keys.F6)
     def _(event):
         """
         Enable/Disable paste mode.
         """
-        python_input.paste_mode = not python_input.paste_mode
+        python_input.settings.paste_mode = not python_input.settings.paste_mode
 
     @handle(Keys.Tab, filter= ~sidebar_visible & ~has_selection & TabShouldInsertWhitespaceFilter())
     def _(event):
@@ -104,7 +104,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         (When not in Vi navigaton mode, and when multiline is enabled.)
         """
         b = event.current_buffer
-        empty_lines_required = python_input.accept_input_on_enter or 10000
+        empty_lines_required = python_input.settings.accept_input_on_enter or 10000
 
         def at_the_end(b):
             """ we consider the cursor at the end when there is no text after
@@ -112,7 +112,7 @@ def load_python_bindings(key_bindings_manager, python_input):
             text = b.document.text_after_cursor
             return text == '' or (text.isspace() and not '\n' in text)
 
-        if python_input.paste_mode:
+        if python_input.settings.paste_mode:
             # In paste mode, always insert text.
             b.insert_text('\n')
 
@@ -130,8 +130,8 @@ def load_python_bindings(key_bindings_manager, python_input):
             auto_newline(b)
 
     @handle(Keys.ControlD, filter=~sidebar_visible & Condition(lambda cli:
-            # Only when the `confirm_exit` flag is set.
-            python_input.confirm_exit and
+            # Only when the `settings.confirm_exit` flag is set.
+            python_input.settings.confirm_exit and
             # And the current buffer is empty.
             cli.current_buffer_name == DEFAULT_BUFFER and
             not cli.current_buffer.text))
@@ -147,7 +147,7 @@ def load_sidebar_bindings(key_bindings_manager, python_input):
     Load bindings for the navigation in the sidebar.
     """
     handle = key_bindings_manager.registry.add_binding
-    sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
+    sidebar_visible = Condition(lambda cli: python_input.settings.show_sidebar)
 
     @handle(Keys.Up, filter=sidebar_visible)
     @handle(Keys.ControlP, filter=sidebar_visible)
@@ -187,7 +187,7 @@ def load_sidebar_bindings(key_bindings_manager, python_input):
     @handle(Keys.Escape, filter=sidebar_visible)
     def _(event):
         " Hide sidebar. "
-        python_input.show_sidebar = False
+        python_input.settings.show_sidebar = False
 
 
 def load_confirm_exit_bindings(key_bindings_manager, python_input):
@@ -204,7 +204,7 @@ def load_confirm_exit_bindings(key_bindings_manager, python_input):
         """
         Really quit.
         """
-        event.cli.exit()
+        event.cli.set_exit()
 
     @handle(Keys.Any, filter=confirmation_visible)
     def _(event):

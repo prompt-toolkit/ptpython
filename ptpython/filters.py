@@ -24,14 +24,14 @@ class HasSignature(PythonInputFilter):
 
 class ShowSidebar(PythonInputFilter):
     def __call__(self, cli):
-        return self.python_input.show_sidebar
+        return self.python_input.settings.show_sidebar
 
 
 class ShowSignature(PythonInputFilter):
     def __call__(self, cli):
-        return self.python_input.show_signature
+        return self.python_input.settings.show_signature
 
 
 class ShowDocstring(PythonInputFilter):
     def __call__(self, cli):
-        return self.python_input.show_docstring
+        return self.python_input.settings.show_docstring

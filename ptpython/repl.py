@@ -20,6 +20,7 @@ from prompt_toolkit.utils import DummyContext, Callback
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.styles import PygmentsStyle
 
+from .config import Settings
 from .python_input import PythonInput
 from .eventloop import create_eventloop
 
@@ -32,6 +33,7 @@ import warnings
 __all__ = (
     'PythonRepl',
     'enable_deprecation_warnings',
+    'load_config',
     'run_config',
     'embed',
 )
@@ -98,7 +100,7 @@ class PythonRepl(PythonInput):
 
         if line.lstrip().startswith('\x1a'):
             # When the input starts with Ctrl-Z, quit the REPL.
-            cli.exit()
+            cli.set_exit()
 
         elif line.lstrip().startswith('!'):
             # Run as shell command
@@ -200,6 +202,23 @@ def enable_deprecation_warnings():
                             module='__main__')
 
 
+def load_config(repl, config_file='~/.ptpython/conf.cfg'):
+    """
+    Load REPL user settings from config file.
+
+    :param repl: `PythonInput` instance.
+    :param config_file: Path of the .cfg user settings file.
+    """
+    assert isinstance(repl, PythonInput)
+    assert isinstance(config_file, six.text_type)
+
+    # Expand tildes.
+    config_file = os.path.expanduser(config_file)
+
+    # Load the settings from the file
+    repl.settings.update_from(config_file)
+
+    
 def run_config(repl, config_file='~/.ptpython/config.py'):
     """
     Execute REPL config file.
@@ -240,7 +259,7 @@ def run_config(repl, config_file='~/.ptpython/config.py'):
          enter_to_continue()
 
 
-def embed(globals=None, locals=None, configure=None,
+def embed(globals=None, locals=None, configure=None, done=None,
           vi_mode=False, history_filename=None, title=None,
           startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
     """
@@ -286,7 +305,7 @@ def embed(globals=None, locals=None, configure=None,
                       startup_paths=startup_paths)
 
     if title:
-        repl.terminal_title = title
+        repl.settings.terminal_title = title
 
     if configure:
         configure(repl)
@@ -305,3 +324,6 @@ def embed(globals=None, locals=None, configure=None,
     else:
         with patch_context:
             cli.run()
+
+    if done:
+        done(repl)

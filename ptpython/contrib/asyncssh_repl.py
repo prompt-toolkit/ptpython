@@ -48,8 +48,8 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         # Disable open-in-editor and system prompt. Because it would run and
         # display these commands on the server side, rather than in the SSH
         # client.
-        repl.enable_open_in_editor = False
-        repl.enable_system_bindings = False
+        repl.settings.enable_open_in_editor = False
+        repl.settings.enable_system_bindings = False
 
         # PipInput object, for sending input in the CLI.
         # (This is something that we can use in the prompt_toolkit event loop,

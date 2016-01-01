@@ -196,7 +196,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
             history_filename=history_filename)
 
         if title:
-            ipython_input.terminal_title = title
+            ipython_input.settings.terminal_title = title
 
         if configure:
             configure(ipython_input)

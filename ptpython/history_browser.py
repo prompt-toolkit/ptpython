@@ -405,7 +405,7 @@ def create_key_bindings(python_input, history_mapping):
     """
     manager = KeyBindingManager(
         enable_search=True,
-        enable_vi_mode=Condition(lambda cli: python_input.vi_mode),
+        enable_vi_mode=Condition(lambda cli: python_input.settings.vi_mode),
         enable_extra_page_navigation=True,
         get_vi_state=python_input.key_bindings_manager.get_vi_state)
     handle = manager.registry.add_binding
@@ -502,7 +502,7 @@ def create_key_bindings(python_input, history_mapping):
         " Cancel and go back. "
         event.cli.set_return_value(None)
 
-    enable_system_bindings = Condition(lambda cli: python_input.enable_system_bindings)
+    enable_system_bindings = Condition(lambda cli: python_input.settings.enable_system_bindings)
 
     @handle(Keys.ControlZ, filter=enable_system_bindings)
     def _(event):
@@ -581,7 +581,7 @@ def create_history_application(python_input, original_document):
         },
         initial_focussed_buffer=HISTORY_BUFFER,
         style=python_input._current_style,
-        mouse_support=Condition(lambda cli: python_input.enable_mouse_support),
+        mouse_support=Condition(lambda cli: python_input.settings.enable_mouse_support),
         key_bindings_registry=create_key_bindings(python_input, history_mapping)
     )
     return application
