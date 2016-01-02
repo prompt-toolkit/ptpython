@@ -97,6 +97,10 @@ def configure(repl):
     # Use this colorscheme for the code.
     repl.use_code_colorscheme('pastie')
 
+    # Enable 24bit True color. (Not all terminals support this. -- maybe check
+    # $TERM before changing.)
+    repl.true_color = False
+
     # Install custom colorscheme named 'my-colorscheme' and use it.
     """
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)

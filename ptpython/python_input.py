@@ -19,6 +19,7 @@ from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.shortcuts import create_output
 from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.utils import Callback, is_windows
 from prompt_toolkit.validation import ConditionalValidator
@@ -120,7 +121,7 @@ class PythonInput(object):
 
         python_input = PythonInput(...)
         application = python_input.create_application()
-        cli = CommandLineInterface(application=application)
+        cli = PythonCommandLineInterface(application=application)
         python_code = cli.run()
     """
     def __init__(self,
@@ -210,6 +211,7 @@ class PythonInput(object):
             self._current_code_style_name = 'win32'
 
         self._current_style = self._generate_style()
+        self.true_color = False
 
         # Options to be configurable from the sidebar.
         self.options = self._create_options()
@@ -479,6 +481,9 @@ class PythonInput(object):
                        get_values=lambda: dict(
                             (name, partial(self.use_ui_colorscheme, name)) for name in self.ui_styles)
                        ),
+                simple_option(title='True color (24 bit)',
+                              description='Use 24 bit colors instead of 265 colors',
+                              field_name='true_color'),
             ]),
         ]
 
@@ -613,8 +618,15 @@ class PythonInput(object):
 
 
 class PythonCommandLineInterface(CommandLineInterface):
-    def __init__(self, eventloop=None, input=None, output=None):
-        python_input = PythonInput()
+    def __init__(self, eventloop=None, python_input=None, input=None, output=None):
+        assert python_input is None or isinstance(python_input, PythonInput)
+
+        python_input = python_input or PythonInput()
+
+        # Make sure that the prompt_toolkit 'renderer' knows about the
+        # 'true_color' property of PythonInput.
+        if output is None:
+            output=create_output(true_color=Condition(lambda: python_input.true_color))
 
         super(PythonCommandLineInterface, self).__init__(
             application=python_input.create_application(),

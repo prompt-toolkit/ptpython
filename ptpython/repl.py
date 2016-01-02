@@ -13,14 +13,14 @@ from pygments.lexers import PythonTracebackLexer, PythonLexer
 from pygments.styles.default import DefaultStyle
 
 from prompt_toolkit.application import AbortAction
+from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
-from prompt_toolkit.utils import DummyContext, Callback
-from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.styles import PygmentsStyle
+from prompt_toolkit.utils import DummyContext, Callback
 
-from .python_input import PythonInput
+from .python_input import PythonInput, PythonCommandLineInterface
 from .eventloop import create_eventloop
 
 import os
@@ -291,7 +291,7 @@ def embed(globals=None, locals=None, configure=None,
     if configure:
         configure(repl)
 
-    cli = CommandLineInterface(application=repl.create_application(), eventloop=eventloop)
+    cli = PythonCommandLineInterface(python_input=repl, eventloop=eventloop)
 
     # Start repl.
     patch_context = cli.patch_stdout_context() if patch_stdout else DummyContext()
