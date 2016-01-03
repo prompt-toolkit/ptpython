@@ -8,6 +8,7 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.buffer import Buffer, AcceptAction
+from prompt_toolkit.buffer_mapping import BufferMapping
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Always, Condition, HasFocus, InFocusStack
@@ -19,11 +20,11 @@ from prompt_toolkit.layout.dimension import LayoutDimension as D
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
 from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor
+from prompt_toolkit.layout.processors import Processor, Transformation
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
-from prompt_toolkit.layout.processors import Processor, Transformation
-from prompt_toolkit.layout.utils import explode_tokens
 from prompt_toolkit.layout.toolbars import TokenListToolbar
+from prompt_toolkit.layout.utils import explode_tokens
 from prompt_toolkit.utils import Callback
 from pygments.lexers import RstLexer
 from pygments.token import Token
@@ -525,7 +526,7 @@ def create_history_application(python_input, original_document):
         """ When the cursor changes in the default buffer. Synchronize with
         history buffer. """
         # Only when this buffer has the focus.
-        if application.focus_stack.current == DEFAULT_BUFFER:
+        if buffer_mapping.focus_stack[-1] == DEFAULT_BUFFER:
             try:
                 line_no = default_buffer.document.cursor_position_row - \
                     history_mapping.result_line_offset
@@ -543,7 +544,7 @@ def create_history_application(python_input, original_document):
     def history_buffer_pos_changed():
         """ When the cursor changes in the history buffer. Synchronize. """
         # Only when this buffer has the focus.
-        if application.focus_stack.current == HISTORY_BUFFER:
+        if buffer_mapping.focus_stack[-1] == HISTORY_BUFFER:
             line_no = history_buffer.document.cursor_position_row
 
             if line_no in history_mapping.selected_lines:
@@ -571,15 +572,16 @@ def create_history_application(python_input, original_document):
         read_only=True
     )
 
+    buffer_mapping = BufferMapping({
+        HISTORY_BUFFER: history_buffer,
+        DEFAULT_BUFFER: default_buffer,
+        HELP_BUFFER: help_buffer,
+    }, initial=HISTORY_BUFFER)
+
     application = Application(
         layout=create_layout(python_input, history_mapping),
         use_alternate_screen=True,
-        buffers={
-            HISTORY_BUFFER: history_buffer,
-            DEFAULT_BUFFER: default_buffer,
-            HELP_BUFFER: help_buffer,
-        },
-        initial_focussed_buffer=HISTORY_BUFFER,
+        buffers=buffer_mapping,
         style=python_input._current_style,
         mouse_support=Condition(lambda cli: python_input.enable_mouse_support),
         key_bindings_registry=create_key_bindings(python_input, history_mapping)
