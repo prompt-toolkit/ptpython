@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.27: 2016-01-03
+----------------
+
+Upgrade to prompt_toolkit 0.56
+
+
 0.26: 2016-01-03
 ----------------
 
@@ -11,6 +17,7 @@ Fixes:
 - Correctly handle sys.argv when pt(i)python is started with --interactive.
 - Support for 24bit true color.
 - Take compiler flags into account for ptipython.
+
 
 0.25: 2015-10-29
 ----------------
