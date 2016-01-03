@@ -303,7 +303,7 @@ def status_bar(key_bindings_manager, python_input):
                                 len(python_buffer._working_lines))))
 
         # Shortcuts.
-        if not python_input.vi_mode and cli.focus_stack.current == 'search':
+        if not python_input.vi_mode and cli.current_buffer_name == SEARCH_BUFFER:
             append((TB, '[Ctrl-G] Cancel search [Enter] Go to this position.'))
         elif bool(cli.current_buffer.selection_state) and not python_input.vi_mode:
             # Emacs cut/copy keys.

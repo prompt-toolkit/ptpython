@@ -548,7 +548,7 @@ class PythonInput(object):
         When there is no input activity,
         in another thread, get the signature of the current code.
         """
-        if cli.focus_stack.current != DEFAULT_BUFFER:
+        if cli.current_buffer_name != DEFAULT_BUFFER:
             return
 
         # Never run multiple get-signature threads.

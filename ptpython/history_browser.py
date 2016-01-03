@@ -468,10 +468,10 @@ def create_key_bindings(python_input, history_mapping):
     def _(event):
         " Select other window. "
         if event.cli.current_buffer_name == HISTORY_BUFFER:
-            event.cli.focus_stack.replace(DEFAULT_BUFFER)
+            event.cli.focus(DEFAULT_BUFFER)
 
         elif event.cli.current_buffer_name == DEFAULT_BUFFER:
-            event.cli.focus_stack.replace(HISTORY_BUFFER)
+            event.cli.focus(HISTORY_BUFFER)
 
     @handle(Keys.F4)
     def _(event):
@@ -481,10 +481,10 @@ def create_key_bindings(python_input, history_mapping):
     @handle(Keys.F1)
     def _(event):
         " Display/hide help. "
-        if event.cli.focus_stack.current == HELP_BUFFER:
-            event.cli.focus_stack.pop()
+        if event.cli.current_buffer_name == HELP_BUFFER:
+            event.cli.pop_focus()
         else:
-            event.cli.focus_stack.push(HELP_BUFFER)
+            event.cli.push_focus(HELP_BUFFER)
 
     @handle(Keys.ControlJ, filter=help_focussed)
     @handle(Keys.ControlC, filter=help_focussed)
@@ -492,7 +492,7 @@ def create_key_bindings(python_input, history_mapping):
     @handle(Keys.Escape, filter=help_focussed)
     def _(event):
         " Leave help. "
-        event.cli.focus_stack.pop()
+        event.cli.pop_focus()
 
     @handle('q', filter=main_buffer_focussed)
     @handle(Keys.F3, filter=main_buffer_focussed)
