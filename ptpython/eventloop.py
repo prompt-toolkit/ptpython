@@ -15,6 +15,7 @@ __all__ = (
     'create_eventloop',
 )
 
+
 def _inputhook_tk(inputhook_context):
     """
     Inputhook for Tk.

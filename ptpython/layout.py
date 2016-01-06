@@ -138,7 +138,7 @@ def python_sidebar_navigation(python_input):
 
         # Show navigation info.
         tokens.extend([
-            (T.Separator , ' ' * 43 + '\n'),
+            (T.Separator, ' ' * 43 + '\n'),
             (T, '    '),
             (T.Key, '[Arrows]'),
             (T, ' '),
