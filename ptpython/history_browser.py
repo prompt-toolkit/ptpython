@@ -29,6 +29,8 @@ from prompt_toolkit.utils import Callback
 from pygments.lexers import RstLexer
 from pygments.token import Token
 
+from .utils import if_mousedown
+
 from ptpython.layout import get_inputmode_tokens
 from functools import partial
 import six
@@ -210,18 +212,26 @@ def _get_top_toolbar_tokens(cli):
 
 
 def _get_bottom_toolbar_tokens(cli, python_input):
+    @if_mousedown
+    def f1(cli, mouse_event):
+        _toggle_help(cli)
+
+    @if_mousedown
+    def tab(cli, mouse_event):
+        _select_other_window(cli)
+
     return [
         (Token.Toolbar.Status, ' ')
     ] + get_inputmode_tokens(cli, python_input) + [
         (Token.Toolbar.Status, ' '),
         (Token.Toolbar.Status.Key, '[Space]'),
         (Token.Toolbar.Status, ' Toggle '),
-        (Token.Toolbar.Status.Key, '[Tab]'),
-        (Token.Toolbar.Status, ' Focus '),
+        (Token.Toolbar.Status.Key, '[Tab]', tab),
+        (Token.Toolbar.Status, ' Focus ', tab),
         (Token.Toolbar.Status.Key, '[Enter]'),
         (Token.Toolbar.Status, ' Accept '),
-        (Token.Toolbar.Status.Key, '[F1]'),
-        (Token.Toolbar.Status, ' Help '),
+        (Token.Toolbar.Status.Key, '[F1]', f1),
+        (Token.Toolbar.Status, ' Help ', f1),
     ]
 
 
@@ -400,6 +410,23 @@ class HistoryMapping(object):
             self.get_new_document(b.cursor_position), bypass_readonly=True)
 
 
+def _toggle_help(cli):
+    " Display/hide help. "
+    if cli.current_buffer_name == HELP_BUFFER:
+        cli.pop_focus()
+    else:
+        cli.push_focus(HELP_BUFFER)
+
+
+def _select_other_window(cli):
+    " Toggle focus between left/right window. "
+    if cli.current_buffer_name == HISTORY_BUFFER:
+        cli.focus(DEFAULT_BUFFER)
+
+    elif cli.current_buffer_name == DEFAULT_BUFFER:
+        cli.focus(HISTORY_BUFFER)
+
+
 def create_key_bindings(python_input, history_mapping):
     """
     Key bindings.
@@ -468,11 +495,7 @@ def create_key_bindings(python_input, history_mapping):
     @handle(Keys.ControlW, filter=main_buffer_focussed)
     def _(event):
         " Select other window. "
-        if event.cli.current_buffer_name == HISTORY_BUFFER:
-            event.cli.focus(DEFAULT_BUFFER)
-
-        elif event.cli.current_buffer_name == DEFAULT_BUFFER:
-            event.cli.focus(HISTORY_BUFFER)
+        _select_other_window(event.cli)
 
     @handle(Keys.F4)
     def _(event):
@@ -482,10 +505,7 @@ def create_key_bindings(python_input, history_mapping):
     @handle(Keys.F1)
     def _(event):
         " Display/hide help. "
-        if event.cli.current_buffer_name == HELP_BUFFER:
-            event.cli.pop_focus()
-        else:
-            event.cli.push_focus(HELP_BUFFER)
+        _toggle_help(event.cli)
 
     @handle(Keys.ControlJ, filter=help_focussed)
     @handle(Keys.ControlC, filter=help_focussed)

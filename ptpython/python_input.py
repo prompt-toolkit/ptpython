@@ -18,19 +18,21 @@ from prompt_toolkit.filters import Condition, Always
 from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
 from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.shortcuts import create_output
 from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.utils import Callback, is_windows
 from prompt_toolkit.validation import ConditionalValidator
 
-from ptpython.completer import PythonCompleter
-from ptpython.key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
-from ptpython.layout import create_layout, CompletionVisualisation
-from ptpython.style import get_all_code_styles, get_all_ui_styles, generate_style
-from ptpython.utils import get_jedi_script_from_document, document_is_multiline_python
-from ptpython.validator import PythonValidator
-from ptpython.prompt_style import IPythonPrompt, ClassicPrompt
+from .completer import PythonCompleter
+from .history_browser import create_history_application
+from .key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
+from .layout import create_layout, CompletionVisualisation
+from .prompt_style import IPythonPrompt, ClassicPrompt
+from .style import get_all_code_styles, get_all_ui_styles, generate_style
+from .utils import get_jedi_script_from_document, document_is_multiline_python
+from .validator import PythonValidator
 
 from functools import partial
 
@@ -615,6 +617,21 @@ class PythonInput(object):
     def on_reset(self, cli):
         self.key_bindings_manager.reset()
         self.signatures = []
+
+    def enter_history(self, cli):
+        """
+        Display the history.
+        """
+        self.key_bindings_manager.get_vi_state(cli).input_mode = InputMode.NAVIGATION
+
+        def done(result):
+            if result is not None:
+                cli.buffers[DEFAULT_BUFFER].document = result
+
+            self.key_bindings_manager.get_vi_state(cli).input_mode = InputMode.INSERT
+
+        cli.run_sub_application(create_history_application(
+            self, cli.buffers[DEFAULT_BUFFER].document), done)
 
 
 class PythonCommandLineInterface(CommandLineInterface):

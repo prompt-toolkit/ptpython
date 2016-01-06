@@ -7,8 +7,6 @@ from prompt_toolkit.key_binding.bindings.vi import ViStateFilter
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.keys import Keys
 
-from .history_browser import create_history_application
-
 __all__ = (
     'load_python_bindings',
     'load_sidebar_bindings',
@@ -60,16 +58,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         Select from the history.
         """
-        python_input.key_bindings_manager.get_vi_state(event.cli).input_mode = InputMode.NAVIGATION
-
-        def done(result):
-            if result is not None:
-                event.cli.buffers[DEFAULT_BUFFER].document = result
-
-            python_input.key_bindings_manager.get_vi_state(event.cli).input_mode = InputMode.INSERT
-
-        event.cli.run_sub_application(create_history_application(
-            python_input, event.cli.buffers[DEFAULT_BUFFER].document), done)
+        python_input.enter_history(event.cli)
 
     @handle(Keys.F4)
     def _(event):

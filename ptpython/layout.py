@@ -13,16 +13,16 @@ from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import Margin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.highlighters import SearchHighlighter, SelectionHighlighter, MatchingBracketHighlighter, ConditionalHighlighter
-from prompt_toolkit.layout.processors import HighlightMatchingBracketProcessor, ConditionalProcessor, AppendAutoSuggestion
+from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
-from prompt_toolkit.mouse_events import MouseEventTypes
 from prompt_toolkit.reactive import Integer
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.utils import get_cwidth
 
-from ptpython.filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
+from .filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
+from .utils import if_mousedown
 
 from pygments.lexers import PythonLexer
 from pygments.token import Token
@@ -71,18 +71,31 @@ def python_sidebar(python_input):
                 (T, '\n'),
             ])
 
-        def append(selected, label, status):
+        def append(index, label, status):
+            selected = index == python_input.selected_option_index
+
+            @if_mousedown
+            def select_item(cli, mouse_event):
+                python_input.selected_option_index = index
+
+            @if_mousedown
+            def goto_next(cli, mouse_event):
+                " Select item and go to next value. "
+                python_input.selected_option_index = index
+                option = python_input.selected_option
+                option.activate_next()
+
             token = T.Selected if selected else T
 
             tokens.append((T, ' >' if selected else '  '))
-            tokens.append((token.Label, '%-24s' % label))
-            tokens.append((token.Status, ' '))
-            tokens.append((token.Status, '%s' % status))
+            tokens.append((token.Label, '%-24s' % label, select_item))
+            tokens.append((token.Status, ' ', select_item))
+            tokens.append((token.Status, '%s' % status, goto_next))
 
             if selected:
                 tokens.append((Token.SetCursorPosition, ''))
 
-            tokens.append((token.Status, ' ' * (14 - len(status))))
+            tokens.append((token.Status, ' ' * (14 - len(status)), goto_next))
             tokens.append((T, '<' if selected else ''))
             tokens.append((T, '\n'))
 
@@ -91,8 +104,7 @@ def python_sidebar(python_input):
             append_category(category)
 
             for option in category.options:
-                append(i == python_input.selected_option_index,
-                       option.title, '%s' % option.get_current_value())
+                append(i, option.title, '%s' % option.get_current_value())
                 i += 1
 
         tokens.pop()  # Remove last newline.
@@ -282,11 +294,13 @@ def status_bar(key_bindings_manager, python_input):
     """
     TB = Token.Toolbar.Status
 
+    @if_mousedown
     def toggle_paste_mode(cli, mouse_event):
-        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
-            python_input.paste_mode = not python_input.paste_mode
-        else:
-            return NotImplemented
+        python_input.paste_mode = not python_input.paste_mode
+
+    @if_mousedown
+    def enter_history(cli, mouse_event):
+        python_input.enter_history(cli)
 
     def get_tokens(cli):
         python_buffer = cli.buffers[DEFAULT_BUFFER]
@@ -310,8 +324,8 @@ def status_bar(key_bindings_manager, python_input):
             append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
         else:
             result.extend([
-                (TB.Key, '[F3]'),
-                (TB, ' History '),
+                (TB.Key, '[F3]', enter_history),
+                (TB, ' History ', enter_history),
                 (TB.Key, '[F6]', toggle_paste_mode),
                 (TB, ' ', toggle_paste_mode),
             ])
@@ -338,11 +352,9 @@ def get_inputmode_tokens(cli, python_input):
 
     :param cli: `CommandLineInterface` instance.
     """
+    @if_mousedown
     def toggle_vi_mode(cli, mouse_event):
-        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
-            python_input.vi_mode = not python_input.vi_mode
-        else:
-            return NotImplemented
+        python_input.vi_mode = not python_input.vi_mode
 
     token = Token.Toolbar.Status
 
@@ -381,12 +393,10 @@ def show_sidebar_button_info(python_input):
     Create `Layout` for the information in the right-bottom corner.
     (The right part of the status bar.)
     """
+    @if_mousedown
     def toggle_sidebar(cli, mouse_event):
         " Click handler for the menu. "
-        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
-            python_input.show_sidebar = not python_input.show_sidebar
-        else:
-            return NotImplemented
+        python_input.show_sidebar = not python_input.show_sidebar
 
     token = Token.Toolbar.Status
 
