@@ -11,15 +11,15 @@ from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.buffer_mapping import BufferMapping
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import Always, Condition, HasFocus, InFocusStack
+from prompt_toolkit.filters import Condition, HasFocus, InFocusStack
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
+from prompt_toolkit.layout.highlighters import SearchHighlighter, SelectionHighlighter
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
-from prompt_toolkit.layout.processors import HighlightSearchProcessor, HighlightSelectionProcessor
 from prompt_toolkit.layout.processors import Processor, Transformation
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
@@ -143,9 +143,9 @@ def create_layout(python_input, history_mapping):
     Create and return a `Container` instance for the history
     application.
     """
-    default_processors = [
-        HighlightSearchProcessor(preview_search=Always()),
-        HighlightSelectionProcessor()]
+    highlighters = [
+        SearchHighlighter(preview_search=True),
+        SelectionHighlighter()]
 
     help_window = create_popup_window(
         title='History Help',
@@ -154,7 +154,7 @@ def create_layout(python_input, history_mapping):
                 buffer_name=HELP_BUFFER,
                 default_char=Char(token=Token),
                 lexer=PygmentsLexer(RstLexer),
-                input_processors=default_processors),
+                highlighters=highlighters),
             right_margins=[ScrollbarMargin()],
             scroll_offsets=ScrollOffsets(top=2, bottom=2)))
 
@@ -172,7 +172,7 @@ def create_layout(python_input, history_mapping):
                         buffer_name=HISTORY_BUFFER,
                         wrap_lines=False,
                         lexer=PygmentsLexer(PythonLexer),
-                        input_processors=default_processors),
+                        highlighters=highlighters),
                     left_margins=[HistoryMargin(history_mapping)],
                     scroll_offsets=ScrollOffsets(top=2, bottom=2)),
                 # Separator.
@@ -183,7 +183,8 @@ def create_layout(python_input, history_mapping):
                     content=BufferControl(
                         buffer_name=DEFAULT_BUFFER,
                         wrap_lines=False,
-                        input_processors=[GrayExistingText(history_mapping)] + default_processors,
+                        highlighters=highlighters,
+                        input_processors=[GrayExistingText(history_mapping)],
                         lexer=PygmentsLexer(PythonLexer)),
                     left_margins=[ResultMargin(history_mapping)],
                     scroll_offsets=ScrollOffsets(top=2, bottom=2)),
