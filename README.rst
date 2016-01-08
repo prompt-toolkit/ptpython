@@ -1,41 +1,73 @@
-ptpython: a better Python REPL
-==============================
+ptpython
+========
 
-|Build Status|
-
-.. image:: https://pypip.in/version/ptpython/badge.svg
-    :target: https://pypi.python.org/pypi/ptpython/
-    :alt: Latest Version
-
-``ptpython`` is an advanced Python REPL built on top of the `prompt_toolkit
-<http://github.com/jonathanslenders/python-prompt-toolkit>`_ library.
-
-It works best on all Posix systems like Linux, BSD and OS X. But it should work
-as well on Windows. It works on all Python versions from 2.6 up to 3.4.
-
-
-Installation
-************
-
-To install ``ptpython``, type:
+*A better Python REPL*
 
 ::
 
     pip install ptpython
 
-
-The REPL
-********
-
-Run ``ptpython`` to get an interactive Python prompt with syntax highlighting,
-code completion, etc...
-
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/example1.png
 
-By default, you will have Emacs key bindings, but if you prefer Vi bindings
-(like in the above screenshot) then run ``ptpython --vi``.
+|Build Status|
 
-If you want to embed the REPL inside your application at one point, do:
+Ptpython is an advanced Python REPL. It should work on all
+Python versions from 2.6 up to 3.5 and work cross platform (Linux,
+BSD and OS X, Window).
+
+
+Installation
+************
+
+Install it using pip:
+
+::
+
+    pip install ptpython
+
+Start it by typing ``ptpython``.
+
+
+Features
+********
+
+- Syntax highlighting.
+- Multiline editing (the up arrow works).
+- Autocompletion.
+- Mouse support. [1]
+- Support for color schemes.
+- Support for `bracketed paste <https://cirw.in/blog/bracketed-paste>`_ [2].
+- Both Vi and Emacs key bindings.
+- Support for double width (Chinese) characters.
+- ... and many other stuff.
+
+
+[1] Disabled by default. (Enable in the menu.)
+
+[2] If the terminal supports it (most terminals do), this allows pasting
+without going into paste mode. It will keep the indentation.
+
+
+More screenshots
+****************
+
+The configuration menu:
+
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ptpython-menu.png
+
+The history page and its help:
+
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ptpython-history-help.png
+
+Autocompletion:
+
+.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/file-completion.png
+
+
+Embedding the REPL
+******************
+
+Embedding the REPL in any Python application is easy:
 
 .. code:: python
 
@@ -43,22 +75,11 @@ If you want to embed the REPL inside your application at one point, do:
     embed(globals(), locals())
 
 
-Autocompletion
-**************
-
-``Tab`` and ``shift+tab`` complete the input.
-In Vi-mode, you can also use ``Ctrl+N`` and ``Ctrl+P``.
-
-There is even completion on file names inside strings:
-
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/file-completion.png
-
-
 Multiline editing
 *****************
 
-Usually, multi-line editing mode will automatically turn on when you press enter
-after a colon, however you can always turn it on by pressing ``F7``.
+Multi-line editing mode will automatically turn on when you press enter after a
+colon.
 
 To execute the input in multi-line mode, you can either press ``Alt+Enter``, or
 ``Esc`` followed by ``Enter``. (If you want the first to work in the OS X
@@ -128,10 +149,8 @@ There is an experimental PDB replacement: `ptpdb
 About Windows support
 *********************
 
-``prompt_toolkit`` works still a little better on systems like Linux and OS X
-than on Windows, but it certainly is usable. One thing that still needs
-attention is the colorscheme. Windows terminals don't support all colors, so we
-have to create another colorscheme for Windows.
+``prompt_toolkit`` and ``ptpython`` are better tested on Linux and OS X than on
+Windows, but it should be usable:
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/windows.png
 
