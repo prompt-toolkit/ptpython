@@ -10,7 +10,7 @@ from prompt_toolkit.layout.containers import Window, HSplit, VSplit, FloatContai
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.lexers import SimpleLexer
-from prompt_toolkit.layout.margins import Margin
+from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.highlighters import SearchHighlighter, SelectionHighlighter, MatchingBracketHighlighter, ConditionalHighlighter
 from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion
@@ -19,7 +19,6 @@ from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, Searc
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.reactive import Integer
 from prompt_toolkit.selection import SelectionType
-from prompt_toolkit.utils import get_cwidth
 
 from .filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
 from .utils import if_mousedown
@@ -250,7 +249,7 @@ def signature_toolbar(python_input):
             ~IsDone())
 
 
-class PromptMargin(Margin):
+class PythonPromptMargin(PromptMargin):
     """
     Create margin that displays the prompt.
     It shows something like "In [1]:".
@@ -258,34 +257,17 @@ class PromptMargin(Margin):
     def __init__(self, python_input):
         self.python_input = python_input
 
-    def _get_prompt_style(self):
-        return self.python_input.all_prompt_styles[self.python_input.prompt_style]
+        def get_prompt_style():
+            return python_input.all_prompt_styles[python_input.prompt_style]
 
-    def get_width(self, cli):
-        # Take the width from the first line.
-        text = ''.join(t[1] for t in self.python_input.get_input_prompt_tokens(cli))
-        return get_cwidth(text)
+        def get_prompt(cli):
+            return get_prompt_style().in_tokens(cli)
 
-    def create_margin(self, cli, window_render_info, width, height):
-        style = self._get_prompt_style()
+        def get_continuation_prompt(cli, width):
+            return get_prompt_style().in2_tokens(cli, width)
 
-        # First line.
-        tokens = style.in_tokens(cli)
-
-        # Next lines. (Show line numbering when numbering is enabled.)
-        tokens2 = style.in2_tokens(cli, width)
-        show_numbers = self.python_input.show_line_numbers
-        visible_line_to_input_line = window_render_info.visible_line_to_input_line
-
-        for y in range(1, min(window_render_info.content_height, height)):
-            tokens.append((Token, '\n'))
-            if show_numbers:
-                line_number = visible_line_to_input_line.get(y) or 0
-                tokens.append((Token.LineNumber, ('%i ' % (line_number + 1)).rjust(width)))
-            else:
-                tokens.extend(tokens2)
-
-        return tokens
+        super(PythonPromptMargin, self).__init__(get_prompt, get_continuation_prompt, 
+                show_numbers=Condition(lambda cli: python_input.show_line_numbers))
 
 
 def status_bar(key_bindings_manager, python_input):
@@ -518,7 +500,7 @@ def create_layout(python_input, key_bindings_manager,
                 # Make sure that we always see the result of an reverse-i-search:
                 preview_search=Always(),
             ),
-            left_margins=[PromptMargin(python_input)],
+            left_margins=[PythonPromptMargin(python_input)],
             # Scroll offsets. The 1 at the bottom is important to make sure the
             # cursor is never below the "Press [Meta+Enter]" message which is a float.
             scroll_offsets=ScrollOffsets(bottom=1, left=4, right=4),
