@@ -39,10 +39,10 @@ from functools import partial
 import six
 import __future__
 
-if six.PY3:
-    from pygments.lexers import Python3Lexer as PythonLexer
-else:
+if six.PY2:
     from pygments.lexers import PythonLexer
+else:
+    from pygments.lexers import Python3Lexer as PythonLexer
 
 __all__ = (
     'PythonInput',

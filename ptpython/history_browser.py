@@ -35,10 +35,10 @@ from ptpython.layout import get_inputmode_tokens
 from functools import partial
 import six
 
-if six.PY3:
-    from pygments.lexers import Python3Lexer as PythonLexer
-else:
+if six.PY2:
     from pygments.lexers import PythonLexer
+else:
+    from pygments.lexers import Python3Lexer as PythonLexer
 
 
 HISTORY_BUFFER = 'HISTORY_BUFFER'
