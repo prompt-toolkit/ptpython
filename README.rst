@@ -13,7 +13,7 @@ ptpython
 
 Ptpython is an advanced Python REPL. It should work on all
 Python versions from 2.6 up to 3.5 and work cross platform (Linux,
-BSD and OS X, Window).
+BSD, OS X and Windows).
 
 
 Installation
@@ -100,8 +100,8 @@ error.
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
 
 
-Other features
-**************
+Additional features
+*******************
 
 Running system commands: Press ``Meta-!`` in Emacs mode or just ``!`` in Vi
 navigation mode to see the "Shell command" prompt. There you can enter system
@@ -111,7 +111,7 @@ Selecting text: Press ``Control+Space`` in Emacs mode on ``V`` (major V) in Vi
 navigation mode.
 
 
-Configurating
+Configuration
 *************
 
 It is possible to create a ``~/.ptpython/config.py`` file to customize the configuration.
@@ -120,8 +120,8 @@ Have a look at this example to see what is possible:
 `config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_
 
 
-You love IPython?
-*****************
+IPython support
+***************
 
 Run ``ptipython`` (prompt_toolkit - IPython), to get a nice interactive shell
 with all the power that IPython has to offer, like magic functions and shell
@@ -131,8 +131,8 @@ ipython``)
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ipython.png
 
 
-You are using Django?
-*********************
+Django support
+**************
 
 `django-extensions <https://github.com/django-extensions/django-extensions>`_
 has a ``shell_plus`` management command. When ``ptpython`` has been installed,
@@ -146,40 +146,36 @@ There is an experimental PDB replacement: `ptpdb
 <https://github.com/jonathanslenders/ptpdb>`_.
 
 
-About Windows support
-*********************
+Windows support
+***************
 
-``prompt_toolkit`` and ``ptpython`` are better tested on Linux and OS X than on
-Windows, but it should be usable:
+``prompt_toolkit`` and ``ptpython`` works better on Linux and OS X than on
+Windows. Some things might not work, but it is usable:
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/windows.png
 
 
 FAQ
----
+***
 
-Q
- The ``Ctrl-S`` forward search doesn't work and freezes my terminal.
-A
- Try to run ``stty -ixon`` in your terminal to disable flow control.
+**Q**: The ``Ctrl-S`` forward search doesn't work and freezes my terminal.
 
-Q
- The ``Meta``-key doesn't work.
-A
- For some terminals you have to enable the Alt-key to act as meta key, but you
- can also type ``Escape`` before any key instead.
+**A**: Try to run ``stty -ixon`` in your terminal to disable flow control.
+
+**Q**: The ``Meta``-key doesn't work.
+
+**A**: For some terminals you have to enable the Alt-key to act as meta key, but you 
+can also type ``Escape`` before any key instead.
 
 
 Alternatives
 ************
 
-Have a look at the alternatives.
-
 - `BPython <http://bpython-interpreter.org/downloads.html>`_
 
 If you find another alternative, you can create an issue and we'll list it
 here. If you find a nice feature somewhere that is missing in ``ptpython``,
-also create a GitHub issue and mabye we'll implement it.
+also create a GitHub issue and maybe we'll implement it.
 
 
 Special thanks to
