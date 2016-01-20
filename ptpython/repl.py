@@ -17,7 +17,7 @@ from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.interface import AcceptAction, CommandLineInterface
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
-from prompt_toolkit.styles import PygmentsStyle
+from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.utils import DummyContext, Callback
 
 from .python_input import PythonInput, PythonCommandLineInterface
@@ -163,7 +163,7 @@ class PythonRepl(PythonInput):
         # (We use the default style. Most other styles result
         # in unreadable colors for the traceback.)
         tokens = _lex_python_traceback(tb)
-        cli.print_tokens(tokens, style=PygmentsStyle(DefaultStyle))
+        cli.print_tokens(tokens, style=style_from_pygments(DefaultStyle))
 
         output.write('%s\n\n' % e)
         output.flush()
