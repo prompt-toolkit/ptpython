@@ -615,7 +615,7 @@ class PythonInput(object):
         cli.eventloop.run_in_executor(run)
 
     def on_reset(self, cli):
-        self.key_bindings_manager.reset()
+        self.key_bindings_manager.reset(cli)
         self.signatures = []
 
     def enter_history(self, cli):

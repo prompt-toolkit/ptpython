@@ -1,9 +1,8 @@
 from __future__ import unicode_literals
 
 from pygments.token import Token, Keyword, Name, Comment, String, Operator, Number
-from pygments.style import Style
 from pygments.styles import get_style_by_name, get_all_styles
-from prompt_toolkit.styles import default_style_extensions, style_from_dict
+from prompt_toolkit.styles import DEFAULT_STYLE_EXTENSIONS, style_from_dict
 from prompt_toolkit.utils import is_windows, is_conemu_ansi
 
 __all__ = (
@@ -41,7 +40,7 @@ def generate_style(python_style, ui_style):
     assert isinstance(ui_style, dict)
 
     styles = {}
-    styles.update(default_style_extensions)
+    styles.update(DEFAULT_STYLE_EXTENSIONS)
     styles.update(python_style)
     styles.update(ui_style)
 

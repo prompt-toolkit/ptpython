@@ -17,14 +17,13 @@ from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, FillControl
 from prompt_toolkit.layout.dimension import LayoutDimension as D
-from prompt_toolkit.layout.highlighters import SearchHighlighter, SelectionHighlighter
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
-from prompt_toolkit.layout.processors import Processor, Transformation
+from prompt_toolkit.layout.processors import Processor, Transformation, HighlightSearchProcessor, HighlightSelectionProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
 from prompt_toolkit.layout.toolbars import TokenListToolbar
-from prompt_toolkit.layout.utils import explode_tokens
+from prompt_toolkit.layout.utils import token_list_to_text
 from prompt_toolkit.utils import Callback
 from pygments.lexers import RstLexer
 from pygments.token import Token
@@ -143,9 +142,9 @@ def create_layout(python_input, history_mapping):
     Create and return a `Container` instance for the history
     application.
     """
-    highlighters = [
-        SearchHighlighter(preview_search=True),
-        SelectionHighlighter()]
+    processors = [
+        HighlightSearchProcessor(preview_search=True),
+        HighlightSelectionProcessor()]
 
     help_window = create_popup_window(
         title='History Help',
@@ -154,7 +153,7 @@ def create_layout(python_input, history_mapping):
                 buffer_name=HELP_BUFFER,
                 default_char=Char(token=Token),
                 lexer=PygmentsLexer(RstLexer),
-                highlighters=highlighters),
+                input_processors=processors),
             right_margins=[ScrollbarMargin()],
             scroll_offsets=ScrollOffsets(top=2, bottom=2)))
 
@@ -170,9 +169,9 @@ def create_layout(python_input, history_mapping):
                 Window(
                     content=BufferControl(
                         buffer_name=HISTORY_BUFFER,
-                        wrap_lines=False,
                         lexer=PygmentsLexer(PythonLexer),
-                        highlighters=highlighters),
+                        input_processors=processors),
+                    wrap_lines=False,
                     left_margins=[HistoryMargin(history_mapping)],
                     scroll_offsets=ScrollOffsets(top=2, bottom=2)),
                 # Separator.
@@ -182,10 +181,9 @@ def create_layout(python_input, history_mapping):
                 Window(
                     content=BufferControl(
                         buffer_name=DEFAULT_BUFFER,
-                        wrap_lines=False,
-                        highlighters=highlighters,
-                        input_processors=[GrayExistingText(history_mapping)],
+                        input_processors=processors + [GrayExistingText(history_mapping)],
                         lexer=PygmentsLexer(PythonLexer)),
+                    wrap_lines=False,
                     left_margins=[ResultMargin(history_mapping)],
                     scroll_offsets=ScrollOffsets(top=2, bottom=2)),
             ]),
@@ -244,7 +242,7 @@ class HistoryMargin(Margin):
     def __init__(self, history_mapping):
         self.history_mapping = history_mapping
 
-    def get_width(self, cli):
+    def get_width(self, cli, ui_content):
         return 2
 
     def create_margin(self, cli, window_render_info, width, height):
@@ -289,7 +287,7 @@ class ResultMargin(Margin):
     def __init__(self, history_mapping):
         self.history_mapping = history_mapping
 
-    def get_width(self, cli):
+    def get_width(self, cli, ui_content):
         return 2
 
     def create_margin(self, cli, window_render_info, width, height):
@@ -328,24 +326,15 @@ class GrayExistingText(Processor):
     """
     def __init__(self, history_mapping):
         self.history_mapping = history_mapping
-        self._len_before = len(history_mapping.original_document.text_before_cursor)
-        self._len_after = len(history_mapping.original_document.text_after_cursor)
+        self._lines_before = len(history_mapping.original_document.text_before_cursor.splitlines())
 
-    def apply_transformation(self, cli, document, tokens):
-        if self._len_before or self._len_after:
-            tokens = explode_tokens(tokens)
-            pos_after = len(tokens) - self._len_after
-
-            text_before = ''.join(t[1] for t in tokens[:self._len_before])
-            text_after = ''.join(t[1] for t in tokens[pos_after:])
-
-            return Transformation(
-                document=document,
-                tokens=explode_tokens([(Token.History.ExistingInput, text_before)] +
-                       tokens[self._len_before:pos_after] +
-                       [(Token.History.ExistingInput, text_after)]))
+    def apply_transformation(self, cli, document, lineno, source_to_display, tokens):
+        if (lineno < self._lines_before or
+                lineno >= self._lines_before + len(self.history_mapping.selected_lines)):
+            text = token_list_to_text(tokens)
+            return Transformation(tokens=[(Token.History.ExistingInput, text)])
         else:
-            return Transformation(document, tokens)
+            return Transformation(tokens=tokens)
 
 
 class HistoryMapping(object):

@@ -14,7 +14,7 @@ from pygments.styles.default import DefaultStyle
 
 from prompt_toolkit.application import AbortAction
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.interface import AcceptAction, CommandLineInterface
+from prompt_toolkit.interface import AcceptAction
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.styles import style_from_pygments

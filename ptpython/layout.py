@@ -4,7 +4,7 @@ Creation of the `Layout` instance for the Python input/REPL.
 from __future__ import unicode_literals
 
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
-from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, Always, HasFocus, Condition
+from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, HasFocus, Condition
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
@@ -12,8 +12,7 @@ from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
-from prompt_toolkit.layout.highlighters import SearchHighlighter, SelectionHighlighter, MatchingBracketHighlighter, ConditionalHighlighter
-from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion
+from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
@@ -94,7 +93,7 @@ def python_sidebar(python_input):
             if selected:
                 tokens.append((Token.SetCursorPosition, ''))
 
-            tokens.append((token.Status, ' ' * (14 - len(status)), goto_next))
+            tokens.append((token.Status, ' ' * (13 - len(status)), goto_next))
             tokens.append((T, '<' if selected else ''))
             tokens.append((T, '\n'))
 
@@ -266,7 +265,7 @@ class PythonPromptMargin(PromptMargin):
         def get_continuation_prompt(cli, width):
             return get_prompt_style().in2_tokens(cli, width)
 
-        super(PythonPromptMargin, self).__init__(get_prompt, get_continuation_prompt, 
+        super(PythonPromptMargin, self).__init__(get_prompt, get_continuation_prompt,
                 show_numbers=Condition(lambda cli: python_input.show_line_numbers))
 
 
@@ -478,27 +477,25 @@ def create_layout(python_input, key_bindings_manager,
             BufferControl(
                 buffer_name=DEFAULT_BUFFER,
                 lexer=lexer,
-                highlighters=[
+                input_processors=[
+                    ConditionalProcessor(
+                        processor=HighlightSearchProcessor(preview_search=True),
+                        filter=HasFocus(SEARCH_BUFFER),
+                    ),
+                    HighlightSelectionProcessor(),
                     # Show matching parentheses, but only while editing.
-                    ConditionalHighlighter(
-                        highlighter=MatchingBracketHighlighter(chars='[](){}'),
+                    ConditionalProcessor(
+                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
                             Condition(lambda cli: python_input.highlight_matching_parenthesis)),
-                    ConditionalHighlighter(
-                        highlighter=SearchHighlighter(preview_search=Always()),
-                        filter=HasFocus(SEARCH_BUFFER)),
-                    SelectionHighlighter(),
-                ],
-                input_processors=[
                     ConditionalProcessor(
                         processor=AppendAutoSuggestion(),
                         filter=~IsDone())
                 ] + extra_buffer_processors,
                 menu_position=menu_position,
-                wrap_lines=Condition(lambda cli: python_input.wrap_lines),
 
                 # Make sure that we always see the result of an reverse-i-search:
-                preview_search=Always(),
+                preview_search=True,
             ),
             left_margins=[PythonPromptMargin(python_input)],
             # Scroll offsets. The 1 at the bottom is important to make sure the
@@ -508,6 +505,7 @@ def create_layout(python_input, key_bindings_manager,
             get_height=(lambda cli: (
                 None if cli.is_done or python_input.show_exit_confirmation
                         else input_buffer_height)),
+            wrap_lines=Condition(lambda cli: python_input.wrap_lines),
         )
 
     return HSplit([
@@ -536,7 +534,8 @@ def create_layout(python_input, key_bindings_manager,
                               bottom=1,
                               content=exit_confirmation(python_input)),
                         Float(bottom=0, right=0, height=1,
-                              content=meta_enter_message(python_input)),
+                              content=meta_enter_message(python_input),
+                              hide_when_covering_content=True),
                         Float(bottom=1, left=1, right=0, content=python_sidebar_help(python_input)),
                     ]),
                 ArgToolbar(),

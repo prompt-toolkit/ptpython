@@ -21,7 +21,7 @@ setup(
     install_requires = [
         'docopt',
         'jedi>=0.9.0',
-        'prompt_toolkit==0.57',
+        'prompt_toolkit==0.58',
         'pygments',
     ],
     entry_points={
