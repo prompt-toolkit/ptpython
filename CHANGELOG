@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+0.29: 2016-02-24
+----------------
+
+Upgrade to prompt_toolkit 0.58
+
+New features:
+- Improved mouse support
+
+
 0.28: 2016-01-04
 ----------------
 
