@@ -61,7 +61,7 @@ class PythonRepl(PythonInput):
                         code = compile(f.read(), path, 'exec')
                         six.exec_(code, self.get_globals(), self.get_locals())
                 else:
-                    output = self.cli.output
+                    output = cli.output
                     output.write('WARNING | File not found: {}\n\n'.format(path))
 
     def _process_document(self, cli, buffer):
