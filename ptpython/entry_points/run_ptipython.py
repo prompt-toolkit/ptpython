@@ -57,11 +57,18 @@ def run():
         # the IPython shell.)
         user_ns = {}
 
+        # Startup path
+        startup_paths = []
+        if 'PYTHONSTARTUP' in os.environ:
+            startup_paths.append(os.environ['PYTHONSTARTUP'])
+
         # --interactive
         if a['--interactive']:
-            path = a['--interactive']
+            startup_paths.append(a['--interactive'])
             sys.argv = [a['--interactive']] + a['<arg>']
 
+        # exec scripts from startup paths
+        for path in startup_paths:
             if os.path.exists(path):
                 with open(path, 'r') as f:
                     code = compile(f.read(), path, 'exec')
