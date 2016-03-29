@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.32: 2016-03-29
+---------------
+
+Fixes:
+- Fixed bug when PYTHONSTARTUP was not found.
+- Support $PYTHONSTARTUP for ptipython.
+
+
 0.31: 2016-03-14
 ---------------
 
