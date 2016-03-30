@@ -20,7 +20,7 @@ import six
 import sys
 
 
-def run():
+def run(user_ns=None):
     a = docopt.docopt(__doc__)
 
     vi_mode = bool(a['--vi'])
@@ -55,7 +55,8 @@ def run():
         # Create an empty namespace for this interactive shell. (If we don't do
         # that, all the variables from this function will become available in
         # the IPython shell.)
-        user_ns = {}
+        if user_ns is None:
+            user_ns = {}
 
         # Startup path
         startup_paths = []
