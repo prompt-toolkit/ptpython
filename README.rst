@@ -172,6 +172,7 @@ Alternatives
 ************
 
 - `BPython <http://bpython-interpreter.org/downloads.html>`_
+- `IPython <https://ipython.org/>`_
 
 If you find another alternative, you can create an issue and we'll list it
 here. If you find a nice feature somewhere that is missing in ``ptpython``,
