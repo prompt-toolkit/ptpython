@@ -82,8 +82,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         event.cli.current_buffer.insert_text('    ')
 
     @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
-            ~(vi_mode_enabled &
-              ViStateFilter(key_bindings_manager.get_vi_state, InputMode.NAVIGATION)) &
+            ~(vi_mode_enabled & ViStateFilter(InputMode.NAVIGATION)) &
             HasFocus(DEFAULT_BUFFER) & IsMultiline())
     def _(event):
         """

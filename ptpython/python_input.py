@@ -626,13 +626,13 @@ class PythonInput(object):
         """
         Display the history.
         """
-        self.key_bindings_manager.get_vi_state(cli).input_mode = InputMode.NAVIGATION
+        cli.vi_state.input_mode = InputMode.NAVIGATION
 
         def done(result):
             if result is not None:
                 cli.buffers[DEFAULT_BUFFER].document = result
 
-            self.key_bindings_manager.get_vi_state(cli).input_mode = InputMode.INSERT
+            cli.vi_state.input_mode = InputMode.INSERT
 
         cli.run_sub_application(create_history_application(
             self, cli.buffers[DEFAULT_BUFFER].document), done)
