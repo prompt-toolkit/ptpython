@@ -67,6 +67,9 @@ def configure(repl):
     # Use the classic prompt. (Display '>>>' instead of 'In [1]'.)
     repl.prompt_style = 'classic'  # 'classic' or 'ipython'
 
+    # Don't insert a blank line after the output.
+    self.insert_blank_line_after_output = False
+
     # History Search.
     # When True, going back in history will filter the history on the records
     # starting with the current input. (Like readline.)

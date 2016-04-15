@@ -76,6 +76,9 @@ class PythonRepl(PythonInput):
             except Exception as e:
                 self._handle_exception(cli, e)
 
+            if self.insert_blank_line_after_output:
+                cli.output.write('\n')
+
             self.current_statement_index += 1
             self.signatures = []
 
@@ -136,7 +139,6 @@ class PythonRepl(PythonInput):
                 code = compile_with_flags(line, 'exec')
                 six.exec_(code, self.get_globals(), self.get_locals())
 
-            output.write('\n')
             output.flush()
 
     @classmethod
@@ -165,7 +167,7 @@ class PythonRepl(PythonInput):
         tokens = _lex_python_traceback(tb)
         cli.print_tokens(tokens, style=style_from_pygments(DefaultStyle))
 
-        output.write('%s\n\n' % e)
+        output.write('%s\n' % e)
         output.flush()
 
     @classmethod

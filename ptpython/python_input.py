@@ -188,6 +188,7 @@ class PythonInput(object):
         self.show_exit_confirmation = False  # Currently show 'Do you really want to exit?'
         self.terminal_title = None  # The title to be displayed in the terminal. (None or string.)
         self.exit_message = 'Do you really want to exit?'
+        self.insert_blank_line_after_output = True  # (For the REPL.)
 
         # Tokens to be shown at the prompt.
         self.prompt_style = 'classic'  # The currently active style.
@@ -444,6 +445,9 @@ class PythonInput(object):
                        description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
                        get_current_value=lambda: self.prompt_style,
                        get_values=lambda: dict((s, partial(enable, 'prompt_style', s)) for s in self.all_prompt_styles)),
+                simple_option(title='Blank line after output',
+                              description='Insert a blank line after the output.',
+                              field_name='insert_blank_line_after_output'),
                 simple_option(title='Show signature',
                               description='Display function signatures.',
                               field_name='show_signature'),
