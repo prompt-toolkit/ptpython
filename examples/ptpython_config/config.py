@@ -68,7 +68,7 @@ def configure(repl):
     repl.prompt_style = 'classic'  # 'classic' or 'ipython'
 
     # Don't insert a blank line after the output.
-    self.insert_blank_line_after_output = False
+    repl.insert_blank_line_after_output = False
 
     # History Search.
     # When True, going back in history will filter the history on the records
