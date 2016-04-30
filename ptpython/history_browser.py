@@ -10,7 +10,7 @@ from prompt_toolkit.application import Application
 from prompt_toolkit.buffer import Buffer, AcceptAction
 from prompt_toolkit.buffer_mapping import BufferMapping
 from prompt_toolkit.document import Document
-from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition, HasFocus, InFocusStack
 from prompt_toolkit.key_binding.manager import KeyBindingManager
 from prompt_toolkit.keys import Keys
@@ -488,7 +488,10 @@ def create_key_bindings(python_input, history_mapping):
     @handle(Keys.F4)
     def _(event):
         " Switch between Emacs/Vi mode. "
-        python_input.vi_mode = not python_input.vi_mode
+        if event.cli.editing_mode == EditingMode.VI:
+            event.cli.editing_mode = EditingMode.Emacs
+        else:
+            event.cli.editing_mode = EditingMode.VI
 
     @handle(Keys.F1)
     def _(event):
