@@ -3,7 +3,7 @@ Creation of the `Layout` instance for the Python input/REPL.
 """
 from __future__ import unicode_literals
 
-from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER, EditingMode
+from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, HasFocus, Condition
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer, ScrollOffsets
@@ -298,9 +298,9 @@ def status_bar(key_bindings_manager, python_input):
                                 len(python_buffer._working_lines))))
 
         # Shortcuts.
-        if cli.editing_mode == EditingMode.EMACS and cli.current_buffer_name == SEARCH_BUFFER:
+        if not python_input.vi_mode and cli.current_buffer_name == SEARCH_BUFFER:
             append((TB, '[Ctrl-G] Cancel search [Enter] Go to this position.'))
-        elif bool(cli.current_buffer.selection_state) and cli.editing_mode == EditingMode.EMACS:
+        elif bool(cli.current_buffer.selection_state) and not python_input.vi_mode:
             # Emacs cut/copy keys.
             append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
         else:
@@ -335,10 +335,7 @@ def get_inputmode_tokens(cli, python_input):
     """
     @if_mousedown
     def toggle_vi_mode(cli, mouse_event):
-        if cli.editing_mode == EditingMode.VI:
-            cli.editing_mode = EditingMode.Emacs
-        else:
-            cli.editing_mode = EditingMode.VI
+        python_input.vi_mode = not python_input.vi_mode
 
     token = Token.Toolbar.Status
 
@@ -349,7 +346,7 @@ def get_inputmode_tokens(cli, python_input):
     append((token.InputMode, '[F4] ', toggle_vi_mode))
 
     # InputMode
-    if cli.editing_mode == EditingMode.VI:
+    if python_input.vi_mode:
         if bool(cli.current_buffer.selection_state):
             if cli.current_buffer.selection_state.type == SelectionType.LINES:
                 append((token.InputMode, 'Vi (VISUAL LINE)', toggle_vi_mode))

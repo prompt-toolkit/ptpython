@@ -13,7 +13,7 @@ from prompt_toolkit import AbortAction
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
-from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
+from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, Always
 from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
@@ -85,11 +85,11 @@ class Option(object):
     def values(self):
         return self.get_values()
 
-    def activate_next(self, cli, _previous=False):
+    def activate_next(self, _previous=False):
         """
         Activate next value.
         """
-        current = self.get_current_value(cli)
+        current = self.get_current_value()
         options = sorted(self.values.keys())
 
         # Get current index.
@@ -106,13 +106,13 @@ class Option(object):
 
         # Call handler for this option.
         next_option = options[index % len(options)]
-        self.values[next_option](cli)
+        self.values[next_option]()
 
-    def activate_previous(self, cli):
+    def activate_previous(self):
         """
         Activate previous value.
         """
-        self.activate_next(cli, _previous=True)
+        self.activate_next(_previous=True)
 
 
 class PythonInput(object):
@@ -167,7 +167,7 @@ class PythonInput(object):
         self.show_status_bar = True
         self.wrap_lines = True
         self.complete_while_typing = True
-        self._vi_mode = vi_mode
+        self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
         self.confirm_exit = True  # Ask for confirmation when Control-D is pressed.
         self.accept_input_on_enter = 2  # Accept when pressing Enter 'n' times.
@@ -230,6 +230,7 @@ class PythonInput(object):
         self.key_bindings_manager = KeyBindingManager(
             enable_abort_and_exit_bindings=True,
             enable_search=True,
+            enable_vi_mode=Condition(lambda cli: self.vi_mode),
             enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
             enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
             enable_auto_suggest_bindings=Condition(lambda cli: self.enable_auto_suggest),
@@ -366,13 +367,13 @@ class PythonInput(object):
             " Create Simple on/of option. "
             values = values or ['off', 'on']
 
-            def get_current_value(cli):
+            def get_current_value():
                 return values[bool(getattr(self, field_name))]
 
             def get_values():
                 return {
-                    values[1]: lambda _: enable(field_name),
-                    values[0]: lambda _: disable(field_name),
+                    values[1]: lambda: enable(field_name),
+                    values[0]: lambda: disable(field_name),
                 }
 
             return Option(title=title, description=description,
@@ -381,31 +382,28 @@ class PythonInput(object):
 
         return [
             OptionCategory('Input', [
-                Option(title='Input mode',
-                       description='Vi or emacs key bindings.',
-                       get_current_value=lambda cli: cli.editing_mode,
-                       get_values=lambda: {
-                           'vi': lambda cli: setattr(cli, 'editing_mode', EditingMode.Vi),
-                           'emacs': lambda cli: setattr(cli, 'editing_mode', EditingMode.Emacs),
-                       }),
+                simple_option(title='Input mode',
+                              description='Vi or emacs key bindings.',
+                              field_name='vi_mode',
+                              values=['emacs', 'vi']),
                 simple_option(title='Paste mode',
                               description="When enabled, don't indent automatically.",
                               field_name='paste_mode'),
                 Option(title='Complete while typing',
                        description="Generate autocompletions automatically while typing. "
                                    'Don\'t require pressing TAB. (Not compatible with "History search".)',
-                       get_current_value=lambda cli: ['off', 'on'][self.complete_while_typing],
+                       get_current_value=lambda: ['off', 'on'][self.complete_while_typing],
                        get_values=lambda: {
-                           'on': lambda _: enable('complete_while_typing') and disable('enable_history_search'),
-                           'off': lambda _: disable('complete_while_typing'),
+                           'on': lambda: enable('complete_while_typing') and disable('enable_history_search'),
+                           'off': lambda: disable('complete_while_typing'),
                        }),
                 Option(title='History search',
                        description='When pressing the up-arrow, filter the history on input starting '
                                    'with the current text. (Not compatible with "Complete while typing".)',
-                       get_current_value=lambda cli: ['off', 'on'][self.enable_history_search],
+                       get_current_value=lambda: ['off', 'on'][self.enable_history_search],
                        get_values=lambda: {
-                           'on': lambda _: enable('enable_history_search') and disable('complete_while_typing'),
-                           'off': lambda _: disable('enable_history_search'),
+                           'on': lambda: enable('enable_history_search') and disable('complete_while_typing'),
+                           'off': lambda: disable('enable_history_search'),
                        }),
                 simple_option(title='Mouse support',
                               description='Respond to mouse clicks and scrolling for positioning the cursor, '
@@ -425,28 +423,28 @@ class PythonInput(object):
                 Option(title='Accept input on enter',
                        description='Amount of ENTER presses required to execute input when the cursor '
                                    'is at the end of the input. (Note that META+ENTER will always execute.)',
-                       get_current_value=lambda cli: str(self.accept_input_on_enter or 'meta-enter'),
+                       get_current_value=lambda: str(self.accept_input_on_enter or 'meta-enter'),
                        get_values=lambda: {
-                           '2': lambda _: enable('accept_input_on_enter', 2),
-                           '3': lambda _: enable('accept_input_on_enter', 3),
-                           '4': lambda _: enable('accept_input_on_enter', 4),
-                           'meta-enter': lambda _: enable('accept_input_on_enter', None),
+                           '2': lambda: enable('accept_input_on_enter', 2),
+                           '3': lambda: enable('accept_input_on_enter', 3),
+                           '4': lambda: enable('accept_input_on_enter', 4),
+                           'meta-enter': lambda: enable('accept_input_on_enter', None),
                        }),
             ]),
             OptionCategory('Display', [
                 Option(title='Completions',
                        description='Visualisation to use for displaying the completions. (Multiple columns, one column, a toolbar or nothing.)',
-                       get_current_value=lambda cli: self.completion_visualisation,
+                       get_current_value=lambda: self.completion_visualisation,
                        get_values=lambda: {
-                           CompletionVisualisation.NONE: lambda _: enable('completion_visualisation', CompletionVisualisation.NONE),
-                           CompletionVisualisation.POP_UP: lambda _: enable('completion_visualisation', CompletionVisualisation.POP_UP),
-                           CompletionVisualisation.MULTI_COLUMN: lambda _: enable('completion_visualisation', CompletionVisualisation.MULTI_COLUMN),
-                           CompletionVisualisation.TOOLBAR: lambda _: enable('completion_visualisation', CompletionVisualisation.TOOLBAR),
+                           CompletionVisualisation.NONE: lambda: enable('completion_visualisation', CompletionVisualisation.NONE),
+                           CompletionVisualisation.POP_UP: lambda: enable('completion_visualisation', CompletionVisualisation.POP_UP),
+                           CompletionVisualisation.MULTI_COLUMN: lambda: enable('completion_visualisation', CompletionVisualisation.MULTI_COLUMN),
+                           CompletionVisualisation.TOOLBAR: lambda: enable('completion_visualisation', CompletionVisualisation.TOOLBAR),
                        }),
                 Option(title='Prompt',
                        description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
-                       get_current_value=lambda cli: self.prompt_style,
-                       get_values=lambda: dict((s, lambda _, s=s: enable('prompt_style', s)) for s in self.all_prompt_styles)),
+                       get_current_value=lambda: self.prompt_style,
+                       get_values=lambda: dict((s, partial(enable, 'prompt_style', s)) for s in self.all_prompt_styles)),
                 simple_option(title='Blank line after output',
                               description='Insert a blank line after the output.',
                               field_name='insert_blank_line_after_output'),
@@ -479,15 +477,15 @@ class PythonInput(object):
             OptionCategory('Colors', [
                 Option(title='Code',
                        description='Color scheme to use for the Python code.',
-                       get_current_value=lambda cli: self._current_code_style_name,
+                       get_current_value=lambda: self._current_code_style_name,
                        get_values=lambda: dict(
-                           (name, lambda _, name=name: self.use_code_colorscheme(name)) for name in self.code_styles)
+                            (name, partial(self.use_code_colorscheme, name)) for name in self.code_styles)
                        ),
                 Option(title='User interface',
                        description='Color scheme to use for the user interface.',
-                       get_current_value=lambda cli: self._current_ui_style_name,
+                       get_current_value=lambda: self._current_ui_style_name,
                        get_values=lambda: dict(
-                           (name, lambda _, name=name: self.use_ui_colorscheme(name)) for name in self.ui_styles)
+                            (name, partial(self.use_ui_colorscheme, name)) for name in self.ui_styles)
                        ),
                 simple_option(title='True color (24 bit)',
                               description='Use 24 bit colors instead of 265 colors',
@@ -513,7 +511,6 @@ class PythonInput(object):
                 extra_buffer_processors=self._extra_buffer_processors,
                 extra_body=self._extra_layout_body,
                 extra_toolbars=self._extra_toolbars),
-            editing_mode=(EditingMode.VI if self._vi_mode else EditingMode.EMACS),
             buffer=self._create_buffer(),
             buffers=buffers,
             key_bindings_registry=self.key_bindings_registry,

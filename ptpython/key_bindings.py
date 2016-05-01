@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
 from prompt_toolkit.document import Document
-from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition, ViInsertMode, EmacsInsertMode
+from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition, InViMode
+from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.keys import Keys
 
 __all__ = (
@@ -63,11 +64,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         Toggle between Vi and Emacs mode.
         """
-        if event.cli.editing_mode == EditingMode.VI:
-            event.cli.editing_mode = EditingMode.EMACS
-        else:
-            event.cli.editing_mode = EditingMode.VI
-
+        python_input.vi_mode = not python_input.vi_mode
 
     @handle(Keys.F6)
     def _(event):
@@ -84,7 +81,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         event.cli.current_buffer.insert_text('    ')
 
     @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
-            (ViInsertMode() | EmacsInsertMode()) &
+            ~(vi_mode_enabled & InViMode(InputMode.NAVIGATION)) &
             HasFocus(DEFAULT_BUFFER) & IsMultiline())
     def _(event):
         """
@@ -118,16 +115,6 @@ def load_python_bindings(key_bindings_manager, python_input):
                 b.accept_action.validate_and_handle(event.cli, b)
         else:
             auto_newline(b)
-
-    @handle(Keys.ControlBackslash, filter= ~sidebar_visible & ~has_selection &
-            (ViInsertMode() | EmacsInsertMode()) &
-            HasFocus(DEFAULT_BUFFER))
-    def _(event):
-        r"""
-        Always insert a newline when Control+\ has been pressed.
-        """
-        b = event.current_buffer
-        b.insert_text('\n')
 
     @handle(Keys.ControlD, filter=~sidebar_visible & Condition(lambda cli:
             # Only when the `confirm_exit` flag is set.
@@ -171,14 +158,14 @@ def load_sidebar_bindings(key_bindings_manager, python_input):
     def _(event):
         " Select next value for current option. "
         option = python_input.selected_option
-        option.activate_next(event.cli)
+        option.activate_next()
 
     @handle(Keys.Left, filter=sidebar_visible)
     @handle('h', filter=sidebar_visible)
     def _(event):
         " Select previous value for current option. "
         option = python_input.selected_option
-        option.activate_previous(event.cli)
+        option.activate_previous()
 
     @handle(Keys.ControlC, filter=sidebar_visible)
     @handle(Keys.ControlG, filter=sidebar_visible)
