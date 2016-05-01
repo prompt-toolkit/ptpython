@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition, InViMode
+from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.keys import Keys
 
@@ -81,7 +81,7 @@ def load_python_bindings(key_bindings_manager, python_input):
         event.cli.current_buffer.insert_text('    ')
 
     @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
-            ~(vi_mode_enabled & InViMode(InputMode.NAVIGATION)) &
+            (ViInsertMode() | EmacsInsertMode()) &
             HasFocus(DEFAULT_BUFFER) & IsMultiline())
     def _(event):
         """

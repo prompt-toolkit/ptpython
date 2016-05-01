@@ -13,7 +13,7 @@ from prompt_toolkit import AbortAction
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
-from prompt_toolkit.enums import DEFAULT_BUFFER
+from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition, Always
 from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
@@ -520,6 +520,7 @@ class PythonInput(object):
             on_exit=self._on_exit,
             style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
+            on_initialize=Callback(self._on_cli_initialize),
             on_start=self._on_start,
             on_input_timeout=Callback(self._on_input_timeout))
 
@@ -548,6 +549,21 @@ class PythonInput(object):
             accept_action=self._accept_action)
 
         return python_buffer
+
+    def _on_cli_initialize(self, cli):
+        """
+        Called when a CommandLineInterface has been created.
+        """
+        # Synchronize PythonInput state with the CommandLineInterface.
+        def synchronize():
+            if self.vi_mode:
+                cli.editing_mode = EditingMode.VI
+            else:
+                cli.editing_mode = EditingMode.EMACS
+
+        cli.input_processor.beforeKeyPress += synchronize
+        cli.input_processor.afterKeyPress += synchronize
+        synchronize()
 
     def _on_input_timeout(self, cli):
         """
