@@ -18,7 +18,7 @@ from prompt_toolkit.interface import AcceptAction
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.styles import style_from_pygments
-from prompt_toolkit.utils import DummyContext, Callback
+from prompt_toolkit.utils import DummyContext
 
 from .python_input import PythonInput, PythonCommandLineInterface
 from .eventloop import create_eventloop
@@ -44,7 +44,7 @@ class PythonRepl(PythonInput):
         kw.update({
             '_accept_action': AcceptAction.run_in_terminal(
                 handler=self._process_document, render_cli_done=True),
-            '_on_start': Callback(self._on_start),
+            '_on_start': self._on_start,
             '_on_exit': AbortAction.RETURN_NONE,
         })
 

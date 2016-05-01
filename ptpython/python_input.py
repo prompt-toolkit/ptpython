@@ -22,7 +22,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.shortcuts import create_output
 from prompt_toolkit.styles import DynamicStyle
-from prompt_toolkit.utils import Callback, is_windows
+from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
 
 from .completer import PythonCompleter
@@ -520,9 +520,9 @@ class PythonInput(object):
             on_exit=self._on_exit,
             style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
-            on_initialize=Callback(self._on_cli_initialize),
+            on_initialize=self._on_cli_initialize,
             on_start=self._on_start,
-            on_input_timeout=Callback(self._on_input_timeout))
+            on_input_timeout=self._on_input_timeout)
 
     def _create_buffer(self):
         """
@@ -555,7 +555,7 @@ class PythonInput(object):
         Called when a CommandLineInterface has been created.
         """
         # Synchronize PythonInput state with the CommandLineInterface.
-        def synchronize():
+        def synchronize(_=None):
             if self.vi_mode:
                 cli.editing_mode = EditingMode.VI
             else:

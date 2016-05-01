@@ -24,7 +24,6 @@ from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
 from prompt_toolkit.layout.toolbars import TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_to_text
-from prompt_toolkit.utils import Callback
 from pygments.lexers import RstLexer
 from pygments.token import Token
 
@@ -530,7 +529,7 @@ def create_history_application(python_input, original_document):
     """
     history_mapping = HistoryMapping(python_input.history, original_document)
 
-    def default_buffer_pos_changed():
+    def default_buffer_pos_changed(_):
         """ When the cursor changes in the default buffer. Synchronize with
         history buffer. """
         # Only when this buffer has the focus.
@@ -549,7 +548,7 @@ def create_history_application(python_input, original_document):
                 history_buffer.cursor_position = \
                     history_buffer.document.translate_row_col_to_index(history_lineno, 0)
 
-    def history_buffer_pos_changed():
+    def history_buffer_pos_changed(_):
         """ When the cursor changes in the history buffer. Synchronize. """
         # Only when this buffer has the focus.
         if buffer_mapping.focus_stack[-1] == HISTORY_BUFFER:
@@ -564,14 +563,14 @@ def create_history_application(python_input, original_document):
 
     history_buffer = Buffer(
         initial_document=Document(history_mapping.concatenated_history),
-        on_cursor_position_changed=Callback(history_buffer_pos_changed),
+        on_cursor_position_changed=history_buffer_pos_changed,
         accept_action=AcceptAction(
             lambda cli, buffer: cli.set_return_value(default_buffer.document)),
         read_only=True)
 
     default_buffer = Buffer(
         initial_document=history_mapping.get_new_document(),
-        on_cursor_position_changed=Callback(default_buffer_pos_changed),
+        on_cursor_position_changed=default_buffer_pos_changed,
         read_only=True)
 
     help_buffer = Buffer(
