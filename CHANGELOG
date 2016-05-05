@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+0.33: 2016-05-05
+---------------
+
+Upgrade to prompt_toolkit 1.0.0
+
+Improvements:
+- Unindent after typing 'pass'.
+- Make it configurable whether or not a blank line has to be inserted after the output.
+
+
 0.32: 2016-03-29
 ---------------
 

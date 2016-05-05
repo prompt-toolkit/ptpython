@@ -13,7 +13,7 @@ long_description = open(
 setup(
     name='ptpython',
     author='Jonathan Slenders',
-    version='0.32',
+    version='0.33',
     url='https://github.com/jonathanslenders/ptpython',
     description='Python REPL build on top of prompt_toolkit',
     long_description=long_description,
@@ -21,7 +21,7 @@ setup(
     install_requires = [
         'docopt',
         'jedi>=0.9.0',
-        'prompt_toolkit==0.60',
+        'prompt_toolkit>=1.0.0,<2.0.0',
         'pygments',
     ],
     entry_points={
