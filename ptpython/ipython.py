@@ -208,7 +208,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
     def raw_input(self, prompt=''):
         print('')
         try:
-            string = self._cli.run().text
+            string = self._cli.run(reset_current_buffer=True).text
 
             # In case of multiline input, make sure to append a newline to the input,
             # otherwise, IPython will ask again for more input in some cases.
