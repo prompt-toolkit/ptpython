@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+0.34: 2016-05-06
+---------------
+
+Bugfix in ptipython: reset input buffer before every read in run().
+
+
 0.33: 2016-05-05
 ---------------
 
