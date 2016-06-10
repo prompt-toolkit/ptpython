@@ -159,6 +159,12 @@ class PythonRepl(PythonInput):
         if l:
             l.insert(0, "Traceback (most recent call last):\n")
         l.extend(traceback.format_exception_only(t, v))
+
+        # For Python2: `format_list` and `format_exception_only` return
+        # non-unicode strings. Ensure that everything is unicode.
+        if six.PY2:
+            l = [i.decode('utf-8') if isinstance(i, six.binary_type) else i for i in l]
+
         tb = ''.join(l)
 
         # Format exception and write to output.
