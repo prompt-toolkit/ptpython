@@ -21,6 +21,7 @@ from prompt_toolkit.layout.lexers import PygmentsLexer, SimpleLexer
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
 from .eventloop import create_eventloop
+from .style import default_ui_style
 
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
 from IPython.terminal.ipapp import load_default_config
@@ -57,6 +58,23 @@ class IPythonPrompt(PromptStyle):
         # it would look like this.
         text = self.prompt_manager.render('out', color=False, just=False)
         return [(Token.Out, text)]
+
+
+class IPython5Prompt(PromptStyle):
+    """
+    Style for IPython >5.0, use the prompt_toolkit tokens directly.
+    """
+    def __init__(self, prompts):
+        self.prompts = prompts
+
+    def in_tokens(self, cli):
+        return self.prompts.in_prompt_tokens(cli)
+
+    def in2_tokens(self, cli, width):
+        return self.prompts.continuation_prompt_tokens(cli)
+
+    def out_tokens(self, cli):
+        return []
 
 
 class IPythonValidator(PythonValidator):
@@ -167,8 +185,31 @@ class IPythonInput(PythonInput):
         super(IPythonInput, self).__init__(*a, **kw)
         self.ipython_shell = ipython_shell
 
-        self.all_prompt_styles['ipython'] = IPythonPrompt(ipython_shell.prompt_manager)
-        self.prompt_style = 'ipython'
+        # Prompt for IPython < 5.0
+        if hasattr(ipython_shell, 'prompt_manager'):
+            self.all_prompt_styles['ipython'] = IPythonPrompt(ipython_shell.prompt_manager)
+            self.prompt_style = 'ipython'
+
+        # Prompt for IPython >=5.0:
+        if hasattr(ipython_shell, 'prompts'):
+            self.all_prompt_styles['ipython'] = IPython5Prompt(ipython_shell.prompts)
+            self.prompt_style = 'ipython'
+
+
+        # UI style for IPython. Add tokens that are used by IPython>5.0
+        style_dict = {}
+        style_dict.update(default_ui_style)
+        style_dict.update({
+            Token.Prompt:        '#009900',
+            Token.PromptNum:     '#00ff00 bold',
+            Token.OutPrompt:     '#990000',
+            Token.OutPromptNum:  '#ff0000 bold',
+        })
+
+        self.ui_styles = {
+            'default': style_dict,
+        }
+        self.use_ui_colorscheme('default')
 
 
 class InteractiveShellEmbed(_InteractiveShellEmbed):
@@ -200,10 +241,15 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
 
         if configure:
             configure(ipython_input)
+            ipython_input.prompt_style = 'ipython'  # Don't take from config.
 
         self._cli = CommandLineInterface(
                 application=ipython_input.create_application(),
                 eventloop=self._eventloop)
+
+    def prompt_for_code(self):
+        # IPython 5.0 calls `prompt_for_code` instead of `raw_input`.
+        return self.raw_input(self)
 
     def raw_input(self, prompt=''):
         print('')

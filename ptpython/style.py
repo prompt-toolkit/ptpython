@@ -78,7 +78,7 @@ default_ui_style = {
         Token.Prompt:                                 'bold',
         Token.Prompt.Dots:                            'noinherit',
 
-        # (IPython) Prompt: "In [1]:"
+        # (IPython <5.0) Prompt: "In [1]:"
         Token.In:                                     'bold #008800',
         Token.In.Number:                              '',
 
