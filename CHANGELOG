@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+0.35: 2016-07-19
+----------------
+
+Fixes:
+- Fix in completer. Don't hang when pasting a long string with many
+  backslashes.
+- Fix Python2 bug: crash when filenames contain non-ascii characters.
+- Added `pt[i]pythonX` and `pt[i]pythonX.X` commands.
+- Compatibility with IPython 5.0.
+
+
 0.34: 2016-05-06
 ---------------
 
