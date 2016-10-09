@@ -12,7 +12,7 @@ from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
-from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor
+from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, DisplayMultipleCursors
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
@@ -483,6 +483,7 @@ def create_layout(python_input, key_bindings_manager,
                         filter=HasFocus(SEARCH_BUFFER),
                     ),
                     HighlightSelectionProcessor(),
+                    DisplayMultipleCursors(DEFAULT_BUFFER),
                     # Show matching parentheses, but only while editing.
                     ConditionalProcessor(
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
