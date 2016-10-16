@@ -208,7 +208,14 @@ def signature_toolbar(python_input):
 
             append((Signature.Operator, '('))
 
-            for i, p in enumerate(sig.params):
+            try:
+                enumerated_params = enumerate(sig.params)
+            except AttributeError:
+                # Workaround for #136: https://github.com/jonathanslenders/ptpython/issues/136
+                # AttributeError: 'Lambda' object has no attribute 'get_subscope_by_name'
+                return []
+
+            for i, p in enumerated_params:
                 # Workaround for #47: 'p' is None when we hit the '*' in the signature.
                 #                     and sig has no 'index' attribute.
                 # See: https://github.com/jonathanslenders/ptpython/issues/47
