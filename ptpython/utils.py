@@ -65,6 +65,9 @@ def get_jedi_script_from_document(document, locals, globals):
     except KeyError:
         # Workaroud for a crash when the input is "u'", the start of a unicode string.
         return None
+    except Exception:
+        # Workaround for: https://github.com/jonathanslenders/ptpython/issues/91
+        return None
 
 
 _multiline_string_delims = re.compile('''[']{3}|["]{3}''')
