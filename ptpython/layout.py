@@ -12,7 +12,7 @@ from prompt_toolkit.layout.dimension import LayoutDimension
 from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
-from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, DisplayMultipleCursors
+from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, Processor, Transformation
 from prompt_toolkit.layout.screen import Char
 from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
 from prompt_toolkit.layout.utils import token_list_width
@@ -32,6 +32,20 @@ __all__ = (
     'create_layout',
     'CompletionVisualisation',
 )
+
+
+# DisplayMultipleCursors: Only for prompt_toolkit>=1.0.8
+try:
+    from prompt_toolkit.layout.processors import DisplayMultipleCursors
+except ImportError:
+    class DisplayMultipleCursors(Processor):
+        " Dummy. "
+        def __init__(self, *a):
+            pass
+
+        def apply_transformation(self, cli, document, lineno,
+                                 source_to_display, tokens):
+            return Transformation(tokens)
 
 
 class CompletionVisualisation:
