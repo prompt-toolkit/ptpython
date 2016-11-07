@@ -374,7 +374,10 @@ def get_inputmode_tokens(cli, python_input):
             elif cli.current_buffer.selection_state.type == SelectionType.CHARACTERS:
                 append((token.InputMode, 'Vi (VISUAL)', toggle_vi_mode))
                 append((token, ' '))
-        elif mode == InputMode.INSERT:
+            elif cli.current_buffer.selection_state.type == 'BLOCK':
+                append((token.InputMode, 'Vi (VISUAL BLOCK)', toggle_vi_mode))
+                append((token, ' '))
+        elif mode in (InputMode.INSERT, 'vi-insert-multiple'):
             append((token.InputMode, 'Vi (INSERT)', toggle_vi_mode))
             append((token, '  '))
         elif mode == InputMode.NAVIGATION:
