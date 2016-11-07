@@ -8,6 +8,8 @@ New features:
 - Support for editing in Vi block mode. (Only enabled for
   prompt_toolkit>=1.0.8.)
 
+Fixes:
+- Handle two Jedi crashes. (GitHub ptpython issues #136 and #91.)
 
 0.35: 2016-07-19
 ----------------
