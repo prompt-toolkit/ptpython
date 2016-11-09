@@ -30,9 +30,7 @@ setup(
             'ptpython = ptpython.entry_points.run_ptpython:run',
             'ptipython = ptpython.entry_points.run_ptipython:run',
             'ptpython%s = ptpython.entry_points.run_ptpython:run' % sys.version_info[0],
-            'ptpython%s.%s = ptpython.entry_points.run_ptpython:run' % sys.version_info[:2],
             'ptipython%s = ptpython.entry_points.run_ptipython:run' % sys.version_info[0],
-            'ptipython%s.%s = ptpython.entry_points.run_ptipython:run' % sys.version_info[:2],
         ]
     },
     extra_require={
