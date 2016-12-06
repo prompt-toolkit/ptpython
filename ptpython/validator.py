@@ -42,3 +42,7 @@ class PythonValidator(Validator):
         except TypeError as e:
             # e.g. "compile() expected string without null bytes"
             raise ValidationError(0, str(e))
+        except ValueError as e:
+            # In Python 2, compiling "\x9" (an invalid escape sequence) raises
+            # ValueError instead of SyntaxError.
+            raise ValidationError(0, 'Syntax Error: %s' % e)
