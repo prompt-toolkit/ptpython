@@ -105,14 +105,13 @@ def load_python_bindings(key_bindings_manager, python_input):
 
         elif at_the_end(b) and b.document.text.replace(' ', '').endswith(
                     '\n' * (empty_lines_required - 1)):
-            if b.validate():
-                # When the cursor is at the end, and we have an empty line:
-                # drop the empty lines, but return the value.
-                b.document = Document(
-                    text=b.text.rstrip(),
-                    cursor_position=len(b.text.rstrip()))
+            # When the cursor is at the end, and we have an empty line:
+            # drop the empty lines, but return the value.
+            b.document = Document(
+                text=b.text.rstrip(),
+                cursor_position=len(b.text.rstrip()))
 
-                b.accept_action.validate_and_handle(event.cli, b)
+            b.accept_action.validate_and_handle(event.cli, b)
         else:
             auto_newline(b)
 
