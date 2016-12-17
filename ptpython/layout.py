@@ -290,7 +290,7 @@ class PythonPromptMargin(PromptMargin):
                 show_numbers=Condition(lambda cli: python_input.show_line_numbers))
 
 
-def status_bar(key_bindings_manager, python_input):
+def status_bar(python_input):
     """
     Create the `Layout` for the status bar.
     """
@@ -474,7 +474,7 @@ def meta_enter_message(python_input):
         filter=visible)
 
 
-def create_layout(python_input, key_bindings_manager,
+def create_layout(python_input,
                   lexer=PythonLexer,
                   extra_body=None, extra_toolbars=None,
                   extra_buffer_processors=None, input_buffer_height=None):
@@ -592,7 +592,7 @@ def create_layout(python_input, key_bindings_manager,
         ]),
     ] + extra_toolbars + [
         VSplit([
-            status_bar(key_bindings_manager, python_input),
+            status_bar(python_input),
             show_sidebar_button_info(python_input),
         ])
     ])

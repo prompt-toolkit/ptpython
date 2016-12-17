@@ -4,6 +4,7 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition, ViInsertMode, EmacsInsertMode
 from prompt_toolkit.key_binding.vi_state import InputMode
+from prompt_toolkit.key_binding.registry import Registry
 from prompt_toolkit.keys import Keys
 
 __all__ = (
@@ -29,12 +30,14 @@ class TabShouldInsertWhitespaceFilter(Filter):
         return bool(b.text and (not before_cursor or before_cursor.isspace()))
 
 
-def load_python_bindings(key_bindings_manager, python_input):
+def load_python_bindings(python_input):
     """
     Custom key bindings.
     """
+    registry = Registry()
+
     sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
-    handle = key_bindings_manager.registry.add_binding
+    handle = registry.add_binding
     has_selection = HasSelection()
     vi_mode_enabled = Condition(lambda cli: python_input.vi_mode)
 
@@ -128,12 +131,16 @@ def load_python_bindings(key_bindings_manager, python_input):
         """
         python_input.show_exit_confirmation = True
 
+    return registry
 
-def load_sidebar_bindings(key_bindings_manager, python_input):
+
+def load_sidebar_bindings(python_input):
     """
     Load bindings for the navigation in the sidebar.
     """
-    handle = key_bindings_manager.registry.add_binding
+    registry = Registry()
+
+    handle = registry.add_binding
     sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
 
     @handle(Keys.Up, filter=sidebar_visible)
@@ -176,12 +183,16 @@ def load_sidebar_bindings(key_bindings_manager, python_input):
         " Hide sidebar. "
         python_input.show_sidebar = False
 
+    return registry
 
-def load_confirm_exit_bindings(key_bindings_manager, python_input):
+
+def load_confirm_exit_bindings(python_input):
     """
     Handle yes/no key presses when the exit confirmation is shown.
     """
-    handle = key_bindings_manager.registry.add_binding
+    registry = Registry()
+
+    handle = registry.add_binding
     confirmation_visible = Condition(lambda cli: python_input.show_exit_confirmation)
 
     @handle('y', filter=confirmation_visible)
@@ -199,6 +210,8 @@ def load_confirm_exit_bindings(key_bindings_manager, python_input):
         Cancel exit.
         """
         python_input.show_exit_confirmation = False
+
+    return registry
 
 
 def auto_newline(buffer):

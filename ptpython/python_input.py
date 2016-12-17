@@ -17,8 +17,9 @@ from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition, Always
 from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
-from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt, load_mouse_bindings
 from prompt_toolkit.key_binding.vi_state import InputMode
+from prompt_toolkit.key_binding.registry import MergedRegistry, ConditionalRegistry
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.shortcuts import create_output
 from prompt_toolkit.styles import DynamicStyle
@@ -226,22 +227,25 @@ class PythonInput(object):
         # Code signatures. (This is set asynchronously after a timeout.)
         self.signatures = []
 
-        # Use a KeyBindingManager for loading the key bindings.
-        self.key_bindings_manager = KeyBindingManager(
-            enable_abort_and_exit_bindings=True,
-            enable_search=True,
-            enable_vi_mode=Condition(lambda cli: self.vi_mode),
-            enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
-            enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
-            enable_auto_suggest_bindings=Condition(lambda cli: self.enable_auto_suggest),
+        # Create a Registry for the key bindings.
+        self.key_bindings_registry = MergedRegistry([
+            ConditionalRegistry(
+                registry=load_key_bindings_for_prompt(
+                    enable_abort_and_exit_bindings=True,
+                    enable_search=True,
+                    enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
+                    enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
+                    enable_auto_suggest_bindings=Condition(lambda cli: self.enable_auto_suggest)),
 
-            # Disable all default key bindings when the sidebar or the exit confirmation
-            # are shown.
-            enable_all=Condition(lambda cli: not (self.show_sidebar or self.show_exit_confirmation)))
-
-        load_python_bindings(self.key_bindings_manager, self)
-        load_sidebar_bindings(self.key_bindings_manager, self)
-        load_confirm_exit_bindings(self.key_bindings_manager, self)
+                # Disable all default key bindings when the sidebar or the exit confirmation
+                # are shown.
+                filter=Condition(lambda cli: not (self.show_sidebar or self.show_exit_confirmation))
+            ),
+            load_mouse_bindings(),
+            load_python_bindings(self),
+            load_sidebar_bindings(self),
+            load_confirm_exit_bindings(self),
+        ])
 
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
@@ -275,10 +279,6 @@ class PythonInput(object):
                 flags |= value.compiler_flag
 
         return flags
-
-    @property
-    def key_bindings_registry(self):
-        return self.key_bindings_manager.registry
 
     @property
     def add_key_binding(self):
@@ -505,7 +505,6 @@ class PythonInput(object):
         return Application(
             layout=create_layout(
                 self,
-                self.key_bindings_manager,
                 lexer=self._lexer,
                 input_buffer_height=self._input_buffer_height,
                 extra_buffer_processors=self._extra_buffer_processors,
@@ -635,7 +634,6 @@ class PythonInput(object):
         cli.eventloop.run_in_executor(run)
 
     def on_reset(self, cli):
-        self.key_bindings_manager.reset(cli)
         self.signatures = []
 
     def enter_history(self, cli):

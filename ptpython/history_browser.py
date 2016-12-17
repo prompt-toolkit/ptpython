@@ -12,7 +12,7 @@ from prompt_toolkit.buffer_mapping import BufferMapping
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, HasFocus, InFocusStack
-from prompt_toolkit.key_binding.manager import KeyBindingManager
+from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, FillControl
@@ -420,10 +420,10 @@ def create_key_bindings(python_input, history_mapping):
     """
     Key bindings.
     """
-    manager = KeyBindingManager(
+    registry = load_key_bindings(
         enable_search=True,
         enable_extra_page_navigation=True)
-    handle = manager.registry.add_binding
+    handle = registry.add_binding
 
     @handle(' ', filter=HasFocus(HISTORY_BUFFER))
     def _(event):
@@ -517,7 +517,7 @@ def create_key_bindings(python_input, history_mapping):
         " Suspend to background. "
         event.cli.suspend_to_background()
 
-    return manager.registry
+    return registry
 
 
 def create_history_application(python_input, original_document):

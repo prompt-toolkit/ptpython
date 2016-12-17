@@ -85,7 +85,6 @@ class PythonRepl(PythonInput):
             # Append to history and reset.
             cli.search_state.text = ''
             cli.buffers[DEFAULT_BUFFER].reset(append_to_history=True)
-            self.key_bindings_manager.reset(cli)
 
     def _execute(self, cli, line):
         """
