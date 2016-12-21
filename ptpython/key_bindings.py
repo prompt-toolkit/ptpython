@@ -198,6 +198,7 @@ def load_confirm_exit_bindings(python_input):
     @handle('y', filter=confirmation_visible)
     @handle('Y', filter=confirmation_visible)
     @handle(Keys.ControlJ, filter=confirmation_visible)
+    @handle(Keys.ControlD, filter=confirmation_visible)
     def _(event):
         """
         Really quit.
