@@ -519,6 +519,7 @@ class PythonInput(object):
             on_exit=self._on_exit,
             style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
+            reverse_vi_search_direction=True,
             on_initialize=self._on_cli_initialize,
             on_start=self._on_start,
             on_input_timeout=self._on_input_timeout)
