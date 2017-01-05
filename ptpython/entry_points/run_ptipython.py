@@ -27,7 +27,7 @@ def run():
     config_dir = os.path.expanduser(a['--config-dir'] or '~/.ptpython/')
 
     # Create config directory.
-    if not os.path.isdir(config_dir):
+    if not os.path.isdir(config_dir) or not os.path.islink(config_dir):
         os.mkdir(config_dir)
 
     # If IPython is not available, show message and exit here with error status
