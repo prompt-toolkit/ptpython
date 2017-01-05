@@ -29,7 +29,7 @@ def run():
     a = docopt.docopt(__doc__)
 
     vi_mode = bool(a['--vi'])
-    config_dir = os.path.expanduser(a['--config-dir'] or '~/.ptpython/')
+    config_dir = os.path.expanduser(a['--config-dir'] or os.path.join('~', '.ptpython'))
 
     # Create config directory.
     if not os.path.isdir(config_dir) or not os.path.islink(config_dir):
