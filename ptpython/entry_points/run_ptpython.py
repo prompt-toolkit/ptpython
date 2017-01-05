@@ -32,7 +32,7 @@ def run():
     config_dir = os.path.expanduser(a['--config-dir'] or '~/.ptpython/')
 
     # Create config directory.
-    if not os.path.isdir(config_dir):
+    if not os.path.isdir(config_dir) or not os.path.islink(config_dir):
         os.mkdir(config_dir)
 
     # Startup path
