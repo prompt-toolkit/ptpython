@@ -3,19 +3,19 @@
 """
 from __future__ import unicode_literals
 
-from prompt_toolkit.shortcuts import create_eventloop
-from ptpython.python_input import PythonCommandLineInterface
+from prompt_toolkit.eventloop.defaults import create_event_loop
+from ptpython.python_input import PythonInput
 
 
 def main():
-    eventloop = create_eventloop()
+    loop = create_event_loop()
     try:
-        cli = PythonCommandLineInterface(eventloop)
+        prompt = PythonInput(loop=loop)
 
-        code_obj = cli.run()
+        code_obj = prompt.app.run()
         print('You said: ' + code_obj.text)
     finally:
-        eventloop.close()
+        loop.close()
 
 
 if __name__ == '__main__':

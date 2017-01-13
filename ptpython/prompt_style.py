@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod
+from prompt_toolkit.token import Token
 from six import with_metaclass
-from pygments.token import Token
 
 __all__ = (
     'PromptStyle',

@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from pygments.token import Token, Keyword, Name, Comment, String, Operator, Number
+from prompt_toolkit.token import Token
 from pygments.styles import get_style_by_name, get_all_styles
 from prompt_toolkit.styles import DEFAULT_STYLE_EXTENSIONS, style_from_dict
 from prompt_toolkit.utils import is_windows, is_conemu_ansi
@@ -50,26 +50,26 @@ def generate_style(python_style, ui_style):
 # Code style for Windows consoles. They support only 16 colors,
 # so we choose a combination that displays nicely.
 win32_code_style = {
-    Comment:                   "#00ff00",
-    Keyword:                   '#44ff44',
-    Number:                    '',
-    Operator:                  '',
-    String:                    '#ff44ff',
+    Token.Comment:                   "#00ff00",
+    Token.Keyword:                   '#44ff44',
+    Token.Number:                    '',
+    Token.Operator:                  '',
+    Token.String:                    '#ff44ff',
 
-    Name:                      '',
-    Name.Decorator:            '#ff4444',
-    Name.Class:                '#ff4444',
-    Name.Function:             '#ff4444',
-    Name.Builtin:              '#ff4444',
+    Token.Name:                      '',
+    Token.Name.Decorator:            '#ff4444',
+    Token.Name.Class:                '#ff4444',
+    Token.Name.Function:             '#ff4444',
+    Token.Name.Builtin:              '#ff4444',
 
-    Name.Attribute:            '',
-    Name.Constant:             '',
-    Name.Entity:               '',
-    Name.Exception:            '',
-    Name.Label:                '',
-    Name.Namespace:            '',
-    Name.Tag:                  '',
-    Name.Variable:             '',
+    Token.Name.Attribute:            '',
+    Token.Name.Constant:             '',
+    Token.Name.Entity:               '',
+    Token.Name.Exception:            '',
+    Token.Name.Label:                '',
+    Token.Name.Namespace:            '',
+    Token.Name.Tag:                  '',
+    Token.Name.Variable:             '',
 }
 
 
@@ -88,10 +88,6 @@ default_ui_style = {
 
         # Separator between windows. (Used above docstring.)
         Token.Separator:                              '#bbbbbb',
-
-        # Search toolbar.
-        Token.Toolbar.Search:                         '#22aaaa noinherit',
-        Token.Toolbar.Search.Text:                    'noinherit',
 
         # System toolbar
         Token.Toolbar.System:                         '#22aaaa noinherit',
@@ -119,7 +115,7 @@ default_ui_style = {
         Token.Toolbar.Status.PythonVersion:           'bg:#222222 #ffffff bold',
 
         # When Control-C has been pressed. Grayed.
-        Token.Aborted:                                '#888888',
+        Token.Aborted:                                '#888888 bg:default important',
 
         # The options sidebar.
         Token.Sidebar:                                'bg:#bbbbbb #000000',
@@ -142,7 +138,7 @@ default_ui_style = {
         Token.History.ExistingInput:                  '#888888',
 
         # Help Window.
-        Token.Window.Border:                          '#bbbbbb',
+        Token.Window.Border:                          '#aaaaaa',
         Token.Window.Title:                           'bg:#bbbbbb #000000',
 
         # Meta-enter message.

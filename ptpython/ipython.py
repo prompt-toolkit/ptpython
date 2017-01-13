@@ -18,6 +18,7 @@ from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.lexers import PygmentsLexer, SimpleLexer
+from prompt_toolkit.token import Token
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
 from .eventloop import create_eventloop
@@ -29,7 +30,6 @@ from IPython import utils as ipy_utils
 from IPython.core.inputsplitter import IPythonInputSplitter
 
 from pygments.lexers import PythonLexer, BashLexer
-from pygments.token import Token
 from ptpython.prompt_style import PromptStyle
 
 __all__ = (

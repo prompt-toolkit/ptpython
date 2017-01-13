@@ -6,7 +6,6 @@ __all__ = (
     'PythonValidator',
 )
 
-
 class PythonValidator(Validator):
     """
     Validation of Python input.

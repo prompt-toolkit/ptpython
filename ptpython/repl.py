@@ -12,16 +12,15 @@ from __future__ import unicode_literals
 from pygments.lexers import PythonTracebackLexer, PythonLexer
 from pygments.styles.default import DefaultStyle
 
-from prompt_toolkit.application import AbortAction
+from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.interface import AcceptAction
+from prompt_toolkit.eventloop.defaults import create_asyncio_event_loop
 from prompt_toolkit.layout.utils import token_list_width
-from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.styles import style_from_pygments
 from prompt_toolkit.utils import DummyContext
 
-from .python_input import PythonInput, PythonCommandLineInterface
-from .eventloop import create_eventloop
+from .python_input import PythonInput
+from .eventloop import create_event_loop
 
 import os
 import six
@@ -40,20 +39,11 @@ __all__ = (
 class PythonRepl(PythonInput):
     def __init__(self, *a, **kw):
         self._startup_paths = kw.pop('startup_paths', None)
-
-        kw.update({
-            '_accept_action': AcceptAction.run_in_terminal(
-                handler=self._process_document, render_cli_done=True),
-            '_on_start': self._on_start,
-            '_on_exit': AbortAction.RETURN_NONE,
-        })
-
         super(PythonRepl, self).__init__(*a, **kw)
+        self._load_start_paths()
 
-    def _on_start(self, cli):
-        """
-        Start the Read-Eval-Print Loop.
-        """
+    def _load_start_paths(self):
+        " Start the Read-Eval-Print Loop. "
         if self._startup_paths:
             for path in self._startup_paths:
                 if os.path.exists(path):
@@ -61,36 +51,45 @@ class PythonRepl(PythonInput):
                         code = compile(f.read(), path, 'exec')
                         six.exec_(code, self.get_globals(), self.get_locals())
                 else:
-                    output = cli.output
+                    output = self.app.output
                     output.write('WARNING | File not found: {}\n\n'.format(path))
 
-    def _process_document(self, cli, buffer):
-        line = buffer.text
+    def run(self):
+        while True:
+            # Run the UI.
+            try:
+                text = self.app.run()
+            except EOFError:
+                return
+            except KeyboardInterrupt:
+                # Abort - try again.
+                self.default_buffer.document = Document()
+            else:
+                self._process_text(text)
+
+    def _process_text(self, text):
+        line = self.default_buffer.text
 
         if line and not line.isspace():
             try:
                 # Eval and print.
-                self._execute(cli, line)
+                self._execute(line)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
-                self._handle_keyboard_interrupt(cli, e)
+                self._handle_keyboard_interrupt(e)
             except Exception as e:
-                self._handle_exception(cli, e)
+                self._handle_exception(e)
 
             if self.insert_blank_line_after_output:
-                cli.output.write('\n')
+                self.app.output.write('\n')
 
             self.current_statement_index += 1
             self.signatures = []
 
-            # Append to history and reset.
-            cli.search_state.text = ''
-            cli.buffers[DEFAULT_BUFFER].reset(append_to_history=True)
-
-    def _execute(self, cli, line):
+    def _execute(self, line):
         """
         Evaluate the line and print the result.
         """
-        output = cli.output
+        output = self.app.output
 
         def compile_with_flags(code, mode):
             " Compile code with the right compiler flags. "
@@ -100,7 +99,7 @@ class PythonRepl(PythonInput):
 
         if line.lstrip().startswith('\x1a'):
             # When the input starts with Ctrl-Z, quit the REPL.
-            cli.exit()
+            self.app.exit()
 
         elif line.lstrip().startswith('!'):
             # Run as shell command
@@ -115,7 +114,7 @@ class PythonRepl(PythonInput):
                 locals['_'] = locals['_%i' % self.current_statement_index] = result
 
                 if result is not None:
-                    out_tokens = self.get_output_prompt_tokens(cli)
+                    out_tokens = self.get_output_prompt_tokens(self.app)
 
                     try:
                         result_str = '%r\n' % (result, )
@@ -132,7 +131,7 @@ class PythonRepl(PythonInput):
 
                     # Write output tokens.
                     out_tokens.extend(_lex_python_result(result_str))
-                    cli.print_tokens(out_tokens)
+                    self.app.print_tokens(out_tokens)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, 'exec')
@@ -140,9 +139,8 @@ class PythonRepl(PythonInput):
 
             output.flush()
 
-    @classmethod
-    def _handle_exception(cls, cli, e):
-        output = cli.output
+    def _handle_exception(self, e):
+        output = self.app.output
 
         # Instead of just calling ``traceback.format_exc``, we take the
         # traceback and skip the bottom calls of this framework.
@@ -170,14 +168,13 @@ class PythonRepl(PythonInput):
         # (We use the default style. Most other styles result
         # in unreadable colors for the traceback.)
         tokens = _lex_python_traceback(tb)
-        cli.print_tokens(tokens, style=style_from_pygments(DefaultStyle))
+        self.app.print_tokens(tokens, style=style_from_pygments(DefaultStyle))
 
         output.write('%s\n' % e)
         output.flush()
 
-    @classmethod
-    def _handle_keyboard_interrupt(cls, cli, e):
-        output = cli.output
+    def _handle_keyboard_interrupt(self, e):
+        output = self.app.output
 
         output.write('\rKeyboardInterrupt\n\n')
         output.flush()
@@ -283,12 +280,12 @@ def embed(globals=None, locals=None, configure=None,
 
     # Create eventloop.
     if return_asyncio_coroutine:
-        eventloop = create_asyncio_eventloop()
+        loop = create_asyncio_event_loop()
     else:
-        eventloop = create_eventloop()
+        loop = create_event_loop()
 
     # Create REPL.
-    repl = PythonRepl(get_globals, get_locals, vi_mode=vi_mode,
+    repl = PythonRepl(loop=loop, get_globals=get_globals, get_locals=get_locals, vi_mode=vi_mode,
                       history_filename=history_filename,
                       startup_paths=startup_paths)
 
@@ -298,17 +295,17 @@ def embed(globals=None, locals=None, configure=None,
     if configure:
         configure(repl)
 
-    cli = PythonCommandLineInterface(python_input=repl, eventloop=eventloop)
+    app = repl.app
 
     # Start repl.
-    patch_context = cli.patch_stdout_context() if patch_stdout else DummyContext()
+    patch_context = app.patch_stdout_context() if patch_stdout else DummyContext()
 
-    if return_asyncio_coroutine:
+    if return_asyncio_coroutine: # XXX
         def coroutine():
             with patch_context:
-                for future in cli.run_async():
+                for future in app.run_async():
                     yield future
         return coroutine()
     else:
         with patch_context:
-            cli.run()
+            repl.run()

@@ -1,42 +1,38 @@
 """
-CommandLineInterface for reading Python input.
+Application for reading Python input.
 This can be used for creation of Python REPLs.
-
-::
-
-    cli = PythonCommandLineInterface()
-    cli.run()
 """
 from __future__ import unicode_literals
 
-from prompt_toolkit import AbortAction
+from prompt_toolkit.application import Application
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import Condition, Always
+from prompt_toolkit.filters import Condition
 from prompt_toolkit.history import FileHistory, InMemoryHistory
-from prompt_toolkit.interface import CommandLineInterface, Application, AcceptAction
-from prompt_toolkit.key_binding.defaults import load_key_bindings_for_prompt, load_mouse_bindings
+from prompt_toolkit.input.defaults import create_input
+from prompt_toolkit.key_binding import merge_key_bindings, ConditionalKeyBindings, KeyBindings
+from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.key_binding.registry import MergedRegistry, ConditionalRegistry
 from prompt_toolkit.layout.lexers import PygmentsLexer
-from prompt_toolkit.shortcuts import create_output
+from prompt_toolkit.output.defaults import create_output
 from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
 
 from .completer import PythonCompleter
-from .history_browser import create_history_application
+from .history_browser import History
 from .key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
 from .layout import create_layout, CompletionVisualisation
 from .prompt_style import IPythonPrompt, ClassicPrompt
 from .style import get_all_code_styles, get_all_ui_styles, generate_style
-from .utils import get_jedi_script_from_document, document_is_multiline_python
+from .utils import get_jedi_script_from_document
 from .validator import PythonValidator
 
 from functools import partial
 
+import sys
 import six
 import __future__
 
@@ -47,7 +43,6 @@ else:
 
 __all__ = (
     'PythonInput',
-    'PythonCommandLineInterface',
 )
 
 
@@ -123,39 +118,41 @@ class PythonInput(object):
     ::
 
         python_input = PythonInput(...)
-        application = python_input.create_application()
-        cli = PythonCommandLineInterface(application=application)
-        python_code = cli.run()
+        python_code = python_input.run()
     """
     def __init__(self,
-                 get_globals=None, get_locals=None, history_filename=None,
+                 loop, get_globals=None, get_locals=None, history_filename=None,
                  vi_mode=False,
 
-                 # For internal use.
-                 _completer=None, _validator=None,
-                 _lexer=None, _extra_buffers=None, _extra_buffer_processors=None,
-                 _on_start=None,
-                 _extra_layout_body=None, _extra_toolbars=None,
-                 _input_buffer_height=None,
-                 _accept_action=AcceptAction.RETURN_DOCUMENT,
-                 _on_exit=AbortAction.RAISE_EXCEPTION):
+                 input=None,
+                 output=None,
+                 true_color=False,
 
+                 # For internal use.
+                 extra_key_bindings=None,
+                 _completer=None, _validator=None,
+                 _lexer=None, _extra_buffer_processors=None,
+                 _extra_layout_body=None, _extra_toolbars=None,
+                 _input_buffer_height=None):
+
+        self.loop = loop
         self.get_globals = get_globals or (lambda: {})
         self.get_locals = get_locals or self.get_globals
+
+        self.output = output or create_output(true_color=Condition(lambda: self.true_color))
+        self.input = input or create_input(sys.stdin)
 
         self._completer = _completer or PythonCompleter(self.get_globals, self.get_locals)
         self._validator = _validator or PythonValidator(self.get_compiler_flags)
         self.history = FileHistory(history_filename) if history_filename else InMemoryHistory()
         self._lexer = _lexer or PygmentsLexer(PythonLexer)
-        self._extra_buffers = _extra_buffers
-        self._accept_action = _accept_action
-        self._on_exit = _on_exit
-        self._on_start = _on_start
 
         self._input_buffer_height = _input_buffer_height
         self._extra_layout_body = _extra_layout_body or []
         self._extra_toolbars = _extra_toolbars or []
         self._extra_buffer_processors = _extra_buffer_processors or []
+
+        self.extra_key_bindings = extra_key_bindings or KeyBindings()
 
         # Settings.
         self.show_signature = False
@@ -168,7 +165,6 @@ class PythonInput(object):
         self.show_status_bar = True
         self.wrap_lines = True
         self.complete_while_typing = True
-        self.vi_mode = vi_mode
         self.paste_mode = False  # When True, don't insert whitespace after newline.
         self.confirm_exit = True  # Ask for confirmation when Control-D is pressed.
         self.accept_input_on_enter = 2  # Accept when pressing Enter 'n' times.
@@ -191,6 +187,11 @@ class PythonInput(object):
         self.exit_message = 'Do you really want to exit?'
         self.insert_blank_line_after_output = True  # (For the REPL.)
 
+        # The buffers.
+        self.default_buffer = self._create_buffer()
+        self.search_buffer = Buffer(loop=loop)
+        self.docstring_buffer = Buffer(loop=loop, read_only=True)
+
         # Tokens to be shown at the prompt.
         self.prompt_style = 'classic'  # The currently active style.
 
@@ -199,11 +200,11 @@ class PythonInput(object):
             'classic': ClassicPrompt(),
         }
 
-        self.get_input_prompt_tokens = lambda cli: \
-            self.all_prompt_styles[self.prompt_style].in_tokens(cli)
+        self.get_input_prompt_tokens = lambda app: \
+            self.all_prompt_styles[self.prompt_style].in_tokens(app)
 
-        self.get_output_prompt_tokens = lambda cli: \
-            self.all_prompt_styles[self.prompt_style].out_tokens(cli)
+        self.get_output_prompt_tokens = lambda app: \
+            self.all_prompt_styles[self.prompt_style].out_tokens(app)
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
@@ -215,7 +216,7 @@ class PythonInput(object):
             self._current_code_style_name = 'win32'
 
         self._current_style = self._generate_style()
-        self.true_color = False
+        self.true_color = true_color
 
         # Options to be configurable from the sidebar.
         self.options = self._create_options()
@@ -227,29 +228,18 @@ class PythonInput(object):
         # Code signatures. (This is set asynchronously after a timeout.)
         self.signatures = []
 
-        # Create a Registry for the key bindings.
-        self.key_bindings_registry = MergedRegistry([
-            ConditionalRegistry(
-                registry=load_key_bindings_for_prompt(
-                    enable_abort_and_exit_bindings=True,
-                    enable_search=True,
-                    enable_open_in_editor=Condition(lambda cli: self.enable_open_in_editor),
-                    enable_system_bindings=Condition(lambda cli: self.enable_system_bindings),
-                    enable_auto_suggest_bindings=Condition(lambda cli: self.enable_auto_suggest)),
-
-                # Disable all default key bindings when the sidebar or the exit confirmation
-                # are shown.
-                filter=Condition(lambda cli: not (self.show_sidebar or self.show_exit_confirmation))
-            ),
-            load_mouse_bindings(),
-            load_python_bindings(self),
-            load_sidebar_bindings(self),
-            load_confirm_exit_bindings(self),
-        ])
-
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
         self._get_signatures_thread_running = False
+
+        self.app = self._create_application()
+
+        if vi_mode:
+            self.app.editing_mode = EditingMode.VI
+
+    def _accept_handler(self, app, buff):
+        app.set_return_value(buff.text)
+        app.pre_run_callables.append(buff.reset)
 
     @property
     def option_count(self):
@@ -293,15 +283,8 @@ class PythonInput(object):
             def handler(event):
                 ...
         """
-        # Extra key bindings should not be active when the sidebar is visible.
-        sidebar_visible = Condition(lambda cli: self.show_sidebar)
-
-        def add_binding_decorator(*keys, **kw):
-            # Pop default filter keyword argument.
-            filter = kw.pop('filter', Always())
-            assert not kw
-
-            return self.key_bindings_registry.add_binding(*keys, filter=filter & ~sidebar_visible)
+        def add_binding_decorator(*k, **kw):
+            return self.extra_key_bindings.add(*k, **kw)
         return add_binding_decorator
 
     def install_code_colorscheme(self, name, style_dict):
@@ -382,10 +365,10 @@ class PythonInput(object):
 
         return [
             OptionCategory('Input', [
-                simple_option(title='Input mode',
+                simple_option(title='Editing mode',
                               description='Vi or emacs key bindings.',
                               field_name='vi_mode',
-                              values=['emacs', 'vi']),
+                              values=[EditingMode.EMACS, EditingMode.VI]),
                 simple_option(title='Paste mode',
                               description="When enabled, don't indent automatically.",
                               field_name='paste_mode'),
@@ -493,16 +476,14 @@ class PythonInput(object):
             ]),
         ]
 
-    def create_application(self):
+    def _create_application(self):
         """
-        Create an `Application` instance for use in a `CommandLineInterface`.
+        Create an `Application` instance.
         """
-        buffers = {
-            'docstring': Buffer(read_only=True),
-        }
-        buffers.update(self._extra_buffers or {})
-
         return Application(
+            loop=self.loop,
+            input=self.input,
+            output=self.output,
             layout=create_layout(
                 self,
                 lexer=self._lexer,
@@ -510,31 +491,40 @@ class PythonInput(object):
                 extra_buffer_processors=self._extra_buffer_processors,
                 extra_body=self._extra_layout_body,
                 extra_toolbars=self._extra_toolbars),
-            buffer=self._create_buffer(),
-            buffers=buffers,
-            key_bindings_registry=self.key_bindings_registry,
-            paste_mode=Condition(lambda cli: self.paste_mode),
-            mouse_support=Condition(lambda cli: self.enable_mouse_support),
-            on_abort=AbortAction.RETRY,
-            on_exit=self._on_exit,
+            key_bindings=merge_key_bindings([
+                ConditionalKeyBindings(
+                    key_bindings=load_key_bindings(
+                        enable_abort_and_exit_bindings=True,
+                        enable_search=True,
+                        enable_open_in_editor=Condition(lambda app: self.enable_open_in_editor),
+                        enable_system_bindings=Condition(lambda app: self.enable_system_bindings),
+                        enable_auto_suggest_bindings=Condition(lambda app: self.enable_auto_suggest)),
+
+                    # Disable all default key bindings when the sidebar or the exit confirmation
+                    # are shown.
+                    filter=Condition(lambda app: not (self.show_sidebar or self.show_exit_confirmation))
+                ),
+                load_python_bindings(self),
+                load_sidebar_bindings(self),
+                load_confirm_exit_bindings(self),
+                # Extra key bindings should not be active when the sidebar is visible.
+                ConditionalKeyBindings(
+                    self.extra_key_bindings,
+                    Condition(lambda app: not self.show_sidebar))
+            ]),
+            paste_mode=Condition(lambda app: self.paste_mode),
+            mouse_support=Condition(lambda app: self.enable_mouse_support),
             style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
             reverse_vi_search_direction=True,
-            on_initialize=self._on_cli_initialize,
-            on_start=self._on_start,
             on_input_timeout=self._on_input_timeout)
 
     def _create_buffer(self):
         """
         Create the `Buffer` for the Python input.
         """
-        def is_buffer_multiline():
-            return (self.paste_mode or
-                    self.accept_input_on_enter is None or
-                    document_is_multiline_python(python_buffer.document))
-
         python_buffer = Buffer(
-            is_multiline=Condition(is_buffer_multiline),
+            loop=self.loop, name=DEFAULT_BUFFER,
             complete_while_typing=Condition(lambda: self.complete_while_typing),
             enable_history_search=Condition(lambda: self.enable_history_search),
             tempfile_suffix='.py',
@@ -545,32 +535,36 @@ class PythonInput(object):
                 Condition(lambda: self.enable_input_validation)),
             auto_suggest=ConditionalAutoSuggest(
                 AutoSuggestFromHistory(),
-                Condition(lambda cli: self.enable_auto_suggest)),
-            accept_action=self._accept_action)
+                Condition(lambda app: self.enable_auto_suggest)),
+            accept_handler=self._accept_handler)
 
         return python_buffer
 
-    def _on_cli_initialize(self, cli):
-        """
-        Called when a CommandLineInterface has been created.
-        """
-        # Synchronize PythonInput state with the CommandLineInterface.
-        def synchronize(_=None):
-            if self.vi_mode:
-                cli.editing_mode = EditingMode.VI
-            else:
-                cli.editing_mode = EditingMode.EMACS
+    @property
+    def editing_mode(self):
+        return self.app.editing_mode
 
-        cli.input_processor.beforeKeyPress += synchronize
-        cli.input_processor.afterKeyPress += synchronize
-        synchronize()
+    @editing_mode.setter
+    def editing_mode(self, value):
+        self.app.editing_mode = value
 
-    def _on_input_timeout(self, cli):
+    @property
+    def vi_mode(self):
+        return self.editing_mode == EditingMode.VI
+
+    @vi_mode.setter
+    def vi_mode(self, value):
+        if value:
+            self.editing_mode = EditingMode.VI
+        else:
+            self.editing_mode = EditingMode.EMACS
+
+    def _on_input_timeout(self, app):
         """
         When there is no input activity,
         in another thread, get the signature of the current code.
         """
-        if cli.current_buffer_name != DEFAULT_BUFFER:
+        if app.current_buffer_name != DEFAULT_BUFFER:
             return
 
         # Never run multiple get-signature threads.
@@ -578,7 +572,7 @@ class PythonInput(object):
             return
         self._get_signatures_thread_running = True
 
-        buffer = cli.current_buffer
+        buffer = app.current_buffer
         document = buffer.document
 
         def run():
@@ -623,49 +617,34 @@ class PythonInput(object):
                     string = signatures[0].docstring()
                     if not isinstance(string, six.text_type):
                         string = string.decode('utf-8')
-                    cli.buffers['docstring'].reset(
+                    app.buffers['docstring'].reset(
                         initial_document=Document(string, cursor_position=0))
                 else:
-                    cli.buffers['docstring'].reset()
+                    app.buffers['docstring'].reset()
 
-                cli.request_redraw()
+                app.request_redraw()
             else:
-                self._on_input_timeout(cli)
+                self._on_input_timeout(app)
 
-        cli.eventloop.run_in_executor(run)
+        app.eventloop.run_in_executor(run)
 
-    def on_reset(self, cli):
+    def on_reset(self, app):
         self.signatures = []
 
-    def enter_history(self, cli):
+    def enter_history(self, app):
         """
         Display the history.
         """
-        cli.vi_state.input_mode = InputMode.NAVIGATION
+        app.vi_state.input_mode = InputMode.NAVIGATION
 
-        def done(result):
+        def done(f):
+            result = f.result()
             if result is not None:
-                cli.buffers[DEFAULT_BUFFER].document = result
+                self.default_buffer.document = result
 
-            cli.vi_state.input_mode = InputMode.INSERT
+            app.vi_state.input_mode = InputMode.INSERT
 
-        cli.run_sub_application(create_history_application(
-            self, cli.buffers[DEFAULT_BUFFER].document), done)
+        history = History(self, self.default_buffer.document)
 
-
-class PythonCommandLineInterface(CommandLineInterface):
-    def __init__(self, eventloop=None, python_input=None, input=None, output=None):
-        assert python_input is None or isinstance(python_input, PythonInput)
-
-        python_input = python_input or PythonInput()
-
-        # Make sure that the prompt_toolkit 'renderer' knows about the
-        # 'true_color' property of PythonInput.
-        if output is None:
-            output=create_output(true_color=Condition(lambda: python_input.true_color))
-
-        super(PythonCommandLineInterface, self).__init__(
-            application=python_input.create_application(),
-            eventloop=eventloop,
-            input=input,
-            output=output)
+        future = app.run_sub_application(history.app)
+        future.add_done_callback(done)

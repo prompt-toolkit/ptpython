@@ -7,23 +7,24 @@ from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, HasFocus, Condition
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer, ScrollOffsets
-from prompt_toolkit.layout.controls import BufferControl, TokenListControl, FillControl
-from prompt_toolkit.layout.dimension import LayoutDimension
+from prompt_toolkit.layout.controls import BufferControl, TokenListControl
+from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, Processor, Transformation
-from prompt_toolkit.layout.screen import Char
-from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar, TokenListToolbar
+from prompt_toolkit.layout.processors import merge_processors
+from prompt_toolkit.layout.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.reactive import Integer
 from prompt_toolkit.selection import SelectionType
+from prompt_toolkit.token import Token
 
 from .filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
 from .utils import if_mousedown
 
 from pygments.lexers import PythonLexer
-from pygments.token import Token
 
 import platform
 import sys
@@ -43,7 +44,7 @@ except ImportError:
         def __init__(self, *a):
             pass
 
-        def apply_transformation(self, cli, document, lineno,
+        def apply_transformation(self, app, document, lineno,
                                  source_to_display, tokens):
             return Transformation(tokens)
 
@@ -57,22 +58,22 @@ class CompletionVisualisation:
 
 
 def show_completions_toolbar(python_input):
-    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.TOOLBAR)
+    return Condition(lambda app: python_input.completion_visualisation == CompletionVisualisation.TOOLBAR)
 
 
 def show_completions_menu(python_input):
-    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.POP_UP)
+    return Condition(lambda app: python_input.completion_visualisation == CompletionVisualisation.POP_UP)
 
 
 def show_multi_column_completions_menu(python_input):
-    return Condition(lambda cli: python_input.completion_visualisation == CompletionVisualisation.MULTI_COLUMN)
+    return Condition(lambda app: python_input.completion_visualisation == CompletionVisualisation.MULTI_COLUMN)
 
 
 def python_sidebar(python_input):
     """
     Create the `Layout` for the sidebar with the configurable options.
     """
-    def get_tokens(cli):
+    def get_tokens(app):
         tokens = []
         T = Token.Sidebar
 
@@ -87,11 +88,11 @@ def python_sidebar(python_input):
             selected = index == python_input.selected_option_index
 
             @if_mousedown
-            def select_item(cli, mouse_event):
+            def select_item(app, mouse_event):
                 python_input.selected_option_index = index
 
             @if_mousedown
-            def goto_next(cli, mouse_event):
+            def goto_next(app, mouse_event):
                 " Select item and go to next value. "
                 python_input.selected_option_index = index
                 option = python_input.selected_option
@@ -124,18 +125,19 @@ def python_sidebar(python_input):
         return tokens
 
     class Control(TokenListControl):
-        def move_cursor_down(self, cli):
+        def move_cursor_down(self, app):
             python_input.selected_option_index += 1
 
-        def move_cursor_up(self, cli):
+        def move_cursor_up(self, app):
             python_input.selected_option_index -= 1
 
     return ConditionalContainer(
         content=Window(
-            Control(get_tokens, Char(token=Token.Sidebar),
-                has_focus=ShowSidebar(python_input) & ~IsDone()),
-            width=LayoutDimension.exact(43),
-            height=LayoutDimension(min=3),
+            Control(get_tokens),
+              #   has_focus=ShowSidebar(python_input) & ~IsDone()),
+            token=Token.Sidebar,
+            width=Dimension.exact(43),
+            height=Dimension(min=3),
             scroll_offsets=ScrollOffsets(top=1, bottom=1)),
         filter=ShowSidebar(python_input) & ~IsDone())
 
@@ -144,7 +146,7 @@ def python_sidebar_navigation(python_input):
     """
     Create the `Layout` showing the navigation information for the sidebar.
     """
-    def get_tokens(cli):
+    def get_tokens(app):
         tokens = []
         T = Token.Sidebar
 
@@ -165,9 +167,10 @@ def python_sidebar_navigation(python_input):
 
     return ConditionalContainer(
         content=Window(
-            TokenListControl(get_tokens, Char(token=Token.Sidebar)),
-            width=LayoutDimension.exact(43),
-            height=LayoutDimension.exact(2)),
+            TokenListControl(get_tokens),
+            token=Token.Sidebar,
+            width=Dimension.exact(43),
+            height=Dimension.exact(2)),
         filter=ShowSidebar(python_input) & ~IsDone())
 
 
@@ -189,22 +192,23 @@ def python_sidebar_help(python_input):
                 i += 1
         return ''
 
-    def get_tokens(cli):
+    def get_help_tokens(app):
         return [(token, get_current_description())]
 
     return ConditionalContainer(
         content=Window(
-            TokenListControl(get_tokens, Char(token=token)),
-            height=LayoutDimension(min=3)),
+            TokenListControl(get_help_tokens),
+            token=token,
+            height=Dimension(min=3)),
         filter=ShowSidebar(python_input) &
-               Condition(lambda cli: python_input.show_sidebar_help) & ~IsDone())
+               Condition(lambda app: python_input.show_sidebar_help) & ~IsDone())
 
 
 def signature_toolbar(python_input):
     """
     Return the `Layout` for the signature.
     """
-    def get_tokens(cli):
+    def get_tokens(app):
         result = []
         append = result.append
         Signature = Token.Toolbar.Signature
@@ -256,7 +260,7 @@ def signature_toolbar(python_input):
     return ConditionalContainer(
         content=Window(
             TokenListControl(get_tokens),
-            height=LayoutDimension.exact(1)),
+            height=Dimension.exact(1)),
         filter=
             # Show only when there is a signature
             HasSignature(python_input) &
@@ -280,14 +284,14 @@ class PythonPromptMargin(PromptMargin):
         def get_prompt_style():
             return python_input.all_prompt_styles[python_input.prompt_style]
 
-        def get_prompt(cli):
-            return get_prompt_style().in_tokens(cli)
+        def get_prompt(app):
+            return get_prompt_style().in_tokens(app)
 
-        def get_continuation_prompt(cli, width):
-            return get_prompt_style().in2_tokens(cli, width)
+        def get_continuation_prompt(app, width):
+            return get_prompt_style().in2_tokens(app, width)
 
         super(PythonPromptMargin, self).__init__(get_prompt, get_continuation_prompt,
-                show_numbers=Condition(lambda cli: python_input.show_line_numbers))
+                show_numbers=Condition(lambda app: python_input.show_line_numbers))
 
 
 def status_bar(python_input):
@@ -297,21 +301,21 @@ def status_bar(python_input):
     TB = Token.Toolbar.Status
 
     @if_mousedown
-    def toggle_paste_mode(cli, mouse_event):
+    def toggle_paste_mode(app, mouse_event):
         python_input.paste_mode = not python_input.paste_mode
 
     @if_mousedown
-    def enter_history(cli, mouse_event):
-        python_input.enter_history(cli)
+    def enter_history(app, mouse_event):
+        python_input.enter_history(app)
 
-    def get_tokens(cli):
-        python_buffer = cli.buffers[DEFAULT_BUFFER]
+    def get_tokens(app):
+        python_buffer = python_input.default_buffer
 
         result = []
         append = result.append
 
         append((TB, ' '))
-        result.extend(get_inputmode_tokens(cli, python_input))
+        result.extend(get_inputmode_tokens(app, python_input))
         append((TB, ' '))
 
         # Position in history.
@@ -319,9 +323,9 @@ def status_bar(python_input):
                                 len(python_buffer._working_lines))))
 
         # Shortcuts.
-        if not python_input.vi_mode and cli.current_buffer_name == SEARCH_BUFFER:
+        if not python_input.vi_mode and app.current_buffer == python_input.search_buffer:
             append((TB, '[Ctrl-G] Cancel search [Enter] Go to this position.'))
-        elif bool(cli.current_buffer.selection_state) and not python_input.vi_mode:
+        elif bool(app.current_buffer.selection_state) and not python_input.vi_mode:
             # Emacs cut/copy keys.
             append((TB, '[Ctrl-W] Cut [Meta-W] Copy [Ctrl-Y] Paste [Ctrl-G] Cancel'))
         else:
@@ -339,28 +343,27 @@ def status_bar(python_input):
 
         return result
 
-    return TokenListToolbar(
-        get_tokens,
-        default_char=Char(token=TB),
-        filter=~IsDone() & RendererHeightIsKnown() &
-            Condition(lambda cli: python_input.show_status_bar and
-                                  not python_input.show_exit_confirmation))
+    return ConditionalContainer(
+            content=Window(content=TokenListControl(get_tokens), token=TB),
+            filter=~IsDone() & RendererHeightIsKnown() &
+                 Condition(lambda app: python_input.show_status_bar and
+                                      not python_input.show_exit_confirmation))
 
 
-def get_inputmode_tokens(cli, python_input):
+def get_inputmode_tokens(app, python_input):
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
 
-    :param cli: `CommandLineInterface` instance.
+    :param app: `CommandLineInterface` instance.
     """
     @if_mousedown
-    def toggle_vi_mode(cli, mouse_event):
+    def toggle_vi_mode(app, mouse_event):
         python_input.vi_mode = not python_input.vi_mode
 
     token = Token.Toolbar.Status
 
-    mode = cli.vi_state.input_mode
+    mode = app.vi_state.input_mode
     result = []
     append = result.append
 
@@ -368,13 +371,13 @@ def get_inputmode_tokens(cli, python_input):
 
     # InputMode
     if python_input.vi_mode:
-        if bool(cli.current_buffer.selection_state):
-            if cli.current_buffer.selection_state.type == SelectionType.LINES:
+        if bool(app.current_buffer.selection_state):
+            if app.current_buffer.selection_state.type == SelectionType.LINES:
                 append((token.InputMode, 'Vi (VISUAL LINE)', toggle_vi_mode))
-            elif cli.current_buffer.selection_state.type == SelectionType.CHARACTERS:
+            elif app.current_buffer.selection_state.type == SelectionType.CHARACTERS:
                 append((token.InputMode, 'Vi (VISUAL)', toggle_vi_mode))
                 append((token, ' '))
-            elif cli.current_buffer.selection_state.type == 'BLOCK':
+            elif app.current_buffer.selection_state.type == 'BLOCK':
                 append((token.InputMode, 'Vi (VISUAL BLOCK)', toggle_vi_mode))
                 append((token, ' '))
         elif mode in (InputMode.INSERT, 'vi-insert-multiple'):
@@ -399,7 +402,7 @@ def show_sidebar_button_info(python_input):
     (The right part of the status bar.)
     """
     @if_mousedown
-    def toggle_sidebar(cli, mouse_event):
+    def toggle_sidebar(app, mouse_event):
         " Click handler for the menu. "
         python_input.show_sidebar = not python_input.show_sidebar
 
@@ -416,17 +419,18 @@ def show_sidebar_button_info(python_input):
     ]
     width = token_list_width(tokens)
 
-    def get_tokens(cli):
+    def get_tokens(app):
         # Python version
         return tokens
 
     return ConditionalContainer(
         content=Window(
-            TokenListControl(get_tokens, default_char=Char(token=token)),
-            height=LayoutDimension.exact(1),
-            width=LayoutDimension.exact(width)),
+            TokenListControl(get_tokens),
+            token=token,
+            height=Dimension.exact(1),
+            width=Dimension.exact(width)),
         filter=~IsDone() & RendererHeightIsKnown() &
-            Condition(lambda cli: python_input.show_status_bar and
+            Condition(lambda app: python_input.show_status_bar and
                                   not python_input.show_exit_confirmation))
 
 
@@ -434,7 +438,7 @@ def exit_confirmation(python_input, token=Token.ExitConfirmation):
     """
     Create `Layout` for the exit message.
     """
-    def get_tokens(cli):
+    def get_tokens(app):
         # Show "Do you really want to exit?"
         return [
             (token, '\n %s ([y]/n)' % python_input.exit_message),
@@ -442,11 +446,10 @@ def exit_confirmation(python_input, token=Token.ExitConfirmation):
             (token, '  \n'),
         ]
 
-    visible = ~IsDone() & Condition(lambda cli: python_input.show_exit_confirmation)
+    visible = ~IsDone() & Condition(lambda app: python_input.show_exit_confirmation)
 
     return ConditionalContainer(
-        content=Window(TokenListControl(
-            get_tokens, default_char=Char(token=token), has_focus=visible)),
+        content=Window(TokenListControl(get_tokens), token=token),   # , has_focus=visible)),
         filter=visible)
 
 
@@ -454,18 +457,18 @@ def meta_enter_message(python_input):
     """
     Create the `Layout` for the 'Meta+Enter` message.
     """
-    def get_tokens(cli):
+    def get_tokens(app):
         return [(Token.AcceptMessage, ' [Meta+Enter] Execute ')]
 
-    def extra_condition(cli):
+    def extra_condition(app):
         " Only show when... "
-        b = cli.buffers[DEFAULT_BUFFER]
+        b = python_input.default_buffer
 
         return (
             python_input.show_meta_enter_message and
             (not b.document.is_cursor_at_the_end or
                 python_input.accept_input_on_enter is None) and
-            b.is_multiline())
+            '\n' in b.text)
 
     visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(extra_condition)
 
@@ -478,19 +481,21 @@ def create_layout(python_input,
                   lexer=PythonLexer,
                   extra_body=None, extra_toolbars=None,
                   extra_buffer_processors=None, input_buffer_height=None):
-    D = LayoutDimension
+    D = Dimension
     extra_body = [extra_body] if extra_body else []
     extra_toolbars = extra_toolbars or []
     extra_buffer_processors = extra_buffer_processors or []
     input_buffer_height = input_buffer_height or D(min=6)
 
+    search_toolbar = SearchToolbar(python_input.search_buffer)
+
     def create_python_input_window():
-        def menu_position(cli):
+        def menu_position(app):
             """
             When there is no autocompletion menu to be shown, and we have a signature,
             set the pop-up position at `bracket_start`.
             """
-            b = cli.buffers[DEFAULT_BUFFER]
+            b = python_input.default_buffer
 
             if b.complete_state is None and python_input.signatures:
                 row, col = python_input.signatures[0].bracket_start
@@ -499,24 +504,25 @@ def create_layout(python_input,
 
         return Window(
             BufferControl(
-                buffer_name=DEFAULT_BUFFER,
+                buffer=python_input.default_buffer,
+                search_buffer_control=search_toolbar.control,
                 lexer=lexer,
-                input_processors=[
+                input_processor=merge_processors([
                     ConditionalProcessor(
                         processor=HighlightSearchProcessor(preview_search=True),
-                        filter=HasFocus(SEARCH_BUFFER),
+                        filter=HasFocus(SEARCH_BUFFER) | HasFocus(search_toolbar.control),
                     ),
                     HighlightSelectionProcessor(),
-                    DisplayMultipleCursors(DEFAULT_BUFFER),
+                    DisplayMultipleCursors(),
                     # Show matching parentheses, but only while editing.
                     ConditionalProcessor(
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
                         filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
-                            Condition(lambda cli: python_input.highlight_matching_parenthesis)),
+                            Condition(lambda app: python_input.highlight_matching_parenthesis)),
                     ConditionalProcessor(
                         processor=AppendAutoSuggestion(),
                         filter=~IsDone())
-                ] + extra_buffer_processors,
+                ] + extra_buffer_processors),
                 menu_position=menu_position,
 
                 # Make sure that we always see the result of an reverse-i-search:
@@ -527,13 +533,13 @@ def create_layout(python_input,
             # cursor is never below the "Press [Meta+Enter]" message which is a float.
             scroll_offsets=ScrollOffsets(bottom=1, left=4, right=4),
             # As long as we're editing, prefer a minimal height of 6.
-            get_height=(lambda cli: (
-                None if cli.is_done or python_input.show_exit_confirmation
+            get_height=(lambda app: (
+                None if app.is_done or python_input.show_exit_confirmation
                         else input_buffer_height)),
-            wrap_lines=Condition(lambda cli: python_input.wrap_lines),
+            wrap_lines=Condition(lambda app: python_input.wrap_lines),
         )
 
-    return HSplit([
+    root_container = HSplit([
         VSplit([
             HSplit([
                 FloatContainer(
@@ -564,21 +570,23 @@ def create_layout(python_input,
                         Float(bottom=1, left=1, right=0, content=python_sidebar_help(python_input)),
                     ]),
                 ArgToolbar(),
-                SearchToolbar(),
-                SystemToolbar(),
+                search_toolbar,
+                SystemToolbar(python_input.loop),
                 ValidationToolbar(),
                 CompletionsToolbar(extra_filter=show_completions_toolbar(python_input)),
 
                 # Docstring region.
                 ConditionalContainer(
-                    content=Window(height=D.exact(1),
-                                   content=FillControl('\u2500', token=Token.Separator)),
+                    content=Window(
+                        height=D.exact(1),
+                        char='\u2500',
+                        token=Token.Separator),
                     filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone()),
                 ConditionalContainer(
                     content=Window(
                         BufferControl(
-                            buffer_name='docstring',
-                            lexer=SimpleLexer(default_token=Token.Docstring),
+                            buffer=python_input.docstring_buffer,
+                            lexer=SimpleLexer(token=Token.Docstring),
                             #lexer=PythonLexer,
                         ),
                         height=D(max=12)),
@@ -596,3 +604,5 @@ def create_layout(python_input,
             show_sidebar_button_info(python_input),
         ])
     ])
+
+    return Layout(root_container)

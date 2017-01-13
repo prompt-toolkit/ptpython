@@ -2,10 +2,10 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import HasSelection, IsMultiline, Filter, HasFocus, Condition, ViInsertMode, EmacsInsertMode
-from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.key_binding.registry import Registry
+from prompt_toolkit.filters import HasSelection, HasFocus, Condition, ViInsertMode, EmacsInsertMode, EmacsMode
+from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
+from .utils import document_is_multiline_python
 
 __all__ = (
     'load_python_bindings',
@@ -14,7 +14,8 @@ __all__ = (
 )
 
 
-class TabShouldInsertWhitespaceFilter(Filter):
+@Condition
+def tab_should_insert_whitespace(app):
     """
     When the 'tab' key is pressed with only whitespace character before the
     cursor, do autocompletion. Otherwise, insert indentation.
@@ -23,30 +24,28 @@ class TabShouldInsertWhitespaceFilter(Filter):
     completion. It doesn't make sense to start the first line with
     indentation.
     """
-    def __call__(self, cli):
-        b = cli.current_buffer
-        before_cursor = b.document.current_line_before_cursor
+    b = app.current_buffer
+    before_cursor = b.document.current_line_before_cursor
 
-        return bool(b.text and (not before_cursor or before_cursor.isspace()))
+    return bool(b.text and (not before_cursor or before_cursor.isspace()))
 
 
 def load_python_bindings(python_input):
     """
     Custom key bindings.
     """
-    registry = Registry()
+    bindings = KeyBindings()
 
-    sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
-    handle = registry.add_binding
+    sidebar_visible = Condition(lambda app: python_input.show_sidebar)
+    handle = bindings.add
     has_selection = HasSelection()
-    vi_mode_enabled = Condition(lambda cli: python_input.vi_mode)
 
     @handle(Keys.ControlL)
     def _(event):
         """
         Clear whole screen and render again -- also when the sidebar is visible.
         """
-        event.cli.renderer.clear()
+        event.app.renderer.clear()
 
     @handle(Keys.F2)
     def _(event):
@@ -60,7 +59,7 @@ def load_python_bindings(python_input):
         """
         Select from the history.
         """
-        python_input.enter_history(event.cli)
+        python_input.enter_history(event.app)
 
     @handle(Keys.F4)
     def _(event):
@@ -76,16 +75,40 @@ def load_python_bindings(python_input):
         """
         python_input.paste_mode = not python_input.paste_mode
 
-    @handle(Keys.Tab, filter= ~sidebar_visible & ~has_selection & TabShouldInsertWhitespaceFilter())
+    @handle(Keys.Tab, filter= ~sidebar_visible & ~has_selection & tab_should_insert_whitespace)
     def _(event):
         """
         When tab should insert whitespace, do that instead of completion.
         """
-        event.cli.current_buffer.insert_text('    ')
+        event.app.current_buffer.insert_text('    ')
 
-    @handle(Keys.ControlJ, filter= ~sidebar_visible & ~has_selection &
+    @Condition
+    def is_multiline(app):
+        return document_is_multiline_python(python_input.default_buffer.document)
+
+    @handle(Keys.Enter, filter= ~sidebar_visible & ~has_selection &
             (ViInsertMode() | EmacsInsertMode()) &
-            HasFocus(DEFAULT_BUFFER) & IsMultiline())
+            HasFocus(DEFAULT_BUFFER) & ~is_multiline)
+    @handle(Keys.Escape, Keys.Enter, filter= ~sidebar_visible & EmacsMode())
+    def _(event):
+        """
+        Accept input (for single line input).
+        """
+        b = event.current_buffer
+
+        if b.validate():
+            # When the cursor is at the end, and we have an empty line:
+            # drop the empty lines, but return the value.
+
+            b.document = Document(
+                text=b.text.rstrip(),
+                cursor_position=len(b.text.rstrip()))
+
+            b.validate_and_handle(event.app)
+
+    @handle(Keys.Enter, filter= ~sidebar_visible & ~has_selection &
+            (ViInsertMode() | EmacsInsertMode()) &
+            HasFocus(DEFAULT_BUFFER) & is_multiline)
     def _(event):
         """
         Behaviour of the Enter key.
@@ -115,33 +138,33 @@ def load_python_bindings(python_input):
                     text=b.text.rstrip(),
                     cursor_position=len(b.text.rstrip()))
 
-                b.accept_action.validate_and_handle(event.cli, b)
+                b.validate_and_handle(event.app)
         else:
             auto_newline(b)
 
-    @handle(Keys.ControlD, filter=~sidebar_visible & Condition(lambda cli:
+    @handle(Keys.ControlD, filter=~sidebar_visible & Condition(lambda app:
             # Only when the `confirm_exit` flag is set.
             python_input.confirm_exit and
             # And the current buffer is empty.
-            cli.current_buffer_name == DEFAULT_BUFFER and
-            not cli.current_buffer.text))
+            app.current_buffer == python_input.default_buffer and
+            not app.current_buffer.text))
     def _(event):
         """
         Override Control-D exit, to ask for confirmation.
         """
         python_input.show_exit_confirmation = True
 
-    return registry
+    return bindings
 
 
 def load_sidebar_bindings(python_input):
     """
     Load bindings for the navigation in the sidebar.
     """
-    registry = Registry()
+    bindings = KeyBindings()
 
-    handle = registry.add_binding
-    sidebar_visible = Condition(lambda cli: python_input.show_sidebar)
+    handle = bindings.add
+    sidebar_visible = Condition(lambda app: python_input.show_sidebar)
 
     @handle(Keys.Up, filter=sidebar_visible)
     @handle(Keys.ControlP, filter=sidebar_visible)
@@ -177,33 +200,33 @@ def load_sidebar_bindings(python_input):
     @handle(Keys.ControlC, filter=sidebar_visible)
     @handle(Keys.ControlG, filter=sidebar_visible)
     @handle(Keys.ControlD, filter=sidebar_visible)
-    @handle(Keys.ControlJ, filter=sidebar_visible)
+    @handle(Keys.Enter, filter=sidebar_visible)
     @handle(Keys.Escape, filter=sidebar_visible)
     def _(event):
         " Hide sidebar. "
         python_input.show_sidebar = False
 
-    return registry
+    return bindings
 
 
 def load_confirm_exit_bindings(python_input):
     """
     Handle yes/no key presses when the exit confirmation is shown.
     """
-    registry = Registry()
+    bindings = KeyBindings()
 
-    handle = registry.add_binding
-    confirmation_visible = Condition(lambda cli: python_input.show_exit_confirmation)
+    handle = bindings.add
+    confirmation_visible = Condition(lambda app: python_input.show_exit_confirmation)
 
     @handle('y', filter=confirmation_visible)
     @handle('Y', filter=confirmation_visible)
-    @handle(Keys.ControlJ, filter=confirmation_visible)
+    @handle(Keys.Enter, filter=confirmation_visible)
     @handle(Keys.ControlD, filter=confirmation_visible)
     def _(event):
         """
         Really quit.
         """
-        event.cli.exit()
+        event.app.exit()
 
     @handle(Keys.Any, filter=confirmation_visible)
     def _(event):
@@ -212,7 +235,7 @@ def load_confirm_exit_bindings(python_input):
         """
         python_input.show_exit_confirmation = False
 
-    return registry
+    return bindings
 
 
 def auto_newline(buffer):

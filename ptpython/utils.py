@@ -3,7 +3,7 @@ For internal use only.
 """
 from __future__ import unicode_literals
 
-from prompt_toolkit.mouse_events import MouseEventTypes
+from prompt_toolkit.mouse_events import MouseEventType
 import re
 
 __all__ = (
@@ -119,9 +119,9 @@ def if_mousedown(handler):
     (When applied to a token list. Scroll events will bubble up and are handled
     by the Window.)
     """
-    def handle_if_mouse_down(cli, mouse_event):
-        if mouse_event.event_type == MouseEventTypes.MOUSE_DOWN:
-            return handler(cli, mouse_event)
+    def handle_if_mouse_down(app, mouse_event):
+        if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
+            return handler(app, mouse_event)
         else:
             return NotImplemented
     return handle_if_mouse_down

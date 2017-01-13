@@ -7,7 +7,7 @@ way we don't block the UI of for instance ``turtle`` and other Tk libraries.
 in readline. ``prompt-toolkit`` doesn't understand that input hook, but this
 will fix it for Tk.)
 """
-from prompt_toolkit.shortcuts import create_eventloop as _create_eventloop
+from prompt_toolkit.eventloop.defaults import create_event_loop as _create_event_loop
 import sys
 import time
 
@@ -71,5 +71,5 @@ def _inputhook(inputhook_context):
         _inputhook_tk(inputhook_context)
 
 
-def create_eventloop():
-    return _create_eventloop(inputhook=_inputhook)
+def create_event_loop():
+    return _create_event_loop(inputhook=_inputhook)
