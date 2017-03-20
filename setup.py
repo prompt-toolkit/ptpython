@@ -20,6 +20,7 @@ setup(
     long_description=long_description,
     packages=find_packages('.'),
     install_requires = [
+        'appdirs',
         'docopt',
         'jedi>=0.9.0',
         'prompt_toolkit>=2.0.6,<2.1.0',

@@ -314,7 +314,7 @@ class PythonInput(object):
     def add_key_binding(self):
         """
         Shortcut for adding new key bindings.
-        (Mostly useful for a .ptpython/config.py file, that receives
+        (Mostly useful for a config.py file, that receives
         a PythonInput/Repl instance as input.)
 
         ::
