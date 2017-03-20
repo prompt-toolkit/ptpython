@@ -114,7 +114,7 @@ navigation mode.
 Configuration
 *************
 
-It is possible to create a ``~/.ptpython/config.py`` file to customize the configuration.
+It is possible to create a ``$XDG_CONFIG_HOME/ptpython/config.py`` file to customize the configuration.
 
 Have a look at this example to see what is possible:
 `config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_

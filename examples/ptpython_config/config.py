@@ -1,7 +1,7 @@
 """
 Configuration example for ``ptpython``.
 
-Copy this file to ~/.ptpython/config.py
+Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
 """
 from __future__ import unicode_literals
 from prompt_toolkit.filters import ViInsertMode
