@@ -15,6 +15,7 @@ from pygments.styles.default import DefaultStyle
 from prompt_toolkit.application import AbortAction
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.interface import AcceptAction
+from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.utils import token_list_width
 from prompt_toolkit.shortcuts import create_asyncio_eventloop
 from prompt_toolkit.styles import style_from_pygments
@@ -85,6 +86,11 @@ class PythonRepl(PythonInput):
             # Append to history and reset.
             cli.search_state.text = ''
             cli.buffers[DEFAULT_BUFFER].reset(append_to_history=True)
+
+        # Make sure that we end up in insert mode.
+        # (Not exactly the right place to check this.)
+        if cli.vi_state.input_mode == InputMode.NAVIGATION:
+            cli.vi_state.input_mode = InputMode.INSERT
 
     def _execute(self, cli, line):
         """
