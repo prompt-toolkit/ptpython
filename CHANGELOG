@@ -1,6 +1,28 @@
 CHANGELOG
 =========
 
+0.37: 2017-03-26
+----------------
+
+Fixes:
+- Display 'VISUAL BLOCK' and 'INSERT' when we're in these modes.
+- Handle ValueError in PythonValidator. Python2 raises ValueError if the input
+  contains an invalid escape sequence.
+- Use load_key_bindings instead of KeyBindingsManager. (For the latest
+  prompt_toolkit.)
+- Set 'reverse_vi_search_direction'. (Search backwards when '/' was pressed in
+  Vi mode.)
+- Check for symlink when creating config dir.
+- Make default config dir filepath OS independent.
+- Remove minor python version in entry point.
+- Fixed .ptpython directory creation in run_ptpython.
+
+New features:
+- Also accept Ctrl-D for quitting the 'exit confirmation' dialog.
+
+Requires prompt_toolkit 1.0.14.
+
+
 0.36: 2016-10-16
 ----------------
 
