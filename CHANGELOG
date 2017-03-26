@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+0.38: 2017-03-26
+----------------
+
+Fixes:
+- Fixed syntax error in run_ptipython script.
+
+
 0.37: 2017-03-26
 ----------------
 
