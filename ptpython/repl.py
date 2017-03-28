@@ -213,7 +213,7 @@ def enable_deprecation_warnings():
                             module='__main__')
 
 
-def run_config(repl, config_file='~/.ptpython/config.py'):
+def run_config(repl, config_file):
     """
     Execute REPL config file.
 
