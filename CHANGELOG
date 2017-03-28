@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+0.38: 2017-03-28
+----------------
+
+Fixes:
+- Fixed bug in run_ptipython. (It could fail to start if the config directory
+  already existed.)
+
+
 0.38: 2017-03-26
 ----------------
 
