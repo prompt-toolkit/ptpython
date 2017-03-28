@@ -147,6 +147,10 @@ class PythonCompleter(Completer):
                     # Jedi issue: "IOError: No such file or directory."
                     # https://github.com/jonathanslenders/ptpython/issues/71
                     pass
+                except AssertionError:
+                    # In jedi.parser.__init__.py: 227, in remove_last_newline,
+                    # the assertion "newline.value.endswith('\n')" can fail.
+                    pass
                 else:
                     for c in completions:
                         yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
