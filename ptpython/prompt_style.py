@@ -1,6 +1,5 @@
 from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod
-from prompt_toolkit.token import Token
 from six import with_metaclass
 
 __all__ = (
@@ -44,22 +43,22 @@ class IPythonPrompt(PromptStyle):
 
     def in_tokens(self, cli):
         return [
-            (Token.In, 'In ['),
-            (Token.In.Number, '%s' % self.python_input.current_statement_index),
-            (Token.In, ']: '),
+            ('class:in', 'In ['),
+            ('class:in.number', '%s' % self.python_input.current_statement_index),
+            ('class:in', ']: '),
         ]
 
     def in2_tokens(self, cli, width):
         return [
-            (Token.In, '...: '.rjust(width)),
+            ('class:in', '...: '.rjust(width)),
         ]
 
     def out_tokens(self, cli):
         return [
-            (Token.Out, 'Out['),
-            (Token.Out.Number, '%s' % self.python_input.current_statement_index),
-            (Token.Out, ']:'),
-            (Token, ' '),
+            ('class:out', 'Out['),
+            ('class:out.number', '%s' % self.python_input.current_statement_index),
+            ('class:out', ']:'),
+            ('', ' '),
         ]
 
 
@@ -68,10 +67,10 @@ class ClassicPrompt(PromptStyle):
     The classic Python prompt.
     """
     def in_tokens(self, cli):
-        return [(Token.Prompt, '>>> ')]
+        return [('class:prompt', '>>> ')]
 
     def in2_tokens(self, cli, width):
-        return [(Token.Prompt.Dots, '...')]
+        return [('class:prompt.dots', '...')]
 
     def out_tokens(self, cli):
         return []

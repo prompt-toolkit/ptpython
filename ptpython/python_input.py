@@ -516,8 +516,7 @@ class PythonInput(object):
             mouse_support=Condition(lambda app: self.enable_mouse_support),
             style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
-            reverse_vi_search_direction=True,
-            on_input_timeout=self._on_input_timeout)
+            reverse_vi_search_direction=True)
 
     def _create_buffer(self):
         """
@@ -536,7 +535,8 @@ class PythonInput(object):
             auto_suggest=ConditionalAutoSuggest(
                 AutoSuggestFromHistory(),
                 Condition(lambda app: self.enable_auto_suggest)),
-            accept_handler=self._accept_handler)
+            accept_handler=self._accept_handler,
+            on_text_changed=self._on_input_timeout)
 
         return python_buffer
 
@@ -559,21 +559,20 @@ class PythonInput(object):
         else:
             self.editing_mode = EditingMode.EMACS
 
-    def _on_input_timeout(self, app):
+    def _on_input_timeout(self, buff):
         """
         When there is no input activity,
         in another thread, get the signature of the current code.
         """
-        if app.current_buffer_name != DEFAULT_BUFFER:
-            return
+        assert isinstance(buff, Buffer)
+        app = self.app
 
         # Never run multiple get-signature threads.
         if self._get_signatures_thread_running:
             return
         self._get_signatures_thread_running = True
 
-        buffer = app.current_buffer
-        document = buffer.document
+        document = buff.document
 
         def run():
             script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
@@ -609,7 +608,7 @@ class PythonInput(object):
 
             # Set signatures and redraw if the text didn't change in the
             # meantime. Otherwise request new signatures.
-            if buffer.text == document.text:
+            if buff.text == document.text:
                 self.signatures = signatures
 
                 # Set docstring in docstring buffer.
@@ -617,16 +616,16 @@ class PythonInput(object):
                     string = signatures[0].docstring()
                     if not isinstance(string, six.text_type):
                         string = string.decode('utf-8')
-                    app.buffers['docstring'].reset(
-                        initial_document=Document(string, cursor_position=0))
+                    self.docstring_buffer.reset(
+                        document=Document(string, cursor_position=0))
                 else:
-                    app.buffers['docstring'].reset()
+                    self.docstring_buffer.reset()
 
-                app.request_redraw()
+                app.invalidate()
             else:
-                self._on_input_timeout(app)
+                self._on_input_timeout(buff)
 
-        app.eventloop.run_in_executor(run)
+        app.loop.run_in_executor(run)
 
     def on_reset(self, app):
         self.signatures = []

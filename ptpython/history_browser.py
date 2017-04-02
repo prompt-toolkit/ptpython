@@ -15,20 +15,19 @@ from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets, Align
-from prompt_toolkit.layout.controls import BufferControl, TokenListControl
+from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension as D
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
 from prompt_toolkit.layout.processors import Processor, Transformation, HighlightSearchProcessor, HighlightSelectionProcessor, merge_processors
 from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
-from prompt_toolkit.layout.utils import token_list_to_text
-from prompt_toolkit.token import Token
+from prompt_toolkit.layout.utils import fragment_list_to_text
 from pygments.lexers import RstLexer
 
 from .utils import if_mousedown
 
-from ptpython.layout import get_inputmode_tokens
+from ptpython.layout import get_inputmode_fragments
 from functools import partial
 import six
 
@@ -41,7 +40,7 @@ else:
 HISTORY_COUNT = 2000
 
 __all__ = (
-    'create_history_application',
+    'HistoryLayout',
 )
 
 HELP_TEXT = """
@@ -95,7 +94,7 @@ class BORDER:
     LIGHT_VERTICAL = '\u2502'
 
 
-def create_popup_window(title, body):
+def _create_popup_window(title, body):
     """
     Return the layout for a pop-up window. It consists of a title bar showing
     the `title` text, and a body layout. The window is surrounded by borders.
@@ -107,36 +106,36 @@ def create_popup_window(title, body):
         VSplit([
             Window(width=D.exact(1), height=D.exact(1),
                    char=BORDER.TOP_LEFT,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
             Window(
-                content=TokenListControl(
-                    get_tokens=lambda app: [(Token.Window.Title, ' %s ' % title)]),
+                content=FormattedTextControl(
+                    lambda app: [('class:window.title', ' %s ' % title)]),
                 align=Align.CENTER,
                 char=BORDER.HORIZONTAL,
-                token=Token.Window.Border),
+                style='class:window.border'),
             Window(width=D.exact(1), height=D.exact(1),
                    char=BORDER.TOP_RIGHT,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
         ]),
         VSplit([
             Window(width=D.exact(1),
                    char=BORDER.VERTICAL,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
             body,
             Window(width=D.exact(1),
                    char=BORDER.VERTICAL,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
         ]),
         VSplit([
             Window(width=D.exact(1), height=D.exact(1),
                    char=BORDER.BOTTOM_LEFT,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
             Window(height=D.exact(1),
                    char=BORDER.HORIZONTAL,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
             Window(width=D.exact(1), height=D.exact(1),
                    char=BORDER.BOTTOM_RIGHT,
-                   token=Token.Window.Border),
+                   style='class:window.border'),
         ]),
     ])
 
@@ -157,7 +156,7 @@ class HistoryLayout(object):
             lexer=PygmentsLexer(RstLexer),
             input_processor=merge_processors(default_processors))
 
-        help_window = create_popup_window(
+        help_window = _create_popup_window(
             title='History Help',
             body=Window(
                 content=self.help_buffer_control,
@@ -185,9 +184,9 @@ class HistoryLayout(object):
         self.root_container = HSplit([
             #  Top title bar.
             Window(
-                content=TokenListControl(get_tokens=_get_top_toolbar_tokens),
+                content=FormattedTextControl(_get_top_toolbar_fragments),
                 align=Align.CENTER,
-                token=Token.Toolbar.Status),
+                style='class:status-toolbar'),
             FloatContainer(
                 content=VSplit([
                     # Left side: history.
@@ -195,7 +194,7 @@ class HistoryLayout(object):
                     # Separator.
                     Window(width=D.exact(1),
                            char=BORDER.LIGHT_VERTICAL,
-                           token=Token.Separator),
+                           style='class:separator'),
                     # Right side: result.
                     Window(
                         content=self.default_buffer_control,
@@ -218,19 +217,19 @@ class HistoryLayout(object):
             ArgToolbar(),
     #        SearchToolbar(),  # XXX
             Window(
-                content=TokenListControl(
-                    get_tokens=partial(_get_bottom_toolbar_tokens, history=history)),
-                token=Token.Toolbar.Status),
+                content=FormattedTextControl(
+                    partial(_get_bottom_toolbar_fragments, history=history)),
+                style='class:status-toolbar'),
         ])
 
         self.layout = Layout(self.root_container, history_window)
 
 
-def _get_top_toolbar_tokens(app):
-    return [(Token.Toolbar.Status.Title, 'History browser - Insert from history')]
+def _get_top_toolbar_fragments(app):
+    return [('class:status-bar.title', 'History browser - Insert from history')]
 
 
-def _get_bottom_toolbar_tokens(app, history):
+def _get_bottom_toolbar_fragments(app, history):
     python_input = history.python_input
     @if_mousedown
     def f1(app, mouse_event):
@@ -241,17 +240,16 @@ def _get_bottom_toolbar_tokens(app, history):
         _select_other_window(history)
 
     return [
-        (Token.Toolbar.Status, ' ')
-    ] + get_inputmode_tokens(app, python_input) + [
-        (Token.Toolbar.Status, ' '),
-        (Token.Toolbar.Status.Key, '[Space]'),
-        (Token.Toolbar.Status, ' Toggle '),
-        (Token.Toolbar.Status.Key, '[Tab]', tab),
-        (Token.Toolbar.Status, ' Focus ', tab),
-        (Token.Toolbar.Status.Key, '[Enter]'),
-        (Token.Toolbar.Status, ' Accept '),
-        (Token.Toolbar.Status.Key, '[F1]', f1),
-        (Token.Toolbar.Status, ' Help ', f1),
+           ('class:status-toolbar', ' ') ] + get_inputmode_fragments(app, python_input) + [
+           ('class:status-toolbar', ' '),
+           ('class:status-toolbar.key', '[Space]'),
+           ('class:status-toolbar', ' Toggle '),
+           ('class:status-toolbar.key', '[Tab]', tab),
+           ('class:status-toolbar', ' Focus ', tab),
+           ('class:status-toolbar.key', '[Enter]'),
+           ('class:status-toolbar', ' Accept '),
+           ('class:status-toolbar.key', '[F1]', f1),
+           ('class:status-toolbar', ' Help ', f1),
     ]
 
 
@@ -289,15 +287,15 @@ class HistoryMargin(Margin):
                 char = ' '
 
             if line_number in selected_lines:
-                t = Token.History.Line.Selected
+                t = 'class:history-line,selected'
             else:
-                t = Token.History.Line
+                t = 'class:history-line'
 
             if line_number == current_lineno:
-                t = t.Current
+                t = t + ',current'
 
             result.append((t, char))
-            result.append((Token, '\n'))
+            result.append(('', '\n'))
 
         return result
 
@@ -328,14 +326,14 @@ class ResultMargin(Margin):
 
             if (line_number is None or line_number < offset or
                     line_number >= offset + len(self.history_mapping.selected_lines)):
-                t = Token
+                t = ''
             elif line_number == current_lineno:
-                t = Token.History.Line.Selected.Current
+                t = 'class:history-line,selected,current'
             else:
-                t = Token.History.Line.Selected
+                t = 'class:history-line,selected'
 
             result.append((t, ' '))
-            result.append((Token, '\n'))
+            result.append(('', '\n'))
 
         return result
 
@@ -352,16 +350,15 @@ class GrayExistingText(Processor):
         self._lines_before = len(history_mapping.original_document.text_before_cursor.splitlines())
 
     def apply_transformation(self, transformation_input):
-        app = transformation_input.app
         lineno = transformation_input.lineno
-        tokens = transformation_input.tokens
+        fragments = transformation_input.fragments
 
         if (lineno < self._lines_before or
                 lineno >= self._lines_before + len(self.history_mapping.selected_lines)):
-            text = token_list_to_text(tokens)
-            return Transformation(tokens=[(Token.History.ExistingInput, text)])
+            text = fragment_list_to_text(fragments)
+            return Transformation(fragments=[('class:history.existing-input', text)])
         else:
-            return Transformation(tokens=tokens)
+            return Transformation(fragments=fragments)
 
 
 class HistoryMapping(object):
@@ -601,7 +598,7 @@ class History(object):
         self.app = Application(
             loop=python_input.loop,
             layout=self.history_layout.layout,
-            use_alternate_screen=True,
+            full_screen=True,
             style=python_input._current_style,
             mouse_support=Condition(lambda app: python_input.enable_mouse_support),
             key_bindings=create_key_bindings(self, python_input, history_mapping)

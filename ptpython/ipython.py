@@ -18,7 +18,6 @@ from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.lexers import PygmentsLexer, SimpleLexer
-from prompt_toolkit.token import Token
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
 from .eventloop import create_eventloop
@@ -47,17 +46,17 @@ class IPythonPrompt(PromptStyle):
 
     def in_tokens(self, cli):
         text = self.prompt_manager.render('in', color=False, just=False)
-        return [(Token.In, text)]
+        return [('class:in', text)]
 
     def in2_tokens(self, cli, width):
         text = self.prompt_manager.render('in2', color=False, just=False)
-        return [(Token.In, text.rjust(width))]
+        return [('class:in', text.rjust(width))]
 
     def out_tokens(self, cli):
         # This function is currently not used by IPython. But for completeness,
         # it would look like this.
         text = self.prompt_manager.render('out', color=False, just=False)
-        return [(Token.Out, text)]
+        return [('class:out', text)]
 
 
 class IPython5Prompt(PromptStyle):
@@ -135,9 +134,9 @@ def create_lexer():
     return GrammarLexer(
         g,
         lexers={
-            'percent': SimpleLexer(Token.Operator),
-            'magic': SimpleLexer(Token.Keyword),
-            'filename': SimpleLexer(Token.Name),
+            'percent': SimpleLexer('class:pygments.operator'),
+            'magic': SimpleLexer('class:pygments.keyword'),
+            'filename': SimpleLexer('class:pygments.name'),
             'python': PygmentsLexer(PythonLexer),
             'system': PygmentsLexer(BashLexer),
         })
@@ -200,10 +199,10 @@ class IPythonInput(PythonInput):
         style_dict = {}
         style_dict.update(default_ui_style)
         style_dict.update({
-            Token.Prompt:        '#009900',
-            Token.PromptNum:     '#00ff00 bold',
-            Token.OutPrompt:     '#990000',
-            Token.OutPromptNum:  '#ff0000 bold',
+            'prompt':        '#009900',
+            'prompt-num':     '#00ff00 bold',
+            'out-prompt':     '#990000',
+            'out-prompt-num':  '#ff0000 bold',
         })
 
         self.ui_styles = {
