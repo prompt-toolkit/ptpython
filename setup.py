@@ -33,7 +33,7 @@ setup(
             'ptipython%s = ptpython.entry_points.run_ptipython:run' % sys.version_info[0],
         ]
     },
-    extra_require={
+    extras_require={
         'ptipython':  ['ipython'] # For ptipython, we need to have IPython
     }
 )
