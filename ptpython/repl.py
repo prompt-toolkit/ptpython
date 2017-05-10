@@ -10,12 +10,11 @@ Utility for creating a Python repl.
 from __future__ import unicode_literals
 
 from pygments.lexers import PythonTracebackLexer, PythonLexer
-from pygments.styles.default import DefaultStyle
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.eventloop.defaults import create_asyncio_event_loop
 from prompt_toolkit.layout.utils import fragment_list_width
-from prompt_toolkit.styles import style_from_pygments, token_list_to_formatted_text
+from prompt_toolkit.styles import token_list_to_formatted_text
 from prompt_toolkit.utils import DummyContext
 
 from .python_input import PythonInput
@@ -129,7 +128,10 @@ class PythonRepl(PythonInput):
                     result_str = line_sep.join(result_str.splitlines()) + '\n'
 
                     # Write output tokens.
-                    out_tokens.extend(_lex_python_result(result_str))
+                    if self.enable_syntax_highlighting:
+                        out_tokens.extend(_lex_python_result(result_str))
+                    else:
+                        out_tokens.append(('', result_str))
                     self.app.print_formatted_text(
                         token_list_to_formatted_text(out_tokens))
             # If not a valid `eval` expression, run using `exec` instead.
@@ -167,10 +169,12 @@ class PythonRepl(PythonInput):
         # Format exception and write to output.
         # (We use the default style. Most other styles result
         # in unreadable colors for the traceback.)
-        tokens = _lex_python_traceback(tb)
+        if self.enable_syntax_highlighting:
+            tokens = _lex_python_traceback(tb)
+        else:
+            tokens = [('', tb)]
         self.app.print_formatted_text(
-            token_list_to_formatted_text(tokens),
-            style=style_from_pygments(DefaultStyle))
+            token_list_to_formatted_text(tokens))
 
         output.write('%s\n' % e)
         output.flush()

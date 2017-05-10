@@ -107,6 +107,9 @@ def configure(repl):
     # $TERM before changing.)
     repl.true_color = False
 
+    # Syntax.
+    repl.enable_syntax_highlighting = True
+
     # Install custom colorscheme named 'my-colorscheme' and use it.
     """
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)

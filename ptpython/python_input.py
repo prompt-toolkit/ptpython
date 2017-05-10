@@ -15,7 +15,7 @@ from prompt_toolkit.input.defaults import create_input
 from prompt_toolkit.key_binding import merge_key_bindings, ConditionalKeyBindings, KeyBindings
 from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.layout.lexers import PygmentsLexer
+from prompt_toolkit.layout.lexers import PygmentsLexer, DynamicLexer, SimpleLexer
 from prompt_toolkit.output.defaults import create_output
 from prompt_toolkit.styles import DynamicStyle
 from prompt_toolkit.utils import is_windows
@@ -179,6 +179,7 @@ class PythonInput(object):
                                             # history on the records starting
                                             # with the current input.
 
+        self.enable_syntax_highlighting = True
         self.highlight_matching_parenthesis = False
         self.show_sidebar = False  # Currently show the sidebar.
         self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
@@ -458,6 +459,9 @@ class PythonInput(object):
                               field_name='highlight_matching_parenthesis'),
             ]),
             OptionCategory('Colors', [
+                simple_option(title='Syntax highlighting',
+                              description='Use colors for syntax highligthing',
+                              field_name='enable_syntax_highlighting'),
                 Option(title='Code',
                        description='Color scheme to use for the Python code.',
                        get_current_value=lambda: self._current_code_style_name,
@@ -486,7 +490,8 @@ class PythonInput(object):
             output=self.output,
             layout=create_layout(
                 self,
-                lexer=self._lexer,
+                lexer=DynamicLexer(
+                    lambda: self._lexer if self.enable_syntax_highlighting else SimpleLexer()),
                 input_buffer_height=self._input_buffer_height,
                 extra_buffer_processors=self._extra_buffer_processors,
                 extra_body=self._extra_layout_body,
