@@ -5,7 +5,7 @@ Copy this file to ~/.ptpython/config.py
 """
 from __future__ import unicode_literals
 from prompt_toolkit.filters import ViInsertMode
-from prompt_toolkit.key_binding.input_processor import KeyPress
+from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
 from pygments.token import Token
 
@@ -40,7 +40,7 @@ def configure(repl):
     repl.completion_menu_scroll_offset = 0
 
     # Show line numbers (when the input contains multiple lines.)
-    repl.show_line_numbers = True
+    repl.show_line_numbers = False
 
     # Show status bar.
     repl.show_status_bar = True
@@ -117,29 +117,35 @@ def configure(repl):
     """
 
     # Add custom key binding for PDB.
+    """
     @repl.add_key_binding(Keys.ControlB)
     def _(event):
         ' Pressing Control-B will insert "pdb.set_trace()" '
         event.cli.current_buffer.insert_text('\nimport pdb; pdb.set_trace()\n')
+    """
 
     # Typing ControlE twice should also execute the current command.
     # (Alternative for Meta-Enter.)
+    """
     @repl.add_key_binding(Keys.ControlE, Keys.ControlE)
     def _(event):
         b = event.current_buffer
         if b.accept_action.is_returnable:
             b.accept_action.validate_and_handle(event.cli, b)
+    """
 
 
     # Typing 'jj' in Vi Insert mode, should send escape. (Go back to navigation
     # mode.)
+    """
     @repl.add_key_binding('j', 'j', filter=ViInsertMode())
     def _(event):
         " Map 'jj' to Escape. "
         event.cli.input_processor.feed(KeyPress(Keys.Escape))
-
     """
+
     # Custom key binding for some simple autocorrection while typing.
+    """
     corrections = {
         'impotr': 'import',
         'pritn': 'print',
