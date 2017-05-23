@@ -119,9 +119,9 @@ def if_mousedown(handler):
     (When applied to a token list. Scroll events will bubble up and are handled
     by the Window.)
     """
-    def handle_if_mouse_down(app, mouse_event):
+    def handle_if_mouse_down(mouse_event):
         if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
-            return handler(app, mouse_event)
+            return handler(mouse_event)
         else:
             return NotImplemented
     return handle_if_mouse_down

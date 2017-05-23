@@ -14,12 +14,12 @@ class PromptStyle(with_metaclass(ABCMeta, object)):
     Base class for all prompts.
     """
     @abstractmethod
-    def in_tokens(self, cli):
+    def in_tokens(self):
         " Return the input tokens. "
         return []
 
     @abstractmethod
-    def in2_tokens(self, cli, width):
+    def in2_tokens(self, width):
         """
         Tokens for every following input line.
 
@@ -29,7 +29,7 @@ class PromptStyle(with_metaclass(ABCMeta, object)):
         return []
 
     @abstractmethod
-    def out_tokens(self, cli):
+    def out_tokens(self):
         " Return the output tokens. "
         return []
 
@@ -41,19 +41,19 @@ class IPythonPrompt(PromptStyle):
     def __init__(self, python_input):
         self.python_input = python_input
 
-    def in_tokens(self, cli):
+    def in_tokens(self):
         return [
             ('class:in', 'In ['),
             ('class:in.number', '%s' % self.python_input.current_statement_index),
             ('class:in', ']: '),
         ]
 
-    def in2_tokens(self, cli, width):
+    def in2_tokens(self, width):
         return [
             ('class:in', '...: '.rjust(width)),
         ]
 
-    def out_tokens(self, cli):
+    def out_tokens(self):
         return [
             ('class:out', 'Out['),
             ('class:out.number', '%s' % self.python_input.current_statement_index),
@@ -66,11 +66,11 @@ class ClassicPrompt(PromptStyle):
     """
     The classic Python prompt.
     """
-    def in_tokens(self, cli):
+    def in_tokens(self):
         return [('class:prompt', '>>> ')]
 
-    def in2_tokens(self, cli, width):
+    def in2_tokens(self, width):
         return [('class:prompt.dots', '...')]
 
-    def out_tokens(self, cli):
+    def out_tokens(self):
         return []

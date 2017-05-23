@@ -8,6 +8,7 @@ in readline. ``prompt-toolkit`` doesn't understand that input hook, but this
 will fix it for Tk.)
 """
 from prompt_toolkit.eventloop.defaults import create_event_loop as _create_event_loop
+from prompt_toolkit.eventloop.defaults import set_event_loop
 import sys
 import time
 
@@ -72,4 +73,6 @@ def _inputhook(inputhook_context):
 
 
 def create_event_loop():
-    return _create_event_loop(inputhook=_inputhook)
+    loop = _create_event_loop(inputhook=_inputhook)
+    set_event_loop(loop)
+    return loop

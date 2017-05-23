@@ -4,16 +4,17 @@ This can be used for creation of Python REPLs.
 """
 from __future__ import unicode_literals
 
-from prompt_toolkit.application import Application
-from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest
+from prompt_toolkit.application import Application, get_app
+from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest, ThreadedAutoSuggest
 from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.completion import ThreadedCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
+from prompt_toolkit.eventloop.defaults import get_event_loop
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.history import FileHistory, InMemoryHistory
 from prompt_toolkit.input.defaults import create_input
 from prompt_toolkit.key_binding import merge_key_bindings, ConditionalKeyBindings, KeyBindings
-from prompt_toolkit.key_binding.defaults import load_key_bindings
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.lexers import PygmentsLexer, DynamicLexer, SimpleLexer
 from prompt_toolkit.output.defaults import create_output
@@ -190,8 +191,8 @@ class PythonInput(object):
 
         # The buffers.
         self.default_buffer = self._create_buffer()
-        self.search_buffer = Buffer(loop=loop)
-        self.docstring_buffer = Buffer(loop=loop, read_only=True)
+        self.search_buffer = Buffer()
+        self.docstring_buffer = Buffer(read_only=True)
 
         # Tokens to be shown at the prompt.
         self.prompt_style = 'classic'  # The currently active style.
@@ -201,11 +202,11 @@ class PythonInput(object):
             'classic': ClassicPrompt(),
         }
 
-        self.get_input_prompt_tokens = lambda app: \
-            self.all_prompt_styles[self.prompt_style].in_tokens(app)
+        self.get_input_prompt_tokens = lambda: \
+            self.all_prompt_styles[self.prompt_style].in_tokens()
 
-        self.get_output_prompt_tokens = lambda app: \
-            self.all_prompt_styles[self.prompt_style].out_tokens(app)
+        self.get_output_prompt_tokens = lambda: \
+            self.all_prompt_styles[self.prompt_style].out_tokens()
 
         #: Load styles.
         self.code_styles = get_all_code_styles()
@@ -238,7 +239,8 @@ class PythonInput(object):
         if vi_mode:
             self.app.editing_mode = EditingMode.VI
 
-    def _accept_handler(self, app, buff):
+    def _accept_handler(self, buff):
+        app = get_app()
         app.set_return_value(buff.text)
         app.pre_run_callables.append(buff.reset)
 
@@ -485,7 +487,6 @@ class PythonInput(object):
         Create an `Application` instance.
         """
         return Application(
-            loop=self.loop,
             input=self.input,
             output=self.output,
             layout=create_layout(
@@ -497,28 +498,28 @@ class PythonInput(object):
                 extra_body=self._extra_layout_body,
                 extra_toolbars=self._extra_toolbars),
             key_bindings=merge_key_bindings([
-                ConditionalKeyBindings(
-                    key_bindings=load_key_bindings(
-                        enable_abort_and_exit_bindings=True,
-                        enable_search=True,
-                        enable_open_in_editor=Condition(lambda app: self.enable_open_in_editor),
-                        enable_system_bindings=Condition(lambda app: self.enable_system_bindings),
-                        enable_auto_suggest_bindings=Condition(lambda app: self.enable_auto_suggest)),
-
+#                ConditionalKeyBindings(
+#                    key_bindings=load_key_bindings(
+#                        enable_abort_and_exit_bindings=True,
+#                        enable_search=True,
+#                        enable_open_in_editor=Condition(lambda: self.enable_open_in_editor),
+#                        enable_system_bindings=Condition(lambda: self.enable_system_bindings),
+#                        enable_auto_suggest_bindings=Condition(lambda: self.enable_auto_suggest)),
+#),
                     # Disable all default key bindings when the sidebar or the exit confirmation
                     # are shown.
-                    filter=Condition(lambda app: not (self.show_sidebar or self.show_exit_confirmation))
-                ),
+#                    filter=Condition(lambda: not (self.show_sidebar or self.show_exit_confirmation))
+#                ),
                 load_python_bindings(self),
                 load_sidebar_bindings(self),
                 load_confirm_exit_bindings(self),
                 # Extra key bindings should not be active when the sidebar is visible.
                 ConditionalKeyBindings(
                     self.extra_key_bindings,
-                    Condition(lambda app: not self.show_sidebar))
+                    Condition(lambda: not self.show_sidebar))
             ]),
-            paste_mode=Condition(lambda app: self.paste_mode),
-            mouse_support=Condition(lambda app: self.enable_mouse_support),
+            paste_mode=Condition(lambda: self.paste_mode),
+            mouse_support=Condition(lambda: self.enable_mouse_support),
             style=DynamicStyle(lambda: self._current_style),
             get_title=lambda: self.terminal_title,
             reverse_vi_search_direction=True)
@@ -528,18 +529,18 @@ class PythonInput(object):
         Create the `Buffer` for the Python input.
         """
         python_buffer = Buffer(
-            loop=self.loop, name=DEFAULT_BUFFER,
+            name=DEFAULT_BUFFER,
             complete_while_typing=Condition(lambda: self.complete_while_typing),
             enable_history_search=Condition(lambda: self.enable_history_search),
             tempfile_suffix='.py',
             history=self.history,
-            completer=self._completer,
+            completer=ThreadedCompleter(self._completer),
             validator=ConditionalValidator(
                 self._validator,
                 Condition(lambda: self.enable_input_validation)),
             auto_suggest=ConditionalAutoSuggest(
-                AutoSuggestFromHistory(),
-                Condition(lambda app: self.enable_auto_suggest)),
+                ThreadedAutoSuggest(AutoSuggestFromHistory()),
+                Condition(lambda: self.enable_auto_suggest)),
             accept_handler=self._accept_handler,
             on_text_changed=self._on_input_timeout)
 
@@ -630,15 +631,16 @@ class PythonInput(object):
             else:
                 self._on_input_timeout(buff)
 
-        app.loop.run_in_executor(run)
+        get_event_loop().run_in_executor(run)
 
-    def on_reset(self, app):
+    def on_reset(self):
         self.signatures = []
 
-    def enter_history(self, app):
+    def enter_history(self):
         """
         Display the history.
         """
+        app = get_app()
         app.vi_state.input_mode = InputMode.NAVIGATION
 
         def done(f):
@@ -650,5 +652,5 @@ class PythonInput(object):
 
         history = History(self, self.default_buffer.document)
 
-        future = app.run_sub_application(history.app)
+        future = app.run_in_terminal_async(history.app.run_async)
         future.add_done_callback(done)

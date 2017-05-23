@@ -44,15 +44,15 @@ class IPythonPrompt(PromptStyle):
     def __init__(self, prompt_manager):
         self.prompt_manager = prompt_manager
 
-    def in_tokens(self, cli):
+    def in_tokens(self):
         text = self.prompt_manager.render('in', color=False, just=False)
         return [('class:in', text)]
 
-    def in2_tokens(self, cli, width):
+    def in2_tokens(self, width):
         text = self.prompt_manager.render('in2', color=False, just=False)
         return [('class:in', text.rjust(width))]
 
-    def out_tokens(self, cli):
+    def out_tokens(self):
         # This function is currently not used by IPython. But for completeness,
         # it would look like this.
         text = self.prompt_manager.render('out', color=False, just=False)
@@ -66,13 +66,13 @@ class IPython5Prompt(PromptStyle):
     def __init__(self, prompts):
         self.prompts = prompts
 
-    def in_tokens(self, cli):
-        return self.prompts.in_prompt_tokens(cli)
+    def in_tokens(self):
+        return self.prompts.in_prompt_tokens()
 
-    def in2_tokens(self, cli, width):
-        return self.prompts.continuation_prompt_tokens(cli)
+    def in2_tokens(self, width):
+        return self.prompts.continuation_prompt_tokens()
 
-    def out_tokens(self, cli):
+    def out_tokens(self):
         return []
 
 

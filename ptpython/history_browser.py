@@ -7,13 +7,12 @@ run as a sub application of the Repl/PythonInput.
 from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application
+from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, has_focus
-from prompt_toolkit.key_binding import KeyBindings, merge_key_bindings
-from prompt_toolkit.key_binding.defaults import load_key_bindings
-from prompt_toolkit.keys import Keys
+from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets, Align
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension as D
@@ -21,8 +20,9 @@ from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
 from prompt_toolkit.layout.processors import Processor, Transformation, HighlightSearchProcessor, HighlightSelectionProcessor, merge_processors
-from prompt_toolkit.layout.toolbars import ArgToolbar, SearchToolbar
+from prompt_toolkit.layout.widgets.toolbars import ArgToolbar, SearchToolbar
 from prompt_toolkit.layout.utils import fragment_list_to_text
+from prompt_toolkit.layout.widgets import Frame
 from pygments.lexers import RstLexer
 
 from .utils import if_mousedown
@@ -101,43 +101,7 @@ def _create_popup_window(title, body):
     """
     assert isinstance(title, six.text_type)
     assert isinstance(body, Container)
-
-    return HSplit([
-        VSplit([
-            Window(width=D.exact(1), height=D.exact(1),
-                   char=BORDER.TOP_LEFT,
-                   style='class:window.border'),
-            Window(
-                content=FormattedTextControl(
-                    lambda app: [('class:window.title', ' %s ' % title)]),
-                align=Align.CENTER,
-                char=BORDER.HORIZONTAL,
-                style='class:window.border'),
-            Window(width=D.exact(1), height=D.exact(1),
-                   char=BORDER.TOP_RIGHT,
-                   style='class:window.border'),
-        ]),
-        VSplit([
-            Window(width=D.exact(1),
-                   char=BORDER.VERTICAL,
-                   style='class:window.border'),
-            body,
-            Window(width=D.exact(1),
-                   char=BORDER.VERTICAL,
-                   style='class:window.border'),
-        ]),
-        VSplit([
-            Window(width=D.exact(1), height=D.exact(1),
-                   char=BORDER.BOTTOM_LEFT,
-                   style='class:window.border'),
-            Window(height=D.exact(1),
-                   char=BORDER.HORIZONTAL,
-                   style='class:window.border'),
-            Window(width=D.exact(1), height=D.exact(1),
-                   char=BORDER.BOTTOM_RIGHT,
-                   style='class:window.border'),
-        ]),
-    ])
+    return Frame(body=body, title=title)
 
 
 class HistoryLayout(object):
@@ -160,7 +124,7 @@ class HistoryLayout(object):
             title='History Help',
             body=Window(
                 content=self.help_buffer_control,
-                right_margins=[ScrollbarMargin()],
+                right_margins=[ScrollbarMargin(display_arrows=True)],
                 scroll_offsets=ScrollOffsets(top=2, bottom=2),
                 transparent=False))
 
@@ -225,22 +189,22 @@ class HistoryLayout(object):
         self.layout = Layout(self.root_container, history_window)
 
 
-def _get_top_toolbar_fragments(app):
+def _get_top_toolbar_fragments():
     return [('class:status-bar.title', 'History browser - Insert from history')]
 
 
-def _get_bottom_toolbar_fragments(app, history):
+def _get_bottom_toolbar_fragments(history):
     python_input = history.python_input
     @if_mousedown
-    def f1(app, mouse_event):
+    def f1(mouse_event):
         _toggle_help(history)
 
     @if_mousedown
-    def tab(app, mouse_event):
+    def tab(mouse_event):
         _select_other_window(history)
 
     return [
-           ('class:status-toolbar', ' ') ] + get_inputmode_fragments(app, python_input) + [
+           ('class:status-toolbar', ' ') ] + get_inputmode_fragments(python_input) + [
            ('class:status-toolbar', ' '),
            ('class:status-toolbar.key', '[Space]'),
            ('class:status-toolbar', ' Toggle '),
@@ -262,10 +226,10 @@ class HistoryMargin(Margin):
         self.history_buffer = history.history_buffer
         self.history_mapping = history.history_mapping
 
-    def get_width(self, app, ui_content):
+    def get_width(self, ui_content):
         return 2
 
-    def create_margin(self, app, window_render_info, width, height):
+    def create_margin(self, window_render_info, width, height):
         document = self.history_buffer.document
 
         lines_starting_new_entries = self.history_mapping.lines_starting_new_entries
@@ -308,10 +272,10 @@ class ResultMargin(Margin):
         self.history_mapping = history.history_mapping
         self.history_buffer = history.history_buffer
 
-    def get_width(self, app, ui_content):
+    def get_width(self, ui_content):
         return 2
 
-    def create_margin(self, app, window_render_info, width, height):
+    def create_margin(self, window_render_info, width, height):
         document = self.history_buffer.document
 
         current_lineno = document.cursor_position_row
@@ -337,7 +301,7 @@ class ResultMargin(Margin):
 
         return result
 
-    def invalidation_hash(self, app, document):
+    def invalidation_hash(self, document):
         return document.cursor_position_row
 
 
@@ -418,7 +382,7 @@ class HistoryMapping(object):
             cursor_pos = len(text)
         return Document(text, cursor_pos)
 
-    def update_default_buffer(self, app):
+    def update_default_buffer(self):
         b = self.history.default_buffer
 
         b.set_document(
@@ -430,7 +394,7 @@ def _toggle_help(history):
     help_buffer_control = history.history_layout.help_buffer_control
 
     if history.app.layout.current_control == help_buffer_control:
-        history.app.layout.pop_focus()
+        history.app.layout.focus_previous()
     else:
         history.app.layout.current_control = help_buffer_control
 
@@ -465,11 +429,11 @@ def create_key_bindings(history, python_input, history_mapping):
         if line_no in history_mapping.selected_lines:
             # Remove line.
             history_mapping.selected_lines.remove(line_no)
-            history_mapping.update_default_buffer(event.app)
+            history_mapping.update_default_buffer()
         else:
             # Add line.
             history_mapping.selected_lines.add(line_no)
-            history_mapping.update_default_buffer(event.app)
+            history_mapping.update_default_buffer()
 
             # Update cursor position
             default_buffer = history.default_buffer
@@ -483,8 +447,8 @@ def create_key_bindings(history, python_input, history_mapping):
         b.cursor_position = b.document.translate_row_col_to_index(line_no + 1, 0)
 
     @handle(' ', filter=has_focus(DEFAULT_BUFFER))
-    @handle(Keys.Delete, filter=has_focus(DEFAULT_BUFFER))
-    @handle(Keys.ControlH, filter=has_focus(DEFAULT_BUFFER))
+    @handle('delete', filter=has_focus(DEFAULT_BUFFER))
+    @handle('c-h', filter=has_focus(DEFAULT_BUFFER))
     def _(event):
         """
         Space: remove line from default pane.
@@ -500,63 +464,58 @@ def create_key_bindings(history, python_input, history_mapping):
             else:
                 history_mapping.selected_lines.remove(history_lineno)
 
-            history_mapping.update_default_buffer(event.app)
+            history_mapping.update_default_buffer()
 
     help_focussed = has_focus(history.help_buffer)
     main_buffer_focussed = has_focus(history.history_buffer) | has_focus(history.default_buffer)
 
-    @handle(Keys.Tab, filter=main_buffer_focussed)
-    @handle(Keys.ControlX, filter=main_buffer_focussed, eager=True)
+    @handle('tab', filter=main_buffer_focussed)
+    @handle('c-x', filter=main_buffer_focussed, eager=True)
         # Eager: ignore the Emacs [Ctrl-X Ctrl-X] binding.
-    @handle(Keys.ControlW, filter=main_buffer_focussed)
+    @handle('c-w', filter=main_buffer_focussed)
     def _(event):
         " Select other window. "
         _select_other_window(history)
 
-    @handle(Keys.F4)
+    @handle('f4')
     def _(event):
         " Switch between Emacs/Vi mode. "
         python_input.vi_mode = not python_input.vi_mode
 
-    @handle(Keys.F1)
+    @handle('f1')
     def _(event):
         " Display/hide help. "
         _toggle_help(history)
 
-    @handle(Keys.Enter, filter=help_focussed)
-    @handle(Keys.ControlC, filter=help_focussed)
-    @handle(Keys.ControlG, filter=help_focussed)
-    @handle(Keys.Escape, filter=help_focussed)
+    @handle('enter', filter=help_focussed)
+    @handle('c-c', filter=help_focussed)
+    @handle('c-g', filter=help_focussed)
+    @handle('escape', filter=help_focussed)
     def _(event):
         " Leave help. "
-        event.app.layout.pop_focus()
+        event.app.layout.focus_previous()
 
     @handle('q', filter=main_buffer_focussed)
-    @handle(Keys.F3, filter=main_buffer_focussed)
-    @handle(Keys.ControlC, filter=main_buffer_focussed)
-    @handle(Keys.ControlG, filter=main_buffer_focussed)
+    @handle('f3', filter=main_buffer_focussed)
+    @handle('c-c', filter=main_buffer_focussed)
+    @handle('c-g', filter=main_buffer_focussed)
     def _(event):
         " Cancel and go back. "
         event.app.set_return_value(None)
 
-    @handle(Keys.Enter, filter=main_buffer_focussed)
+    @handle('enter', filter=main_buffer_focussed)
     def _(event):
         " Accept input. "
         event.app.set_return_value(history.default_buffer.document)
 
-    enable_system_bindings = Condition(lambda app: python_input.enable_system_bindings)
+    enable_system_bindings = Condition(lambda: python_input.enable_system_bindings)
 
-    @handle(Keys.ControlZ, filter=enable_system_bindings)
+    @handle('c-z', filter=enable_system_bindings)
     def _(event):
         " Suspend to background. "
         event.app.suspend_to_background()
 
-    return merge_key_bindings([
-        load_key_bindings(
-            enable_search=True,
-            enable_extra_page_navigation=True),
-        bindings
-    ])
+    return bindings
 
 
 class History(object):
@@ -572,23 +531,25 @@ class History(object):
         history_mapping = HistoryMapping(self, python_input.history, original_document)
         self.history_mapping = history_mapping
 
+        document = Document(history_mapping.concatenated_history)
+        document = Document(
+            document.text,
+            cursor_position=document.cursor_position + document.get_start_of_line_position())
+
         self.history_buffer = Buffer(
-            loop=python_input.loop,
-            document=Document(history_mapping.concatenated_history),
+            document=document,
             on_cursor_position_changed=self._history_buffer_pos_changed,
             accept_handler=(
-                lambda app, buffer: app.set_return_value(self.default_buffer.text)),
+                lambda buff: get_app().set_return_value(self.default_buffer.text)),
             read_only=True)
 
         self.default_buffer = Buffer(
-            loop=python_input.loop,
             name=DEFAULT_BUFFER,
             document=history_mapping.get_new_document(),
             on_cursor_position_changed=self._default_buffer_pos_changed,
             read_only=True)
 
         self.help_buffer = Buffer(
-            loop=python_input.loop,
             document=Document(HELP_TEXT, 0),
             read_only=True
         )
@@ -596,11 +557,10 @@ class History(object):
         self.history_layout = HistoryLayout(self)
 
         self.app = Application(
-            loop=python_input.loop,
             layout=self.history_layout.layout,
             full_screen=True,
             style=python_input._current_style,
-            mouse_support=Condition(lambda app: python_input.enable_mouse_support),
+            mouse_support=Condition(lambda: python_input.enable_mouse_support),
             key_bindings=create_key_bindings(self, python_input, history_mapping)
         )
 
