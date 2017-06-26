@@ -64,9 +64,11 @@ def run():
             if os.path.exists(path):
                 run_config(repl, path)
 
+        import __main__
         embed(vi_mode=vi_mode,
               history_filename=os.path.join(config_dir, 'history'),
               configure=configure,
+              locals=__main__.__dict__,
               startup_paths=startup_paths,
               title='Python REPL (ptpython)')
 
