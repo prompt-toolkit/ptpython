@@ -69,6 +69,7 @@ def run():
               history_filename=os.path.join(config_dir, 'history'),
               configure=configure,
               locals=__main__.__dict__,
+              globals=__main__.__dict__,
               startup_paths=startup_paths,
               title='Python REPL (ptpython)')
 
