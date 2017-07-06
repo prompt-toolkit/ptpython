@@ -521,7 +521,6 @@ class PythonInput(object):
             paste_mode=Condition(lambda: self.paste_mode),
             mouse_support=Condition(lambda: self.enable_mouse_support),
             style=DynamicStyle(lambda: self._current_style),
-            get_title=lambda: self.terminal_title,
             reverse_vi_search_direction=True)
 
     def _create_buffer(self):

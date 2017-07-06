@@ -16,6 +16,7 @@ from prompt_toolkit.eventloop.defaults import create_asyncio_event_loop
 from prompt_toolkit.layout.utils import fragment_list_width
 from prompt_toolkit.styles import token_list_to_formatted_text
 from prompt_toolkit.utils import DummyContext
+from prompt_toolkit.shortcuts import set_title, clear_title
 
 from .python_input import PythonInput
 from .eventloop import create_event_loop
@@ -53,6 +54,9 @@ class PythonRepl(PythonInput):
                     output.write('WARNING | File not found: {}\n\n'.format(path))
 
     def run(self):
+        if self.terminal_title:
+            set_title(self.terminal_title)
+
         while True:
             # Run the UI.
             try:
@@ -64,6 +68,9 @@ class PythonRepl(PythonInput):
                 self.default_buffer.document = Document()
             else:
                 self._process_text(text)
+
+        if self.terminal_title:
+            clear_title()
 
     def _process_text(self, text):
         line = self.default_buffer.text
@@ -132,7 +139,7 @@ class PythonRepl(PythonInput):
                         out_tokens.extend(_lex_python_result(result_str))
                     else:
                         out_tokens.append(('', result_str))
-                    self.app.print_formatted_text(
+                    self.app.print_text(
                         token_list_to_formatted_text(out_tokens))
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:

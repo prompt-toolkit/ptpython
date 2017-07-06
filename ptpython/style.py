@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.styles import Style, merge_styles, default_style
 from prompt_toolkit.styles.pygments import style_from_pygments
-#from prompt_toolkit.utils import is_windows, is_conemu_ansi
+from prompt_toolkit.utils import is_windows, is_conemu_ansi, is_windows_vt100_supported
 from pygments.styles import get_style_by_name, get_all_styles
 
 __all__ = (
@@ -110,9 +110,6 @@ default_ui_style = {
     'status-toolbar.pastemodeon':             'bg:#aa4444 #ffffff',
     'status-toolbar.pythonversion':           'bg:#222222 #ffffff bold',
 
-    # When Control-C has been pressed. Grayed.
-#        'aborted':                                '#888888 bg:default important',
-
     # The options sidebar.
     'sidebar':                                'bg:#bbbbbb #000000',
     'sidebar.title':                          'bg:#668866 #ffffff',
@@ -145,17 +142,17 @@ default_ui_style = {
 }
 
 
-# # Some changes to get a bit more contrast on Windows consoles.
-# # (They only support 16 colors.)
-# if is_windows() and not is_conemu_ansi():
-#     default_ui_style.update({
-#         Token.Sidebar.Title:                          'bg:#00ff00 #ffffff',
-#         Token.ExitConfirmation:                       'bg:#ff4444 #ffffff',
-#         Token.Toolbar.Validation:                     'bg:#ff4444 #ffffff',
-#
-#         Token.Menu.Completions.Completion:            'bg:#ffffff #000000',
-#         Token.Menu.Completions.Completion.Current:    'bg:#aaaaaa #000000',
-#     })
+# Some changes to get a bit more contrast on Windows consoles.
+# (They only support 16 colors.)
+if is_windows() and not is_conemu_ansi() and not is_windows_vt100_supported():
+    default_ui_style.update({
+        'sidebar.title':                          'bg:#00ff00 #ffffff',
+        'exitconfirmation':                       'bg:#ff4444 #ffffff',
+        'toolbar.validation':                     'bg:#ff4444 #ffffff',
+
+        'menu.completions.completion':            'bg:#ffffff #000000',
+        'menu.completions.completion.current':    'bg:#aaaaaa #000000',
+    })
 
 
 blue_ui_style = {}
