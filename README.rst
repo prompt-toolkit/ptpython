@@ -183,7 +183,7 @@ Special thanks to
 *****************
 
 - `Pygments <http://pygments.org/>`_: Syntax highlighter.
-- `Jedi <http://jedi.jedidjah.ch/en/latest/>`_: Autocompletion library.
+- `Jedi <http://jedi.readthedocs.io/en/latest/>`_: Autocompletion library.
 - `Docopt <http://docopt.org/>`_: Command-line interface description language.
 - `wcwidth <https://github.com/jquast/wcwidth>`_: Determine columns needed for a wide characters.
 - `prompt_toolkit <http://github.com/jonathanslenders/python-prompt-toolkit>`_ for the interface.
