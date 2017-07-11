@@ -28,9 +28,16 @@ from IPython.terminal.ipapp import load_default_config
 from IPython import utils as ipy_utils
 from IPython.core.inputsplitter import IPythonInputSplitter
 
-from pygments.lexers import PythonLexer, BashLexer
+from pygments.lexers import BashLexer
 from pygments.token import Token
 from ptpython.prompt_style import PromptStyle
+
+import six
+
+if six.PY2:
+    from pygments.lexers import PythonLexer
+else:
+    from pygments.lexers import Python3Lexer as PythonLexer
 
 __all__ = (
     'embed',

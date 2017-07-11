@@ -9,7 +9,7 @@ Utility for creating a Python repl.
 """
 from __future__ import unicode_literals
 
-from pygments.lexers import PythonTracebackLexer, PythonLexer
+from pygments.lexers import PythonTracebackLexer
 from pygments.styles.default import DefaultStyle
 
 from prompt_toolkit.application import AbortAction
@@ -29,6 +29,11 @@ import six
 import sys
 import traceback
 import warnings
+
+if six.PY2:
+    from pygments.lexers import PythonLexer
+else:
+    from pygments.lexers import Python3Lexer as PythonLexer
 
 __all__ = (
     'PythonRepl',

@@ -22,11 +22,16 @@ from prompt_toolkit.selection import SelectionType
 from .filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
 from .utils import if_mousedown
 
-from pygments.lexers import PythonLexer
 from pygments.token import Token
 
 import platform
+import six
 import sys
+
+if six.PY2:
+    from pygments.lexers import PythonLexer
+else:
+    from pygments.lexers import Python3Lexer as PythonLexer
 
 __all__ = (
     'create_layout',
