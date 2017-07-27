@@ -514,6 +514,7 @@ class PythonInput(object):
             buffers=buffers,
             key_bindings_registry=self.key_bindings_registry,
             paste_mode=Condition(lambda cli: self.paste_mode),
+            clipboard=getattr(self, 'clipboard', None),
             mouse_support=Condition(lambda cli: self.enable_mouse_support),
             on_abort=AbortAction.RETRY,
             on_exit=self._on_exit,
