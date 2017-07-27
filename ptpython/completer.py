@@ -151,6 +151,10 @@ class PythonCompleter(Completer):
                     # In jedi.parser.__init__.py: 227, in remove_last_newline,
                     # the assertion "newline.value.endswith('\n')" can fail.
                     pass
+                except SystemError:
+                    # File "jedi/api/helpers.py", line 140, in get_stack_at_position
+                    # raise SystemError("This really shouldn't happen. There's a bug in Jedi.")
+                    pass
                 else:
                     for c in completions:
                         yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
