@@ -1,7 +1,19 @@
 CHANGELOG
 =========
 
-0.38: 2017-03-28
+0.40: 2017-07-27
+----------------
+
+Fixes:
+- Fix in setup.py: `extras_require` instead of `extra_require`.
+- Catch AssertionError in Jedi completion.
+- Use __main__.__dict__ for globals and locals.
+
+New features:
+- Support `user_ns` arg for compatibility with start_ipython.
+
+
+0.39: 2017-03-28
 ----------------
 
 Fixes:
