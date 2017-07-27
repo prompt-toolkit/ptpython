@@ -255,7 +255,8 @@ def run_config(repl, config_file='~/.ptpython/config.py'):
 
 def embed(globals=None, locals=None, configure=None,
           vi_mode=False, history_filename=None, title=None,
-          startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
+          startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False,
+          gevent=False):
     """
     Call this to embed  Python shell at the current point in your program.
     It's similar to `IPython.embed` and `bpython.embed`. ::
@@ -290,6 +291,9 @@ def embed(globals=None, locals=None, configure=None,
     # Create eventloop.
     if return_asyncio_coroutine:
         eventloop = create_asyncio_eventloop()
+    elif gevent:
+        from .contrib.gevent_eventloop import GeventEventLoop
+        eventloop = GeventEventLoop()
     else:
         eventloop = create_eventloop()
 
