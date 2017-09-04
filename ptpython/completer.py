@@ -9,6 +9,11 @@ from ptpython.utils import get_jedi_script_from_document
 
 import re
 
+try:
+    import django
+except:
+    pass
+
 __all__ = (
     'PythonCompleter',
 )
@@ -154,6 +159,8 @@ class PythonCompleter(Completer):
                 except SystemError:
                     # File "jedi/api/helpers.py", line 140, in get_stack_at_position
                     # raise SystemError("This really shouldn't happen. There's a bug in Jedi.")
+                    pass
+                except django.core.exceptions.ImproperlyConfigured:
                     pass
                 else:
                     for c in completions:
