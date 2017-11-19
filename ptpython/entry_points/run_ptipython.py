@@ -72,6 +72,7 @@ def run(user_ns=None):
         for path in startup_paths:
             if os.path.exists(path):
                 with open(path, 'r') as f:
+                    user_ns['__file__'] = path
                     code = compile(f.read(), path, 'exec')
                     six.exec_(code, user_ns, user_ns)
             else:
