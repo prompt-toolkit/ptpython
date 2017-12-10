@@ -540,15 +540,17 @@ def create_layout(python_input,
                     floats=[
                         Float(xcursor=True,
                               ycursor=True,
-                              content=CompletionsMenu(
-                                  scroll_offset=Integer.from_callable(
-                                      lambda: python_input.completion_menu_scroll_offset),
-                                  max_height=12,
-                                  extra_filter=show_completions_menu(python_input))),
+                              content=ConditionalContainer(
+                                  content=CompletionsMenu(
+                                      scroll_offset=Integer.from_callable(
+                                          lambda: python_input.completion_menu_scroll_offset),
+                                      max_height=12),
+                                  filter=show_completions_menu(python_input))),
                         Float(xcursor=True,
                               ycursor=True,
-                              content=MultiColumnCompletionsMenu(
-                                  extra_filter=show_multi_column_completions_menu(python_input))),
+                              content=ConditionalContainer(
+                                  content=MultiColumnCompletionsMenu(),
+                                  filter=show_multi_column_completions_menu(python_input))),
                         Float(xcursor=True,
                               ycursor=True,
                               content=signature_toolbar(python_input)),
@@ -564,7 +566,9 @@ def create_layout(python_input,
                 search_toolbar,
                 SystemToolbar(),
                 ValidationToolbar(),
-                CompletionsToolbar(extra_filter=show_completions_toolbar(python_input)),
+                ConditionalContainer(
+                    content=CompletionsToolbar(),
+                    filter=show_completions_toolbar(python_input)),
 
                 # Docstring region.
                 ConditionalContainer(
