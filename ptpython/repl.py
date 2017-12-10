@@ -14,9 +14,10 @@ from pygments.lexers import PythonTracebackLexer, PythonLexer
 from prompt_toolkit.document import Document
 from prompt_toolkit.eventloop.defaults import create_asyncio_event_loop
 from prompt_toolkit.layout.utils import fragment_list_width
-from prompt_toolkit.styles import token_list_to_formatted_text
 from prompt_toolkit.utils import DummyContext
 from prompt_toolkit.shortcuts import set_title, clear_title
+from prompt_toolkit.shortcuts import print as print_formatted_text
+from prompt_toolkit.formatted_text import PygmentsTokens
 
 from .python_input import PythonInput
 from .eventloop import create_event_loop
@@ -139,8 +140,7 @@ class PythonRepl(PythonInput):
                         out_tokens.extend(_lex_python_result(result_str))
                     else:
                         out_tokens.append(('', result_str))
-                    self.app.print_text(
-                        token_list_to_formatted_text(out_tokens))
+                    print_formatted_text(PygmentsTokens(out_tokens))
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, 'exec')
@@ -180,8 +180,7 @@ class PythonRepl(PythonInput):
             tokens = _lex_python_traceback(tb)
         else:
             tokens = [('', tb)]
-        self.app.print_formatted_text(
-            token_list_to_formatted_text(tokens))
+        print_formatted_text(PygmentsTokens(tokens))
 
         output.write('%s\n' % e)
         output.flush()
