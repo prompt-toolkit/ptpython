@@ -624,7 +624,7 @@ class PythonInput(object):
                     if not isinstance(string, six.text_type):
                         string = string.decode('utf-8')
                     cli.buffers['docstring'].reset(
-                        initial_document=Document(string, cursor_position=0))
+                        initial_document=Document(string, cursor_position=cli.buffers['docstring'].cursor_position))
                 else:
                     cli.buffers['docstring'].reset()
 
