@@ -16,7 +16,7 @@ from prompt_toolkit.eventloop.defaults import create_asyncio_event_loop
 from prompt_toolkit.layout.utils import fragment_list_width
 from prompt_toolkit.utils import DummyContext
 from prompt_toolkit.shortcuts import set_title, clear_title
-from prompt_toolkit.shortcuts import print as print_formatted_text
+from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.formatted_text import PygmentsTokens
 
 from .python_input import PythonInput
