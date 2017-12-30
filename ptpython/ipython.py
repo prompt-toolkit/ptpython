@@ -20,7 +20,6 @@ from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.lexers import PygmentsLexer, SimpleLexer
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
-from .eventloop import create_eventloop
 from .style import default_ui_style
 
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
@@ -229,7 +228,6 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
         def get_globals():
             return self.user_ns
 
-        self._eventloop = create_eventloop()
         ipython_input = IPythonInput(
             self,
             get_globals=get_globals, vi_mode=vi_mode,
@@ -243,8 +241,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
             ipython_input.prompt_style = 'ipython'  # Don't take from config.
 
         self._cli = CommandLineInterface(
-                application=ipython_input.create_application(),
-                eventloop=self._eventloop)
+            application=ipython_input.create_application())
 
     def prompt_for_code(self):
         # IPython 5.0 calls `prompt_for_code` instead of `raw_input`.

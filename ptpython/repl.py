@@ -12,7 +12,7 @@ from __future__ import unicode_literals
 from pygments.lexers import PythonTracebackLexer, PythonLexer
 
 from prompt_toolkit.document import Document
-from prompt_toolkit.eventloop.defaults import create_asyncio_event_loop
+from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 from prompt_toolkit.layout.utils import fragment_list_width
 from prompt_toolkit.utils import DummyContext
 from prompt_toolkit.shortcuts import set_title, clear_title
@@ -20,7 +20,7 @@ from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.formatted_text import PygmentsTokens
 
 from .python_input import PythonInput
-from .eventloop import create_event_loop
+from .eventloop import inputhook
 
 import os
 import six
@@ -61,7 +61,7 @@ class PythonRepl(PythonInput):
         while True:
             # Run the UI.
             try:
-                text = self.app.run()
+                text = self.app.run(inputhook=inputhook)
             except EOFError:
                 return
             except KeyboardInterrupt:
@@ -292,14 +292,11 @@ def embed(globals=None, locals=None, configure=None,
 
     # Create eventloop.
     if return_asyncio_coroutine:
-        loop = create_asyncio_event_loop()
-    else:
-        loop = create_event_loop()
+        use_asyncio_event_loop()
 
     # Create REPL.
-    repl = PythonRepl(loop=loop, get_globals=get_globals, get_locals=get_locals, vi_mode=vi_mode,
-                      history_filename=history_filename,
-                      startup_paths=startup_paths)
+    repl = PythonRepl(get_globals=get_globals, get_locals=get_locals, vi_mode=vi_mode,
+                      history_filename=history_filename, startup_paths=startup_paths)
 
     if title:
         repl.terminal_title = title

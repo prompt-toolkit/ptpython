@@ -13,7 +13,7 @@ import sys
 import time
 
 __all__ = (
-    'create_eventloop',
+    'inputhook',
 )
 
 
@@ -66,13 +66,7 @@ def _inputhook_tk(inputhook_context):
             wait_using_polling()
 
 
-def _inputhook(inputhook_context):
+def inputhook(inputhook_context):
     # Only call the real input hook when the 'Tkinter' library was loaded.
     if 'Tkinter' in sys.modules or 'tkinter' in sys.modules:
         _inputhook_tk(inputhook_context)
-
-
-def create_event_loop():
-    loop = _create_event_loop(inputhook=_inputhook)
-    set_event_loop(loop)
-    return loop

@@ -122,7 +122,7 @@ class PythonInput(object):
         python_code = python_input.run()
     """
     def __init__(self,
-                 loop, get_globals=None, get_locals=None, history_filename=None,
+                 get_globals=None, get_locals=None, history_filename=None,
                  vi_mode=False,
 
                  input=None,
@@ -136,7 +136,6 @@ class PythonInput(object):
                  _extra_layout_body=None, _extra_toolbars=None,
                  _input_buffer_height=None):
 
-        self.loop = loop
         self.get_globals = get_globals or (lambda: {})
         self.get_locals = get_locals or self.get_globals
 
