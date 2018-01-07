@@ -1,6 +1,6 @@
 from __future__ import unicode_literals
 
-from prompt_toolkit.styles import Style, merge_styles, default_style
+from prompt_toolkit.styles import Style, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments
 from prompt_toolkit.utils import is_windows, is_conemu_ansi, is_windows_vt100_supported
 from pygments.styles import get_style_by_name, get_all_styles
@@ -37,7 +37,6 @@ def generate_style(python_style, ui_style):
     containing style rules.
     """
     return merge_styles([
-        default_style(),
         python_style,
         ui_style
     ])
