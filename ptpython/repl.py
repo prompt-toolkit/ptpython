@@ -10,6 +10,7 @@ Utility for creating a Python repl.
 from __future__ import unicode_literals
 
 from pygments.lexers import PythonTracebackLexer, PythonLexer
+from pygments.token import Token
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
@@ -177,9 +178,9 @@ class PythonRepl(PythonInput):
         # (We use the default style. Most other styles result
         # in unreadable colors for the traceback.)
         if self.enable_syntax_highlighting:
-            tokens = _lex_python_traceback(tb)
+            tokens = list(_lex_python_traceback(tb))
         else:
-            tokens = [('', tb)]
+            tokens = [(Token, tb)]
         print_formatted_text(PygmentsTokens(tokens))
 
         output.write('%s\n' % e)
