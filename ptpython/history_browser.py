@@ -506,7 +506,7 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle('enter', filter=main_buffer_focussed)
     def _(event):
         " Accept input. "
-        event.app.set_return_value(history.default_buffer.document)
+        event.app.set_return_value(history.default_buffer.text)
 
     enable_system_bindings = Condition(lambda: python_input.enable_system_bindings)
 

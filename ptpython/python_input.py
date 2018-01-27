@@ -5,6 +5,7 @@ This can be used for creation of Python REPLs.
 from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application, get_app
+from prompt_toolkit.application.run_in_terminal import run_coroutine_in_terminal
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest, ThreadedAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.completion import ThreadedCompleter
@@ -644,12 +645,13 @@ class PythonInput(object):
 
         def done(f):
             result = f.result()
+            assert isinstance(result, str), 'got %r' % (result, )
             if result is not None:
-                self.default_buffer.document = result
+                self.default_buffer.text = result
 
             app.vi_state.input_mode = InputMode.INSERT
 
         history = History(self, self.default_buffer.document)
 
-        future = app.run_in_terminal_async(history.app.run_async)
+        future = run_coroutine_in_terminal(history.app.run_async)
         future.add_done_callback(done)
