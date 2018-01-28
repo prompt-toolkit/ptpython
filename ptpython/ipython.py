@@ -43,11 +43,11 @@ class IPythonPrompt(PromptStyle):
     def __init__(self, prompt_manager):
         self.prompt_manager = prompt_manager
 
-    def in_tokens(self):
+    def in_prompt(self):
         text = self.prompt_manager.render('in', color=False, just=False)
         return [('class:in', text)]
 
-    def in2_tokens(self, width):
+    def in2_prompt(self, width):
         text = self.prompt_manager.render('in2', color=False, just=False)
         return [('class:in', text.rjust(width))]
 
@@ -65,13 +65,13 @@ class IPython5Prompt(PromptStyle):
     def __init__(self, prompts):
         self.prompts = prompts
 
-    def in_tokens(self):
+    def in_prompt(self):
         return self.prompts.in_prompt_tokens()
 
-    def in2_tokens(self, width):
+    def in2_prompt(self, width):
         return self.prompts.continuation_prompt_tokens()
 
-    def out_tokens(self):
+    def out_prompt(self):
         return []
 
 

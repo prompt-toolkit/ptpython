@@ -14,7 +14,8 @@ from pygments.token import Token
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
-from prompt_toolkit.layout.utils import fragment_list_width
+from prompt_toolkit.formatted_text import merge_formatted_text, FormattedText
+from prompt_toolkit.formatted_text.utils import fragment_list_width
 from prompt_toolkit.utils import DummyContext
 from prompt_toolkit.shortcuts import set_title, clear_title
 from prompt_toolkit.shortcuts import print_formatted_text
@@ -121,7 +122,7 @@ class PythonRepl(PythonInput):
                 locals['_'] = locals['_%i' % self.current_statement_index] = result
 
                 if result is not None:
-                    out_tokens = self.get_output_prompt_tokens()
+                    out_prompt = self.get_output_prompt()
 
                     try:
                         result_str = '%r\n' % (result, )
@@ -133,15 +134,23 @@ class PythonRepl(PythonInput):
                         result_str = '%s\n' % repr(result).decode('utf-8')
 
                     # Align every line to the first one.
-                    line_sep = '\n' + ' ' * fragment_list_width(out_tokens)
+                    line_sep = '\n' + ' ' * fragment_list_width(out_prompt)
                     result_str = line_sep.join(result_str.splitlines()) + '\n'
 
                     # Write output tokens.
                     if self.enable_syntax_highlighting:
-                        out_tokens.extend(_lex_python_result(result_str))
+                        formatted_output = merge_formatted_text([
+                            out_prompt,
+                            PygmentsTokens(list(_lex_python_result(result_str))),
+                        ])
                     else:
-                        out_tokens.append(('', result_str))
-                    print_formatted_text(PygmentsTokens(out_tokens))
+                        formatted_output = FormattedText(
+                                out_prompt + [('', result_str)])
+
+                    print_formatted_text(
+                        formatted_output, style=self._current_style,
+                        include_default_pygments_style=False)
+
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, 'exec')
@@ -181,7 +190,10 @@ class PythonRepl(PythonInput):
             tokens = list(_lex_python_traceback(tb))
         else:
             tokens = [(Token, tb)]
-        print_formatted_text(PygmentsTokens(tokens))
+
+        print_formatted_text(
+            PygmentsTokens(tokens), style=self._current_style,
+            include_default_pygments_style=False)
 
         output.write('%s\n' % e)
         output.flush()

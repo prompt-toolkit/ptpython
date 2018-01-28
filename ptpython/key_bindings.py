@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import HasSelection, HasFocus, Condition, ViInsertMode, EmacsInsertMode, EmacsMode
+from prompt_toolkit.filters import has_selection, has_focus, Condition, vi_insert_mode, emacs_insert_mode, emacs_mode
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
 from prompt_toolkit.application import get_app
@@ -39,7 +39,6 @@ def load_python_bindings(python_input):
 
     sidebar_visible = Condition(lambda: python_input.show_sidebar)
     handle = bindings.add
-    has_selection = HasSelection()
 
     @handle('c-l')
     def _(event):
@@ -88,9 +87,9 @@ def load_python_bindings(python_input):
         return document_is_multiline_python(python_input.default_buffer.document)
 
     @handle('enter', filter= ~sidebar_visible & ~has_selection &
-            (ViInsertMode() | EmacsInsertMode()) &
-            HasFocus(DEFAULT_BUFFER) & ~is_multiline)
-    @handle(Keys.Escape, Keys.Enter, filter= ~sidebar_visible & EmacsMode())
+            (vi_insert_mode | emacs_insert_mode) &
+            has_focus(DEFAULT_BUFFER) & ~is_multiline)
+    @handle(Keys.Escape, Keys.Enter, filter= ~sidebar_visible & emacs_mode)
     def _(event):
         """
         Accept input (for single line input).
@@ -107,8 +106,8 @@ def load_python_bindings(python_input):
             b.validate_and_handle()
 
     @handle('enter', filter= ~sidebar_visible & ~has_selection &
-            (ViInsertMode() | EmacsInsertMode()) &
-            HasFocus(DEFAULT_BUFFER) & is_multiline)
+            (vi_insert_mode | emacs_insert_mode) &
+            has_focus(DEFAULT_BUFFER) & is_multiline)
     def _(event):
         """
         Behaviour of the Enter key.
@@ -142,22 +141,23 @@ def load_python_bindings(python_input):
         else:
             auto_newline(b)
 
-    @handle('c-d', filter=~sidebar_visible & Condition(lambda:
-            # Only when the `confirm_exit` flag is set.
-            python_input.confirm_exit and
-            # And the current buffer is empty.
-            get_app().current_buffer == python_input.default_buffer and
-            not get_app().current_buffer.text))
+    @handle('c-d', filter=~sidebar_visible &
+            has_focus(python_input.default_buffer) &
+            Condition(lambda:
+                # Only when the `confirm_exit` flag is set.
+                python_input.confirm_exit and
+                # And the current buffer is empty.
+                not get_app().current_buffer.text))
     def _(event):
         """
         Override Control-D exit, to ask for confirmation.
         """
         python_input.show_exit_confirmation = True
 
-    @handle('c-c')
+    @handle('c-c', filter=has_focus(python_input.default_buffer))
     def _(event):
         " Abort when Control-C has been pressed. "
-        event.app.abort()
+        event.app.exit(exception=KeyboardInterrupt, style='class:aborting')
 
     return bindings
 
@@ -171,23 +171,23 @@ def load_sidebar_bindings(python_input):
     handle = bindings.add
     sidebar_visible = Condition(lambda: python_input.show_sidebar)
 
-    @handle(Keys.Up, filter=sidebar_visible)
-    @handle(Keys.ControlP, filter=sidebar_visible)
+    @handle('up', filter=sidebar_visible)
+    @handle('c-p', filter=sidebar_visible)
     @handle('k', filter=sidebar_visible)
     def _(event):
         " Go to previous option. "
         python_input.selected_option_index = (
             (python_input.selected_option_index - 1) % python_input.option_count)
 
-    @handle(Keys.Down, filter=sidebar_visible)
-    @handle(Keys.ControlN, filter=sidebar_visible)
+    @handle('down', filter=sidebar_visible)
+    @handle('c-n', filter=sidebar_visible)
     @handle('j', filter=sidebar_visible)
     def _(event):
         " Go to next option. "
         python_input.selected_option_index = (
             (python_input.selected_option_index + 1) % python_input.option_count)
 
-    @handle(Keys.Right, filter=sidebar_visible)
+    @handle('right', filter=sidebar_visible)
     @handle('l', filter=sidebar_visible)
     @handle(' ', filter=sidebar_visible)
     def _(event):
@@ -195,18 +195,18 @@ def load_sidebar_bindings(python_input):
         option = python_input.selected_option
         option.activate_next()
 
-    @handle(Keys.Left, filter=sidebar_visible)
+    @handle('left', filter=sidebar_visible)
     @handle('h', filter=sidebar_visible)
     def _(event):
         " Select previous value for current option. "
         option = python_input.selected_option
         option.activate_previous()
 
-    @handle(Keys.ControlC, filter=sidebar_visible)
-    @handle(Keys.ControlG, filter=sidebar_visible)
-    @handle(Keys.ControlD, filter=sidebar_visible)
-    @handle(Keys.Enter, filter=sidebar_visible)
-    @handle(Keys.Escape, filter=sidebar_visible)
+    @handle('c-c', filter=sidebar_visible)
+    @handle('c-d', filter=sidebar_visible)
+    @handle('c-d', filter=sidebar_visible)
+    @handle('enter', filter=sidebar_visible)
+    @handle('escape', filter=sidebar_visible)
     def _(event):
         " Hide sidebar. "
         python_input.show_sidebar = False
@@ -225,13 +225,13 @@ def load_confirm_exit_bindings(python_input):
 
     @handle('y', filter=confirmation_visible)
     @handle('Y', filter=confirmation_visible)
-    @handle(Keys.Enter, filter=confirmation_visible)
-    @handle(Keys.ControlD, filter=confirmation_visible)
+    @handle('enter', filter=confirmation_visible)
+    @handle('c-d', filter=confirmation_visible)
     def _(event):
         """
         Really quit.
         """
-        event.app.exit()
+        event.app.exit(exception=EOFError, style='class:exiting')
 
     @handle(Keys.Any, filter=confirmation_visible)
     def _(event):

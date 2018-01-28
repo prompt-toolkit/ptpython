@@ -12,17 +12,17 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, has_focus
+from prompt_toolkit.formatted_text.utils import fragment_list_to_text
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets, Align
+from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets, WindowAlign
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension as D
 from prompt_toolkit.layout.layout import Layout
-from prompt_toolkit.layout.lexers import PygmentsLexer
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
-from prompt_toolkit.layout.processors import Processor, Transformation, HighlightSearchProcessor, HighlightSelectionProcessor, merge_processors
-from prompt_toolkit.layout.widgets.toolbars import ArgToolbar, SearchToolbar
-from prompt_toolkit.layout.utils import fragment_list_to_text
-from prompt_toolkit.layout.widgets import Frame
+from prompt_toolkit.layout.processors import Processor, Transformation
+from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.widgets import Frame
+from prompt_toolkit.widgets.toolbars import ArgToolbar, SearchToolbar
 from pygments.lexers import RstLexer
 
 from .utils import if_mousedown
@@ -110,34 +110,29 @@ class HistoryLayout(object):
     application.
     """
     def __init__(self, history):
-        default_processors = [
-            HighlightSearchProcessor(preview_search=True),
-            HighlightSelectionProcessor()
-        ]
+        search_toolbar = SearchToolbar()
 
         self.help_buffer_control = BufferControl(
             buffer=history.help_buffer,
-            lexer=PygmentsLexer(RstLexer),
-            input_processor=merge_processors(default_processors))
+            lexer=PygmentsLexer(RstLexer))
 
         help_window = _create_popup_window(
             title='History Help',
             body=Window(
                 content=self.help_buffer_control,
                 right_margins=[ScrollbarMargin(display_arrows=True)],
-                scroll_offsets=ScrollOffsets(top=2, bottom=2),
-                transparent=False))
+                scroll_offsets=ScrollOffsets(top=2, bottom=2)))
 
         self.default_buffer_control = BufferControl(
             buffer=history.default_buffer,
-            input_processor=merge_processors(
-                default_processors + [GrayExistingText(history.history_mapping)]),
+            input_processors=[GrayExistingText(history.history_mapping)],
             lexer=PygmentsLexer(PythonLexer))
 
         self.history_buffer_control = BufferControl(
             buffer=history.history_buffer,
             lexer=PygmentsLexer(PythonLexer),
-            input_processor=merge_processors(default_processors))
+            search_buffer_control=search_toolbar.control,
+            preview_search=True)
 
         history_window = Window(
             content=self.history_buffer_control,
@@ -149,7 +144,7 @@ class HistoryLayout(object):
             #  Top title bar.
             Window(
                 content=FormattedTextControl(_get_top_toolbar_fragments),
-                align=Align.CENTER,
+                align=WindowAlign.CENTER,
                 style='class:status-toolbar'),
             FloatContainer(
                 content=VSplit([
@@ -170,16 +165,12 @@ class HistoryLayout(object):
                     # Help text as a float.
                     Float(width=60, top=3, bottom=2,
                           content=ConditionalContainer(
-                                    # XXXX XXX
-                              # (We use InFocusStack, because it's possible to search
-                              # through the help text as well, and at that point the search
-                              # buffer has the focus.)
-                              content=help_window, filter=has_focus(history.help_buffer))),  # XXX
+                              content=help_window, filter=has_focus(history.help_buffer))),
                 ]
             ),
             # Bottom toolbars.
             ArgToolbar(),
-    #        SearchToolbar(),  # XXX
+            search_toolbar,
             Window(
                 content=FormattedTextControl(
                     partial(_get_bottom_toolbar_fragments, history=history)),
@@ -338,15 +329,16 @@ class HistoryMapping(object):
         self.selected_lines = set()
 
         # Process history.
+        history_strings = python_history.get_strings()
         history_lines = []
 
-        for entry_nr, entry in list(enumerate(python_history))[-HISTORY_COUNT:]:
+        for entry_nr, entry in list(enumerate(history_strings))[-HISTORY_COUNT:]:
             self.lines_starting_new_entries.add(len(history_lines))
 
             for line in entry.splitlines():
                 history_lines.append(line)
 
-        if len(python_history) > HISTORY_COUNT:
+        if len(history_strings) > HISTORY_COUNT:
             history_lines[0] = '# *** History has been truncated to %s lines ***' % HISTORY_COUNT
 
         self.history_lines = history_lines
@@ -501,12 +493,12 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle('c-g', filter=main_buffer_focussed)
     def _(event):
         " Cancel and go back. "
-        event.app.set_return_value(None)
+        event.app.exit(result=None)
 
     @handle('enter', filter=main_buffer_focussed)
     def _(event):
         " Accept input. "
-        event.app.set_return_value(history.default_buffer.text)
+        event.app.exit(result=history.default_buffer.text)
 
     enable_system_bindings = Condition(lambda: python_input.enable_system_bindings)
 
@@ -540,7 +532,7 @@ class History(object):
             document=document,
             on_cursor_position_changed=self._history_buffer_pos_changed,
             accept_handler=(
-                lambda buff: get_app().set_return_value(self.default_buffer.text)),
+                lambda buff: get_app().exit(result=self.default_buffer.text)),
             read_only=True)
 
         self.default_buffer = Buffer(

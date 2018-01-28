@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 
 from prompt_toolkit.styles import Style, merge_styles
-from prompt_toolkit.styles.pygments import style_from_pygments
+from prompt_toolkit.styles.pygments import style_from_pygments_cls
 from prompt_toolkit.utils import is_windows, is_conemu_ansi, is_windows_vt100_supported
 from pygments.styles import get_style_by_name, get_all_styles
 
@@ -16,7 +16,7 @@ def get_all_code_styles():
     """
     Return a mapping from style names to their classes.
     """
-    result = dict((name, style_from_pygments(get_style_by_name(name))) for name in get_all_styles())
+    result = dict((name, style_from_pygments_cls(get_style_by_name(name))) for name in get_all_styles())
     result['win32'] = Style.from_dict(win32_code_style)
     return result
 
@@ -69,6 +69,8 @@ win32_code_style = {
 
 
 default_ui_style = {
+    'control-character':    'ansiblue',
+
     # Classic prompt.
     'prompt':                                 'bold',
     'prompt.dots':                            'noinherit',
@@ -108,6 +110,9 @@ default_ui_style = {
     'status-toolbar.key':                     'bg:#000000 #888888',
     'status-toolbar.pastemodeon':             'bg:#aa4444 #ffffff',
     'status-toolbar.pythonversion':           'bg:#222222 #ffffff bold',
+    'status-toolbar paste-mode-on':           'bg:#aa4444 #ffffff',
+    'record':                                 'bg:#884444 white',
+    'status-toolbar.input-mode':              '#ffff44',
 
     # The options sidebar.
     'sidebar':                                'bg:#bbbbbb #000000',

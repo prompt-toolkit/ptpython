@@ -5,21 +5,19 @@ from __future__ import unicode_literals
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
-from prompt_toolkit.filters import IsDone, HasCompletions, RendererHeightIsKnown, HasFocus, Condition
+from prompt_toolkit.filters import is_done, has_completions, renderer_height_is_known, has_focus, Condition
+from prompt_toolkit.formatted_text.utils import fragment_list_width
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
 from prompt_toolkit.layout.layout import Layout
-from prompt_toolkit.layout.lexers import SimpleLexer
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
-from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, Processor, Transformation
-from prompt_toolkit.layout.processors import merge_processors
-from prompt_toolkit.layout.widgets.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar
-from prompt_toolkit.layout.utils import fragment_list_width
-from prompt_toolkit.reactive import Integer
+from prompt_toolkit.layout.processors import ConditionalProcessor, AppendAutoSuggestion, HighlightIncrementalSearchProcessor, HighlightSelectionProcessor, HighlightMatchingBracketProcessor, Processor, Transformation
+from prompt_toolkit.lexers import SimpleLexer
 from prompt_toolkit.selection import SelectionType
+from prompt_toolkit.widgets.toolbars import CompletionsToolbar, ArgToolbar, SearchToolbar, ValidationToolbar, SystemToolbar
 
 from .filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
 from .utils import if_mousedown
@@ -193,7 +191,7 @@ def python_sidebar_help(python_input):
             style=token,
             height=Dimension(min=3)),
         filter=ShowSidebar(python_input) &
-               Condition(lambda: python_input.show_sidebar_help) & ~IsDone())
+               Condition(lambda: python_input.show_sidebar_help) & ~is_done)
 
 
 def signature_toolbar(python_input):
@@ -257,12 +255,12 @@ def signature_toolbar(python_input):
             # Show only when there is a signature
             HasSignature(python_input) &
             # And there are no completions to be shown. (would cover signature pop-up.)
-            ~(HasCompletions() & (show_completions_menu(python_input) |
+            ~(has_completions & (show_completions_menu(python_input) |
                                    show_multi_column_completions_menu(python_input)))
             # Signature needs to be shown.
             & ShowSignature(python_input) &
             # Not done yet.
-            ~IsDone())
+            ~is_done)
 
 
 class PythonPromptMargin(PromptMargin):
@@ -277,13 +275,16 @@ class PythonPromptMargin(PromptMargin):
             return python_input.all_prompt_styles[python_input.prompt_style]
 
         def get_prompt():
-            return get_prompt_style().in_tokens()
+            return get_prompt_style().in_prompt()
 
-        def get_continuation_prompt(width):
-            return get_prompt_style().in2_tokens(width)
+        def get_continuation(width, line_number, is_soft_wrap):
+            if python_input.show_line_numbers and not is_soft_wrap:
+                text = ('%i ' % (line_number + 1)).rjust(width)
+                return [('class:line-number', text)]
+            else:
+                return get_prompt_style().in2_prompt(width)
 
-        super(PythonPromptMargin, self).__init__(get_prompt, get_continuation_prompt,
-                show_numbers=Condition(lambda: python_input.show_line_numbers))
+        super(PythonPromptMargin, self).__init__(get_prompt, get_continuation)
 
 
 def status_bar(python_input):
@@ -338,7 +339,7 @@ def status_bar(python_input):
 
     return ConditionalContainer(
             content=Window(content=FormattedTextControl(get_text_fragments), style=TB),
-            filter=~IsDone() & RendererHeightIsKnown() &
+            filter=~is_done & renderer_height_is_known &
                  Condition(lambda: python_input.show_status_bar and
                                       not python_input.show_exit_confirmation))
 
@@ -354,16 +355,22 @@ def get_inputmode_fragments(python_input):
         python_input.vi_mode = not python_input.vi_mode
 
     token = 'class:status-toolbar'
-    input_mode_t = 'class:status-toolbar,input-mode'
+    input_mode_t = 'class:status-toolbar.input-mode'
 
     mode = app.vi_state.input_mode
     result = []
     append = result.append
 
-    append((token + 'class:input-mode', '[F4] ', toggle_vi_mode))
+    append((input_mode_t, '[F4] ', toggle_vi_mode))
 
     # InputMode
     if python_input.vi_mode:
+        recording_register = app.vi_state.recording_register
+        if recording_register:
+            append((token, ' '))
+            append((token + ' class:record', 'RECORD({})'.format(recording_register)))
+            append((token, ' - '))
+
         if bool(app.current_buffer.selection_state):
             if app.current_buffer.selection_state.type == SelectionType.LINES:
                 append((input_mode_t, 'Vi (VISUAL LINE)', toggle_vi_mode))
@@ -383,6 +390,11 @@ def get_inputmode_fragments(python_input):
             append((input_mode_t, 'Vi (REPLACE)', toggle_vi_mode))
             append((token, ' '))
     else:
+        if app.emacs_state.is_recording:
+            append((token, ' '))
+            append((token + ' class:record', 'RECORD'))
+            append((token, ' - '))
+
         append((input_mode_t, 'Emacs', toggle_vi_mode))
         append((token, ' '))
 
@@ -420,7 +432,7 @@ def show_sidebar_button_info(python_input):
             style='class:status-toolbar',
             height=Dimension.exact(1),
             width=Dimension.exact(width)),
-        filter=~IsDone() & RendererHeightIsKnown() &
+        filter=~is_done & renderer_height_is_known &
             Condition(lambda: python_input.show_status_bar and
                                   not python_input.show_exit_confirmation))
 
@@ -437,7 +449,7 @@ def exit_confirmation(python_input, style='class:exit-confirmation'):
             (style, '  \n'),
         ]
 
-    visible = ~IsDone() & Condition(lambda: python_input.show_exit_confirmation)
+    visible = ~is_done & Condition(lambda: python_input.show_exit_confirmation)
 
     return ConditionalContainer(
         content=Window(FormattedTextControl(get_text_fragments), style=style),   # , has_focus=visible)),
@@ -461,7 +473,7 @@ def meta_enter_message(python_input):
                 python_input.accept_input_on_enter is None) and
             '\n' in b.text)
 
-    visible = ~IsDone() & HasFocus(DEFAULT_BUFFER) & Condition(extra_condition)
+    visible = ~is_done & has_focus(DEFAULT_BUFFER) & Condition(extra_condition)
 
     return ConditionalContainer(
         content=Window(FormattedTextControl(get_text_fragments)),
@@ -498,22 +510,23 @@ def create_layout(python_input,
                 buffer=python_input.default_buffer,
                 search_buffer_control=search_toolbar.control,
                 lexer=lexer,
-                input_processor=merge_processors([
+                include_default_input_processors=False,
+                input_processors=[
                     ConditionalProcessor(
-                        processor=HighlightSearchProcessor(preview_search=True),
-                        filter=HasFocus(SEARCH_BUFFER) | HasFocus(search_toolbar.control),
+                        processor=HighlightIncrementalSearchProcessor(),
+                        filter=has_focus(SEARCH_BUFFER) | has_focus(search_toolbar.control),
                     ),
                     HighlightSelectionProcessor(),
                     DisplayMultipleCursors(),
                     # Show matching parentheses, but only while editing.
                     ConditionalProcessor(
                         processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                        filter=HasFocus(DEFAULT_BUFFER) & ~IsDone() &
+                        filter=has_focus(DEFAULT_BUFFER) & ~is_done &
                             Condition(lambda: python_input.highlight_matching_parenthesis)),
                     ConditionalProcessor(
                         processor=AppendAutoSuggestion(),
-                        filter=~IsDone())
-                ] + extra_buffer_processors),
+                        filter=~is_done)
+                ] + extra_buffer_processors,
                 menu_position=menu_position,
 
                 # Make sure that we always see the result of an reverse-i-search:
@@ -542,7 +555,7 @@ def create_layout(python_input,
                               ycursor=True,
                               content=ConditionalContainer(
                                   content=CompletionsMenu(
-                                      scroll_offset=Integer.from_callable(
+                                      scroll_offset=(
                                           lambda: python_input.completion_menu_scroll_offset),
                                       max_height=12),
                                   filter=show_completions_menu(python_input))),
@@ -576,7 +589,7 @@ def create_layout(python_input,
                         height=D.exact(1),
                         char='\u2500',
                         style='class:separator'),
-                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone()),
+                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~is_done),
                 ConditionalContainer(
                     content=Window(
                         BufferControl(
@@ -585,8 +598,7 @@ def create_layout(python_input,
                             #lexer=PythonLexer,
                         ),
                         height=D(max=12)),
-                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~IsDone(),
-                ),
+                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~is_done),
             ]),
             ConditionalContainer(
                 content=HSplit([
@@ -594,7 +606,7 @@ def create_layout(python_input,
                     Window(style='class:sidebar,separator', height=1),
                     python_sidebar_navigation(python_input),
                 ]),
-                filter=ShowSidebar(python_input) & ~IsDone())
+                filter=ShowSidebar(python_input) & ~is_done)
         ]),
     ] + extra_toolbars + [
         VSplit([
