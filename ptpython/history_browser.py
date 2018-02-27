@@ -418,6 +418,10 @@ def create_key_bindings(history, python_input, history_mapping):
         b = event.current_buffer
         line_no = b.document.cursor_position_row
 
+        if not history_mapping.history_lines:
+            # If we've no history, then nothing to do
+            return
+
         if line_no in history_mapping.selected_lines:
             # Remove line.
             history_mapping.selected_lines.remove(line_no)
