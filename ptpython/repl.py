@@ -153,6 +153,10 @@ class PythonRepl(PythonInput):
         # Instead of just calling ``traceback.format_exc``, we take the
         # traceback and skip the bottom calls of this framework.
         t, v, tb = sys.exc_info()
+
+        # Required for pdb.post_mortem() to work.
+        sys.last_type, sys.last_value, sys.last_traceback = t, v, tb
+
         tblist = traceback.extract_tb(tb)
 
         for line_nr, tb_tuple in enumerate(tblist):
