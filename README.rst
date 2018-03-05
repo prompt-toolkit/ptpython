@@ -191,6 +191,6 @@ Special thanks to
 .. |Build Status| image:: https://api.travis-ci.org/jonathanslenders/ptpython.svg?branch=master
     :target: https://travis-ci.org/jonathanslenders/ptpython#
 
-.. |PyPI| image:: https://pypip.in/version/prompt-toolkit/badge.svg
+.. |PyPI| image:: https://img.shields.io/pypi/v/prompt-toolkit.svg
     :target: https://pypi.python.org/pypi/prompt-toolkit/
     :alt: Latest Version
