@@ -74,6 +74,20 @@ Embedding the REPL in any Python application is easy:
     from ptpython.repl import embed
     embed(globals(), locals())
 
+You can make ptpython your default Python REPL by creating a `PYTHONSTARTUP file
+<https://docs.python.org/3/tutorial/appendix.html#the-interactive-startup-file>`_ containing code
+like this:
+
+.. code:: python
+
+   import sys
+   try:
+       from ptpython.repl import embed
+   except ImportError:
+       print("ptpython is not available: falling back to standard prompt")
+   else:
+       sys.exit(embed(globals(), locals()))
+
 
 Multiline editing
 *****************
