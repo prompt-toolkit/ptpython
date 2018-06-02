@@ -22,6 +22,11 @@ def configure(repl):
                 (Token.In.Number, '%s' % repl.current_statement_index),
                 (Token.In, '] >>: '),
             ]
+        
+        def in2_tokens(self, cli, width):
+           return [
+                (Token.In, '...: '.rjust(width)),
+            ]
 
         def out_tokens(self, cli):
             return [
