@@ -339,7 +339,7 @@ class PythonInput(object):
         self._current_style = self._generate_style()
 
     def _use_color_depth(self, depth):
-        get_app().color_depth = depth
+        get_app()._color_depth = depth
 
     def _generate_style(self):
         """
