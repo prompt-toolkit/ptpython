@@ -49,7 +49,7 @@ class PythonRepl(PythonInput):
         if self._startup_paths:
             for path in self._startup_paths:
                 if os.path.exists(path):
-                    with open(path, 'r') as f:
+                    with open(path, 'rb') as f:
                         code = compile(f.read(), path, 'exec')
                         six.exec_(code, self.get_globals(), self.get_locals())
                 else:
@@ -255,7 +255,7 @@ def run_config(repl, config_file='~/.ptpython/config.py'):
     try:
         namespace = {}
 
-        with open(config_file, 'r') as f:
+        with open(config_file, 'rb') as f:
             code = compile(f.read(), config_file, 'exec')
             six.exec_(code, namespace, namespace)
 

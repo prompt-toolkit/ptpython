@@ -52,7 +52,10 @@ def run():
     # When a file has been given, run that, otherwise start the shell.
     if a['<arg>'] and not a['--interactive']:
         sys.argv = a['<arg>']
-        six.exec_(compile(open(a['<arg>'][0], "rb").read(), a['<arg>'][0], 'exec'))
+        path = a['<arg>'][0]
+        with open(path, 'rb') as f:
+            code = compile(f.read(), path, 'exec')
+            six.exec_(code)
 
     # Run interactive shell.
     else:
