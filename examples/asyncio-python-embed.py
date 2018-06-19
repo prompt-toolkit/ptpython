@@ -45,8 +45,8 @@ def interactive_shell():
 
 
 def main():
-    asyncio.async(print_counter())
-    asyncio.async(interactive_shell())
+    asyncio.ensure_future(print_counter())
+    asyncio.ensure_future(interactive_shell())
 
     loop.run_forever()
     loop.close()

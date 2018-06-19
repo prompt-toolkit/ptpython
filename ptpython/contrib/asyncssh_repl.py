@@ -92,7 +92,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         self._chan = chan
 
         # Run REPL interface.
-        f = asyncio.async(self.cli.run_async())
+        f = asyncio.ensure_future(self.cli.run_async())
 
         # Close channel when done.
         def done(_):
