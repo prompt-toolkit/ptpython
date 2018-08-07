@@ -20,7 +20,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.lexers import PygmentsLexer, DynamicLexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.output.defaults import create_output
-from prompt_toolkit.styles import DynamicStyle
+from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformation, ConditionalStyleTransformation
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
 
@@ -191,6 +191,7 @@ class PythonInput(object):
                                             # with the current input.
 
         self.enable_syntax_highlighting = True
+        self.swap_light_and_dark = False
         self.highlight_matching_parenthesis = False
         self.show_sidebar = False  # Currently show the sidebar.
         self.show_sidebar_help = True # When the sidebar is visible, also show the help text.
@@ -228,6 +229,7 @@ class PythonInput(object):
             self._current_code_style_name = 'win32'
 
         self._current_style = self._generate_style()
+        self.color_depth = color_depth or ColorDepth.default()
 
         # Options to be configurable from the sidebar.
         self.options = self._create_options()
@@ -246,7 +248,7 @@ class PythonInput(object):
         self.output = output or create_output()
         self.input = input or create_input(sys.stdin)
 
-        self.app = self._create_application(color_depth)
+        self.app = self._create_application()
 
         if vi_mode:
             self.app.editing_mode = EditingMode.VI
@@ -339,7 +341,7 @@ class PythonInput(object):
         self._current_style = self._generate_style()
 
     def _use_color_depth(self, depth):
-        get_app()._color_depth = depth
+        self.color_depth = depth
 
     def _generate_style(self):
         """
@@ -479,6 +481,9 @@ class PythonInput(object):
                 simple_option(title='Syntax highlighting',
                               description='Use colors for syntax highligthing',
                               field_name='enable_syntax_highlighting'),
+                simple_option(title='Swap light/dark colors',
+                              description='Swap light and dark colors.',
+                              field_name='swap_light_and_dark'),
                 Option(title='Code',
                        description='Color scheme to use for the Python code.',
                        get_current_value=lambda: self._current_code_style_name,
@@ -493,14 +498,14 @@ class PythonInput(object):
                        ),
                 Option(title='Color depth',
                        description='Monochrome (1 bit), 16 ANSI colors (4 bit),\n256 colors (8 bit), or 24 bit.',
-                       get_current_value=lambda: COLOR_DEPTHS[get_app().color_depth],
+                       get_current_value=lambda: COLOR_DEPTHS[self.color_depth],
                        get_values=lambda: dict(
                            (name, partial(self._use_color_depth, depth)) for depth, name in COLOR_DEPTHS.items())
                        ),
             ]),
         ]
 
-    def _create_application(self, color_depth):
+    def _create_application(self):
         """
         Create an `Application` instance.
         """
@@ -524,10 +529,13 @@ class PythonInput(object):
                     self.extra_key_bindings,
                     Condition(lambda: not self.show_sidebar))
             ]),
-            color_depth=color_depth,
+            color_depth=lambda: self.color_depth,
             paste_mode=Condition(lambda: self.paste_mode),
             mouse_support=Condition(lambda: self.enable_mouse_support),
             style=DynamicStyle(lambda: self._current_style),
+            style_transformation=ConditionalStyleTransformation(
+                SwapLightAndDarkStyleTransformation(),
+                filter=Condition(lambda: self.swap_light_and_dark)),
             include_default_pygments_style=False,
             reverse_vi_search_direction=True)
 
