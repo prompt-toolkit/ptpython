@@ -21,7 +21,7 @@ setup(
     packages=find_packages('.'),
     install_requires = [
         'docopt',
-        'jedi>=0.9.0',
+        'jedi>=0.9.0,<=0.11.1',
         'prompt_toolkit>=2.0.0,<2.1.0',
         'pygments',
     ],
