@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+2.0.2: 2018-09-30
+-----------------
+
+Fixes:
+- Don't crash the history browser when there was no history.
+- Set last exception in the sys module, when an exception was raised.
+- Require prompt_toolkit 2.0.5.
+
+
 2.0.1: 2018-09-30
 -----------------
 
