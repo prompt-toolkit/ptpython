@@ -154,6 +154,12 @@ class PythonCompleter(Completer):
                     # In jedi.api.helpers.py: 144, in get_stack_at_position
                     # raise SystemError("This really shouldn't happen. There's a bug in Jedi.")
                     pass
+                except NotImplementedError:
+                    # See: https://github.com/jonathanslenders/ptpython/issues/223
+                    pass
+                except Exception:
+                    # Supress ass other Jedi exceptions.
+                    pass
                 else:
                     for c in completions:
                         yield Completion(c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
