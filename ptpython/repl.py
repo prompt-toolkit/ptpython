@@ -99,6 +99,11 @@ class PythonRepl(PythonInput):
         """
         output = self.app.output
 
+        # WORKAROUND: Due to a bug in Jedi, the current directory is removed
+        # from sys.path. See: https://github.com/davidhalter/jedi/issues/1148
+        if '' not in sys.path:
+            sys.path.insert(0, '')
+
         def compile_with_flags(code, mode):
             " Compile code with the right compiler flags. "
             return compile(code, '<stdin>', mode,
