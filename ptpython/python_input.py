@@ -129,7 +129,7 @@ class PythonInput(object):
     ::
 
         python_input = PythonInput(...)
-        python_code = python_input.run()
+        python_code = python_input.app.run()
     """
     def __init__(self,
                  get_globals=None, get_locals=None, history_filename=None,
