@@ -257,6 +257,7 @@ class PythonInput(object):
         app = get_app()
         app.exit(result=buff.text)
         app.pre_run_callables.append(buff.reset)
+        return True  # Keep text, we call 'reset' later on.
 
     @property
     def option_count(self):
