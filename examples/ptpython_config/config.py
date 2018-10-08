@@ -141,7 +141,7 @@ def configure(repl):
     @repl.add_key_binding('j', 'j', filter=ViInsertMode())
     def _(event):
         " Map 'jj' to Escape. "
-        event.cli.input_processor.feed(KeyPress(Keys.Escape))
+        event.cli.key_processor.feed(KeyPress(Keys.Escape))
     """
 
     # Custom key binding for some simple autocorrection while typing.
