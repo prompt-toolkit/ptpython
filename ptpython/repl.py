@@ -154,6 +154,7 @@ class PythonRepl(PythonInput):
 
                     print_formatted_text(
                         formatted_output, style=self._current_style,
+                        style_transformation=self.style_transformation,
                         include_default_pygments_style=False)
 
             # If not a valid `eval` expression, run using `exec` instead.
@@ -202,6 +203,7 @@ class PythonRepl(PythonInput):
 
         print_formatted_text(
             PygmentsTokens(tokens), style=self._current_style,
+            style_transformation=self.style_transformation,
             include_default_pygments_style=False)
 
         output.write('%s\n' % e)

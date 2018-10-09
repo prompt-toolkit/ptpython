@@ -20,7 +20,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.lexers import PygmentsLexer, DynamicLexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.output.defaults import create_output
-from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformation, ConditionalStyleTransformation
+from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformation, ConditionalStyleTransformation, AdjustBrightnessStyleTransformation, merge_style_transformations
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
 
@@ -231,6 +231,9 @@ class PythonInput(object):
         self._current_style = self._generate_style()
         self.color_depth = color_depth or ColorDepth.default()
 
+        self.max_brightness = 1.0
+        self.min_brightness = 0.0
+
         # Options to be configurable from the sidebar.
         self.options = self._create_options()
         self.selected_option_index = 0
@@ -247,6 +250,15 @@ class PythonInput(object):
 
         self.output = output or create_output()
         self.input = input or create_input(sys.stdin)
+
+        self.style_transformation = merge_style_transformations([
+            ConditionalStyleTransformation(
+                SwapLightAndDarkStyleTransformation(),
+                filter=Condition(lambda: self.swap_light_and_dark)),
+            AdjustBrightnessStyleTransformation(
+                lambda: self.min_brightness,
+                lambda: self.max_brightness),
+        ])
 
         self.app = self._create_application()
 
@@ -344,6 +356,14 @@ class PythonInput(object):
     def _use_color_depth(self, depth):
         self.color_depth = depth
 
+    def _set_min_brightness(self, value):
+        self.min_brightness = value
+        self.max_brightness = max(self.max_brightness, value)
+
+    def _set_max_brightness(self, value):
+        self.max_brightness = value
+        self.min_brightness = min(self.min_brightness, value)
+
     def _generate_style(self):
         """
         Create new Style instance.
@@ -383,6 +403,8 @@ class PythonInput(object):
             return Option(title=title, description=description,
                           get_values=get_values,
                           get_current_value=get_current_value)
+
+        brightness_values = [1.0 / 20 * value for value in range(0, 21)]
 
         return [
             OptionCategory('Input', [
@@ -503,6 +525,20 @@ class PythonInput(object):
                        get_values=lambda: dict(
                            (name, partial(self._use_color_depth, depth)) for depth, name in COLOR_DEPTHS.items())
                        ),
+                Option(title='Min brightness',
+                       description='Minimum brightness for the color scheme (default=0.0).',
+                       get_current_value=lambda: '%.2f' % self.min_brightness,
+                       get_values=lambda: dict(
+                           ('%.2f' % value, partial(self._set_min_brightness, value))
+                            for value in brightness_values)
+                       ),
+                Option(title='Max brightness',
+                       description='Maximum brightness for the color scheme (default=1.0).',
+                       get_current_value=lambda: '%.2f' % self.max_brightness,
+                       get_values=lambda: dict(
+                           ('%.2f' % value, partial(self._set_max_brightness, value))
+                            for value in brightness_values)
+                       ),
             ]),
         ]
 
@@ -534,9 +570,7 @@ class PythonInput(object):
             paste_mode=Condition(lambda: self.paste_mode),
             mouse_support=Condition(lambda: self.enable_mouse_support),
             style=DynamicStyle(lambda: self._current_style),
-            style_transformation=ConditionalStyleTransformation(
-                SwapLightAndDarkStyleTransformation(),
-                filter=Condition(lambda: self.swap_light_and_dark)),
+            style_transformation=self.style_transformation,
             include_default_pygments_style=False,
             reverse_vi_search_direction=True)
 
