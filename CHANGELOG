@@ -1,6 +1,12 @@
 CHANGELOG
 =========
 
+2.0.3: 2018-10-12
+-----------------
+
+- Allow changing the min/max brightness.
+- Some changes for compatibility with the latest prompt_toolkit.
+
 2.0.2: 2018-09-30
 -----------------
 
