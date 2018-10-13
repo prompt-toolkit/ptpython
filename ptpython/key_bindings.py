@@ -144,15 +144,16 @@ def load_python_bindings(python_input):
     @handle('c-d', filter=~sidebar_visible &
             has_focus(python_input.default_buffer) &
             Condition(lambda:
-                # Only when the `confirm_exit` flag is set.
-                python_input.confirm_exit and
-                # And the current buffer is empty.
+                # The current buffer is empty.
                 not get_app().current_buffer.text))
     def _(event):
         """
         Override Control-D exit, to ask for confirmation.
         """
-        python_input.show_exit_confirmation = True
+        if python_input.confirm_exit:
+            python_input.show_exit_confirmation = True
+        else:
+            event.app.exit(exception=EOFError)
 
     @handle('c-c', filter=has_focus(python_input.default_buffer))
     def _(event):
