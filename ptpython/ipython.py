@@ -11,13 +11,15 @@ offer.
 from __future__ import unicode_literals, print_function
 
 from prompt_toolkit.completion import Completion, Completer
-from prompt_toolkit.contrib.completers import PathCompleter, WordCompleter, SystemCompleter
+from prompt_toolkit.completion import PathCompleter, WordCompleter
+from prompt_toolkit.contrib.completers import SystemCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
-from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.layout.lexers import PygmentsLexer, SimpleLexer
+from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.lexers import PygmentsLexer, SimpleLexer
+from prompt_toolkit.styles import Style
 
 from .python_input import PythonInput, PythonValidator, PythonCompleter
 from .style import default_ui_style
@@ -37,39 +39,16 @@ __all__ = (
 
 class IPythonPrompt(PromptStyle):
     """
-    PromptStyle that uses the templates, as set by IPython.
-    Usually, something like "In [1]:".
-    """
-    def __init__(self, prompt_manager):
-        self.prompt_manager = prompt_manager
-
-    def in_prompt(self):
-        text = self.prompt_manager.render('in', color=False, just=False)
-        return [('class:in', text)]
-
-    def in2_prompt(self, width):
-        text = self.prompt_manager.render('in2', color=False, just=False)
-        return [('class:in', text.rjust(width))]
-
-    def out_tokens(self):
-        # This function is currently not used by IPython. But for completeness,
-        # it would look like this.
-        text = self.prompt_manager.render('out', color=False, just=False)
-        return [('class:out', text)]
-
-
-class IPython5Prompt(PromptStyle):
-    """
     Style for IPython >5.0, use the prompt_toolkit tokens directly.
     """
     def __init__(self, prompts):
         self.prompts = prompts
 
     def in_prompt(self):
-        return self.prompts.in_prompt_tokens()
+        return PygmentsTokens(self.prompts.in_prompt_tokens())
 
     def in2_prompt(self, width):
-        return self.prompts.continuation_prompt_tokens()
+        return PygmentsTokens(self.prompts.continuation_prompt_tokens())
 
     def out_prompt(self):
         return []
@@ -183,29 +162,21 @@ class IPythonInput(PythonInput):
         super(IPythonInput, self).__init__(*a, **kw)
         self.ipython_shell = ipython_shell
 
-        # Prompt for IPython < 5.0
-        if hasattr(ipython_shell, 'prompt_manager'):
-            self.all_prompt_styles['ipython'] = IPythonPrompt(ipython_shell.prompt_manager)
-            self.prompt_style = 'ipython'
-
-        # Prompt for IPython >=5.0:
-        if hasattr(ipython_shell, 'prompts'):
-            self.all_prompt_styles['ipython'] = IPython5Prompt(ipython_shell.prompts)
-            self.prompt_style = 'ipython'
-
+        self.all_prompt_styles['ipython'] = IPythonPrompt(ipython_shell.prompts)
+        self.prompt_style = 'ipython'
 
         # UI style for IPython. Add tokens that are used by IPython>5.0
         style_dict = {}
         style_dict.update(default_ui_style)
         style_dict.update({
-            'prompt':        '#009900',
-            'prompt-num':     '#00ff00 bold',
-            'out-prompt':     '#990000',
-            'out-prompt-num':  '#ff0000 bold',
+            'pygments.prompt':        '#009900',
+            'pygments.prompt-num':     '#00ff00 bold',
+            'pygments.out-prompt':     '#990000',
+            'pygments.out-prompt-num':  '#ff0000 bold',
         })
 
         self.ui_styles = {
-            'default': style_dict,
+            'default': Style.from_dict(style_dict),
         }
         self.use_ui_colorscheme('default')
 
@@ -223,44 +194,30 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
         configure = kw.pop('configure', None)
         title = kw.pop('title', None)
 
+        # Don't ask IPython to confirm for exit. We have our own exit prompt.
+        self.confirm_exit = False
+
         super(InteractiveShellEmbed, self).__init__(*a, **kw)
 
         def get_globals():
             return self.user_ns
 
-        ipython_input = IPythonInput(
+        python_input = IPythonInput(
             self,
             get_globals=get_globals, vi_mode=vi_mode,
             history_filename=history_filename)
 
         if title:
-            ipython_input.terminal_title = title
+            python_input.terminal_title = title
 
         if configure:
-            configure(ipython_input)
-            ipython_input.prompt_style = 'ipython'  # Don't take from config.
+            configure(python_input)
+            python_input.prompt_style = 'ipython'  # Don't take from config.
 
-        self._cli = CommandLineInterface(
-            application=ipython_input.create_application())
+        self.python_input = python_input
 
     def prompt_for_code(self):
-        # IPython 5.0 calls `prompt_for_code` instead of `raw_input`.
-        return self.raw_input(self)
-
-    def raw_input(self, prompt=''):
-        print('')
-        try:
-            string = self._cli.run(reset_current_buffer=True).text
-
-            # In case of multiline input, make sure to append a newline to the input,
-            # otherwise, IPython will ask again for more input in some cases.
-            if '\n' in string:
-                return string + '\n\n'
-            else:
-                return string
-        except EOFError:
-            self.ask_exit()
-            return ''
+        return self.python_input.app.run()
 
 
 def initialize_extensions(shell, extensions):

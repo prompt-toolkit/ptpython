@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import is_done, has_completions, renderer_height_is_known, has_focus, Condition
-from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import Window, HSplit, VSplit, FloatContainer, Float, ConditionalContainer, ScrollOffsets
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
@@ -275,7 +275,7 @@ class PythonPromptMargin(PromptMargin):
             return python_input.all_prompt_styles[python_input.prompt_style]
 
         def get_prompt():
-            return get_prompt_style().in_prompt()
+            return to_formatted_text(get_prompt_style().in_prompt())
 
         def get_continuation(width, line_number, is_soft_wrap):
             if python_input.show_line_numbers and not is_soft_wrap:
