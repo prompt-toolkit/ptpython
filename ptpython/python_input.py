@@ -28,7 +28,7 @@ from prompt_toolkit.validation import ConditionalValidator
 from .completer import PythonCompleter
 from .history_browser import History
 from .key_bindings import load_python_bindings, load_sidebar_bindings, load_confirm_exit_bindings
-from .layout import create_layout, CompletionVisualisation
+from .layout import PtPythonLayout, CompletionVisualisation
 from .prompt_style import IPythonPrompt, ClassicPrompt
 from .style import get_all_code_styles, get_all_ui_styles, generate_style
 from .utils import get_jedi_script_from_document
@@ -260,6 +260,14 @@ class PythonInput(object):
                 lambda: self.min_brightness,
                 lambda: self.max_brightness),
         ])
+        self.ptpython_layout = PtPythonLayout(
+            self,
+            lexer=DynamicLexer(
+                lambda: self._lexer if self.enable_syntax_highlighting else SimpleLexer()),
+            input_buffer_height=self._input_buffer_height,
+            extra_buffer_processors=self._extra_buffer_processors,
+            extra_body=self._extra_layout_body,
+            extra_toolbars=self._extra_toolbars)
 
         self.app = self._create_application()
 
@@ -550,14 +558,7 @@ class PythonInput(object):
         return Application(
             input=self.input,
             output=self.output,
-            layout=create_layout(
-                self,
-                lexer=DynamicLexer(
-                    lambda: self._lexer if self.enable_syntax_highlighting else SimpleLexer()),
-                input_buffer_height=self._input_buffer_height,
-                extra_buffer_processors=self._extra_buffer_processors,
-                extra_body=self._extra_layout_body,
-                extra_toolbars=self._extra_toolbars),
+            layout=self.ptpython_layout.layout,
             key_bindings=merge_key_bindings([
                 load_python_bindings(self),
                 load_auto_suggest_bindings(),

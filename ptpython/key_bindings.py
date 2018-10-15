@@ -53,6 +53,10 @@ def load_python_bindings(python_input):
         Show/hide sidebar.
         """
         python_input.show_sidebar = not python_input.show_sidebar
+        if python_input.show_sidebar:
+            event.app.layout.focus(python_input.ptpython_layout.sidebar)
+        else:
+            event.app.layout.focus_last()
 
     @handle('f3')
     def _(event):
@@ -211,6 +215,7 @@ def load_sidebar_bindings(python_input):
     def _(event):
         " Hide sidebar. "
         python_input.show_sidebar = False
+        event.app.layout.focus_last()
 
     return bindings
 

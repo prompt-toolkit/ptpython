@@ -28,7 +28,7 @@ import platform
 import sys
 
 __all__ = (
-    'create_layout',
+    'PtPythonLayout',
     'CompletionVisualisation',
 )
 
@@ -480,139 +480,143 @@ def meta_enter_message(python_input):
         filter=visible)
 
 
-def create_layout(python_input,
-                  lexer=PythonLexer,
-                  extra_body=None, extra_toolbars=None,
-                  extra_buffer_processors=None, input_buffer_height=None):
-    D = Dimension
-    extra_body = [extra_body] if extra_body else []
-    extra_toolbars = extra_toolbars or []
-    extra_buffer_processors = extra_buffer_processors or []
-    input_buffer_height = input_buffer_height or D(min=6)
+class PtPythonLayout(object):
+    def __init__(self, python_input, lexer=PythonLexer, extra_body=None,
+                 extra_toolbars=None, extra_buffer_processors=None,
+                 input_buffer_height=None):
+        D = Dimension
+        extra_body = [extra_body] if extra_body else []
+        extra_toolbars = extra_toolbars or []
+        extra_buffer_processors = extra_buffer_processors or []
+        input_buffer_height = input_buffer_height or D(min=6)
 
-    search_toolbar = SearchToolbar(python_input.search_buffer)
+        search_toolbar = SearchToolbar(python_input.search_buffer)
 
-    def create_python_input_window():
-        def menu_position():
-            """
-            When there is no autocompletion menu to be shown, and we have a signature,
-            set the pop-up position at `bracket_start`.
-            """
-            b = python_input.default_buffer
+        def create_python_input_window():
+            def menu_position():
+                """
+                When there is no autocompletion menu to be shown, and we have a
+                signature, set the pop-up position at `bracket_start`.
+                """
+                b = python_input.default_buffer
 
-            if b.complete_state is None and python_input.signatures:
-                row, col = python_input.signatures[0].bracket_start
-                index = b.document.translate_row_col_to_index(row - 1, col)
-                return index
+                if b.complete_state is None and python_input.signatures:
+                    row, col = python_input.signatures[0].bracket_start
+                    index = b.document.translate_row_col_to_index(row - 1, col)
+                    return index
 
-        return Window(
-            BufferControl(
-                buffer=python_input.default_buffer,
-                search_buffer_control=search_toolbar.control,
-                lexer=lexer,
-                include_default_input_processors=False,
-                input_processors=[
-                    ConditionalProcessor(
-                        processor=HighlightIncrementalSearchProcessor(),
-                        filter=has_focus(SEARCH_BUFFER) | has_focus(search_toolbar.control),
-                    ),
-                    HighlightSelectionProcessor(),
-                    DisplayMultipleCursors(),
-                    # Show matching parentheses, but only while editing.
-                    ConditionalProcessor(
-                        processor=HighlightMatchingBracketProcessor(chars='[](){}'),
-                        filter=has_focus(DEFAULT_BUFFER) & ~is_done &
-                            Condition(lambda: python_input.highlight_matching_parenthesis)),
-                    ConditionalProcessor(
-                        processor=AppendAutoSuggestion(),
-                        filter=~is_done)
-                ] + extra_buffer_processors,
-                menu_position=menu_position,
-
-                # Make sure that we always see the result of an reverse-i-search:
-                preview_search=True,
-            ),
-            left_margins=[PythonPromptMargin(python_input)],
-            # Scroll offsets. The 1 at the bottom is important to make sure the
-            # cursor is never below the "Press [Meta+Enter]" message which is a float.
-            scroll_offsets=ScrollOffsets(bottom=1, left=4, right=4),
-            # As long as we're editing, prefer a minimal height of 6.
-            height=(lambda: (
-                None if get_app().is_done or python_input.show_exit_confirmation
-                        else input_buffer_height)),
-            wrap_lines=Condition(lambda: python_input.wrap_lines),
-        )
-
-    root_container = HSplit([
-        VSplit([
-            HSplit([
-                FloatContainer(
-                    content=HSplit(
-                        [create_python_input_window()] + extra_body
-                    ),
-                    floats=[
-                        Float(xcursor=True,
-                              ycursor=True,
-                              content=ConditionalContainer(
-                                  content=CompletionsMenu(
-                                      scroll_offset=(
-                                          lambda: python_input.completion_menu_scroll_offset),
-                                      max_height=12),
-                                  filter=show_completions_menu(python_input))),
-                        Float(xcursor=True,
-                              ycursor=True,
-                              content=ConditionalContainer(
-                                  content=MultiColumnCompletionsMenu(),
-                                  filter=show_multi_column_completions_menu(python_input))),
-                        Float(xcursor=True,
-                              ycursor=True,
-                              content=signature_toolbar(python_input)),
-                        Float(left=2,
-                              bottom=1,
-                              content=exit_confirmation(python_input)),
-                        Float(bottom=0, right=0, height=1,
-                              content=meta_enter_message(python_input),
-                              hide_when_covering_content=True),
-                        Float(bottom=1, left=1, right=0, content=python_sidebar_help(python_input)),
-                    ]),
-                ArgToolbar(),
-                search_toolbar,
-                SystemToolbar(),
-                ValidationToolbar(),
-                ConditionalContainer(
-                    content=CompletionsToolbar(),
-                    filter=show_completions_toolbar(python_input)),
-
-                # Docstring region.
-                ConditionalContainer(
-                    content=Window(
-                        height=D.exact(1),
-                        char='\u2500',
-                        style='class:separator'),
-                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~is_done),
-                ConditionalContainer(
-                    content=Window(
-                        BufferControl(
-                            buffer=python_input.docstring_buffer,
-                            lexer=SimpleLexer(style='class:docstring'),
-                            #lexer=PythonLexer,
+            return Window(
+                BufferControl(
+                    buffer=python_input.default_buffer,
+                    search_buffer_control=search_toolbar.control,
+                    lexer=lexer,
+                    include_default_input_processors=False,
+                    input_processors=[
+                        ConditionalProcessor(
+                            processor=HighlightIncrementalSearchProcessor(),
+                            filter=has_focus(SEARCH_BUFFER) | has_focus(search_toolbar.control),
                         ),
-                        height=D(max=12)),
-                    filter=HasSignature(python_input) & ShowDocstring(python_input) & ~is_done),
-            ]),
-            ConditionalContainer(
-                content=HSplit([
-                    python_sidebar(python_input),
-                    Window(style='class:sidebar,separator', height=1),
-                    python_sidebar_navigation(python_input),
-                ]),
-                filter=ShowSidebar(python_input) & ~is_done)
-        ]),
-    ] + extra_toolbars + [
-        VSplit([
-            status_bar(python_input),
-            show_sidebar_button_info(python_input),
-        ])
-    ])
+                        HighlightSelectionProcessor(),
+                        DisplayMultipleCursors(),
+                        # Show matching parentheses, but only while editing.
+                        ConditionalProcessor(
+                            processor=HighlightMatchingBracketProcessor(chars='[](){}'),
+                            filter=has_focus(DEFAULT_BUFFER) & ~is_done &
+                                Condition(lambda: python_input.highlight_matching_parenthesis)),
+                        ConditionalProcessor(
+                            processor=AppendAutoSuggestion(),
+                            filter=~is_done)
+                    ] + extra_buffer_processors,
+                    menu_position=menu_position,
 
-    return Layout(root_container)
+                    # Make sure that we always see the result of an reverse-i-search:
+                    preview_search=True,
+                ),
+                left_margins=[PythonPromptMargin(python_input)],
+                # Scroll offsets. The 1 at the bottom is important to make sure
+                # the cursor is never below the "Press [Meta+Enter]" message
+                # which is a float.
+                scroll_offsets=ScrollOffsets(bottom=1, left=4, right=4),
+                # As long as we're editing, prefer a minimal height of 6.
+                height=(lambda: (
+                    None if get_app().is_done or python_input.show_exit_confirmation
+                            else input_buffer_height)),
+                wrap_lines=Condition(lambda: python_input.wrap_lines),
+            )
+
+        sidebar = python_sidebar(python_input)
+
+        root_container = HSplit([
+            VSplit([
+                HSplit([
+                    FloatContainer(
+                        content=HSplit(
+                            [create_python_input_window()] + extra_body
+                        ),
+                        floats=[
+                            Float(xcursor=True,
+                                  ycursor=True,
+                                  content=ConditionalContainer(
+                                      content=CompletionsMenu(
+                                          scroll_offset=(
+                                              lambda: python_input.completion_menu_scroll_offset),
+                                          max_height=12),
+                                      filter=show_completions_menu(python_input))),
+                            Float(xcursor=True,
+                                  ycursor=True,
+                                  content=ConditionalContainer(
+                                      content=MultiColumnCompletionsMenu(),
+                                      filter=show_multi_column_completions_menu(python_input))),
+                            Float(xcursor=True,
+                                  ycursor=True,
+                                  content=signature_toolbar(python_input)),
+                            Float(left=2,
+                                  bottom=1,
+                                  content=exit_confirmation(python_input)),
+                            Float(bottom=0, right=0, height=1,
+                                  content=meta_enter_message(python_input),
+                                  hide_when_covering_content=True),
+                            Float(bottom=1, left=1, right=0, content=python_sidebar_help(python_input)),
+                        ]),
+                    ArgToolbar(),
+                    search_toolbar,
+                    SystemToolbar(),
+                    ValidationToolbar(),
+                    ConditionalContainer(
+                        content=CompletionsToolbar(),
+                        filter=show_completions_toolbar(python_input)),
+
+                    # Docstring region.
+                    ConditionalContainer(
+                        content=Window(
+                            height=D.exact(1),
+                            char='\u2500',
+                            style='class:separator'),
+                        filter=HasSignature(python_input) & ShowDocstring(python_input) & ~is_done),
+                    ConditionalContainer(
+                        content=Window(
+                            BufferControl(
+                                buffer=python_input.docstring_buffer,
+                                lexer=SimpleLexer(style='class:docstring'),
+                                #lexer=PythonLexer,
+                            ),
+                            height=D(max=12)),
+                        filter=HasSignature(python_input) & ShowDocstring(python_input) & ~is_done),
+                ]),
+                ConditionalContainer(
+                    content=HSplit([
+                        sidebar,
+                        Window(style='class:sidebar,separator', height=1),
+                        python_sidebar_navigation(python_input),
+                    ]),
+                    filter=ShowSidebar(python_input) & ~is_done)
+            ]),
+        ] + extra_toolbars + [
+            VSplit([
+                status_bar(python_input),
+                show_sidebar_button_info(python_input),
+            ])
+        ])
+
+        self.layout = Layout(root_container)
+        self.sidebar = sidebar
