@@ -9,6 +9,7 @@ from prompt_toolkit.application.run_in_terminal import run_coroutine_in_terminal
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest, ThreadedAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding.bindings.auto_suggest import load_auto_suggest_bindings
+from prompt_toolkit.key_binding.bindings.open_in_editor import load_open_in_editor_bindings
 from prompt_toolkit.completion import ThreadedCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -564,6 +565,9 @@ class PythonInput(object):
                 load_auto_suggest_bindings(),
                 load_sidebar_bindings(self),
                 load_confirm_exit_bindings(self),
+                ConditionalKeyBindings(
+                    load_open_in_editor_bindings(),
+                    Condition(lambda: self.enable_open_in_editor)),
                 # Extra key bindings should not be active when the sidebar is visible.
                 ConditionalKeyBindings(
                     self.extra_key_bindings,

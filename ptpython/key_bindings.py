@@ -47,6 +47,14 @@ def load_python_bindings(python_input):
         """
         event.app.renderer.clear()
 
+    @handle('c-z')
+    def _(event):
+        """
+        Suspend.
+        """
+        if python_input.enable_system_bindings:
+            event.app.suspend_to_background()
+
     @handle('f2')
     def _(event):
         """
