@@ -217,7 +217,11 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
         self.python_input = python_input
 
     def prompt_for_code(self):
-        return self.python_input.app.run()
+        try:
+            return self.python_input.app.run()
+        except KeyboardInterrupt:
+            self.python_input.default_buffer.document = Document()
+            return ''
 
 
 def initialize_extensions(shell, extensions):
