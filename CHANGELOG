@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+2.0.4: 2018-10-30
+-----------------
+
+- Fixed ptipython.
+- Fixed config: setting of color depth.
+- Fixed auto-suggest key bindings.
+- Fixed Control-D key binding for exiting REPL when (confirm_exit=False).
+- Correctly focus/unfocus sidebar.
+- Fixed open_in_editor and suspend key bindings.
+
+
 2.0.3: 2018-10-12
 -----------------
 
