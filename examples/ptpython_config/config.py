@@ -132,9 +132,7 @@ def configure(repl):
     """
     @repl.add_key_binding(Keys.ControlE, Keys.ControlE)
     def _(event):
-        b = event.current_buffer
-        if b.accept_action.is_returnable:
-            b.accept_action.validate_and_handle(event.cli, b)
+        event.current_buffer.validate_and_handle()
     """
 
 
