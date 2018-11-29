@@ -12,7 +12,7 @@ ptpython
 |Build Status|
 
 Ptpython is an advanced Python REPL. It should work on all
-Python versions from 2.6 up to 3.5 and work cross platform (Linux,
+Python versions from 2.6 up to 3.7 and work cross platform (Linux,
 BSD, OS X and Windows).
 
 
