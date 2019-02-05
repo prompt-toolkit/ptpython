@@ -343,14 +343,8 @@ def embed(globals=None, locals=None, configure=None,
                         while True:
                             yield next(iterator)
                     except StopIteration as exc:
-                        if exc.args:
-                            text = exc.args[0]
-                        else:
-                            text = None
-                    try:
-                        repl._process_text(text)
-                    except EOFError:
-                        return
+                        text = exc.args[0]
+                    repl._process_text(text)
         return coroutine()
     else:
         with patch_context:
