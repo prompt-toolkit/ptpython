@@ -20,6 +20,7 @@ from prompt_toolkit.utils import DummyContext
 from prompt_toolkit.shortcuts import set_title, clear_title
 from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
 
 from .python_input import PythonInput
 from .eventloop import inputhook
@@ -331,7 +332,7 @@ def embed(globals=None, locals=None, configure=None,
     app = repl.app
 
     # Start repl.
-    patch_context = app.patch_stdout_context() if patch_stdout else DummyContext()
+    patch_context = patch_stdout_context() if patch_stdout else DummyContext()
 
     if return_asyncio_coroutine: # XXX
         def coroutine():
