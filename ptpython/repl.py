@@ -337,8 +337,20 @@ def embed(globals=None, locals=None, configure=None,
     if return_asyncio_coroutine: # XXX
         def coroutine():
             with patch_context:
-                for future in app.run_async():
-                    yield future
+                while True:
+                    iterator = iter(app.run_async().to_asyncio_future())
+                    try:
+                        while True:
+                            yield next(iterator)
+                    except StopIteration as exc:
+                        if exc.args:
+                            text = exc.args[0]
+                        else:
+                            text = None
+                    try:
+                        repl._process_text(text)
+                    except EOFError:
+                        return
         return coroutine()
     else:
         with patch_context:
