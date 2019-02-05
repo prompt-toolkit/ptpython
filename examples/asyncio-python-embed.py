@@ -38,10 +38,11 @@ def interactive_shell():
     counter variable.
     """
     print('You should be able to read and update the "counter[0]" variable from this shell.')
-    yield from embed(globals=globals(), return_asyncio_coroutine=True, patch_stdout=True)
-
-    # Stop the loop when quitting the repl. (Ctrl-D press.)
-    loop.stop()
+    try:
+        yield from embed(globals=globals(), return_asyncio_coroutine=True, patch_stdout=True)
+    except EOFError:
+        # Stop the loop when quitting the repl. (Ctrl-D press.)
+        loop.stop()
 
 
 def main():
