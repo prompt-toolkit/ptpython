@@ -76,8 +76,7 @@ class PythonRepl(PythonInput):
         if self.terminal_title:
             clear_title()
 
-    def _process_text(self, text):
-        line = self.default_buffer.text
+    def _process_text(self, line):
 
         if line and not line.isspace():
             try:
