@@ -39,7 +39,7 @@ Features
 - Support for `bracketed paste <https://cirw.in/blog/bracketed-paste>`_ [2].
 - Both Vi and Emacs key bindings.
 - Support for double width (Chinese) characters.
-- ... and many other stuff.
+- ... and many other things.
 
 
 [1] Disabled by default. (Enable in the menu.)
