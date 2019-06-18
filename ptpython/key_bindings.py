@@ -1,18 +1,24 @@
-from __future__ import unicode_literals
-
+from prompt_toolkit.application import get_app
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
-from prompt_toolkit.filters import has_selection, has_focus, Condition, vi_insert_mode, emacs_insert_mode, emacs_mode
+from prompt_toolkit.filters import (
+    Condition,
+    emacs_insert_mode,
+    emacs_mode,
+    has_focus,
+    has_selection,
+    vi_insert_mode,
+)
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.application import get_app
+
 from .utils import document_is_multiline_python
 
-__all__ = (
-    'load_python_bindings',
-    'load_sidebar_bindings',
-    'load_confirm_exit_bindings',
-)
+__all__ = [
+    "load_python_bindings",
+    "load_sidebar_bindings",
+    "load_confirm_exit_bindings",
+]
 
 
 @Condition
@@ -40,14 +46,14 @@ def load_python_bindings(python_input):
     sidebar_visible = Condition(lambda: python_input.show_sidebar)
     handle = bindings.add
 
-    @handle('c-l')
+    @handle("c-l")
     def _(event):
         """
         Clear whole screen and render again -- also when the sidebar is visible.
         """
         event.app.renderer.clear()
 
-    @handle('c-z')
+    @handle("c-z")
     def _(event):
         """
         Suspend.
@@ -55,7 +61,7 @@ def load_python_bindings(python_input):
         if python_input.enable_system_bindings:
             event.app.suspend_to_background()
 
-    @handle('f2')
+    @handle("f2")
     def _(event):
         """
         Show/hide sidebar.
@@ -66,42 +72,49 @@ def load_python_bindings(python_input):
         else:
             event.app.layout.focus_last()
 
-    @handle('f3')
+    @handle("f3")
     def _(event):
         """
         Select from the history.
         """
         python_input.enter_history()
 
-    @handle('f4')
+    @handle("f4")
     def _(event):
         """
         Toggle between Vi and Emacs mode.
         """
         python_input.vi_mode = not python_input.vi_mode
 
-    @handle('f6')
+    @handle("f6")
     def _(event):
         """
         Enable/Disable paste mode.
         """
         python_input.paste_mode = not python_input.paste_mode
 
-    @handle('tab', filter= ~sidebar_visible & ~has_selection & tab_should_insert_whitespace)
+    @handle(
+        "tab", filter=~sidebar_visible & ~has_selection & tab_should_insert_whitespace
+    )
     def _(event):
         """
         When tab should insert whitespace, do that instead of completion.
         """
-        event.app.current_buffer.insert_text('    ')
+        event.app.current_buffer.insert_text("    ")
 
     @Condition
     def is_multiline():
         return document_is_multiline_python(python_input.default_buffer.document)
 
-    @handle('enter', filter= ~sidebar_visible & ~has_selection &
-            (vi_insert_mode | emacs_insert_mode) &
-            has_focus(DEFAULT_BUFFER) & ~is_multiline)
-    @handle(Keys.Escape, Keys.Enter, filter= ~sidebar_visible & emacs_mode)
+    @handle(
+        "enter",
+        filter=~sidebar_visible
+        & ~has_selection
+        & (vi_insert_mode | emacs_insert_mode)
+        & has_focus(DEFAULT_BUFFER)
+        & ~is_multiline,
+    )
+    @handle(Keys.Escape, Keys.Enter, filter=~sidebar_visible & emacs_mode)
     def _(event):
         """
         Accept input (for single line input).
@@ -112,14 +125,19 @@ def load_python_bindings(python_input):
             # When the cursor is at the end, and we have an empty line:
             # drop the empty lines, but return the value.
             b.document = Document(
-                text=b.text.rstrip(),
-                cursor_position=len(b.text.rstrip()))
+                text=b.text.rstrip(), cursor_position=len(b.text.rstrip())
+            )
 
             b.validate_and_handle()
 
-    @handle('enter', filter= ~sidebar_visible & ~has_selection &
-            (vi_insert_mode | emacs_insert_mode) &
-            has_focus(DEFAULT_BUFFER) & is_multiline)
+    @handle(
+        "enter",
+        filter=~sidebar_visible
+        & ~has_selection
+        & (vi_insert_mode | emacs_insert_mode)
+        & has_focus(DEFAULT_BUFFER)
+        & is_multiline,
+    )
     def _(event):
         """
         Behaviour of the Enter key.
@@ -134,30 +152,36 @@ def load_python_bindings(python_input):
             """ we consider the cursor at the end when there is no text after
             the cursor, or only whitespace. """
             text = b.document.text_after_cursor
-            return text == '' or (text.isspace() and not '\n' in text)
+            return text == "" or (text.isspace() and not "\n" in text)
 
         if python_input.paste_mode:
             # In paste mode, always insert text.
-            b.insert_text('\n')
+            b.insert_text("\n")
 
-        elif at_the_end(b) and b.document.text.replace(' ', '').endswith(
-                    '\n' * (empty_lines_required - 1)):
+        elif at_the_end(b) and b.document.text.replace(" ", "").endswith(
+            "\n" * (empty_lines_required - 1)
+        ):
             # When the cursor is at the end, and we have an empty line:
             # drop the empty lines, but return the value.
             if b.validate():
                 b.document = Document(
-                    text=b.text.rstrip(),
-                    cursor_position=len(b.text.rstrip()))
+                    text=b.text.rstrip(), cursor_position=len(b.text.rstrip())
+                )
 
                 b.validate_and_handle()
         else:
             auto_newline(b)
 
-    @handle('c-d', filter=~sidebar_visible &
-            has_focus(python_input.default_buffer) &
-            Condition(lambda:
-                # The current buffer is empty.
-                not get_app().current_buffer.text))
+    @handle(
+        "c-d",
+        filter=~sidebar_visible
+        & has_focus(python_input.default_buffer)
+        & Condition(
+            lambda:
+            # The current buffer is empty.
+            not get_app().current_buffer.text
+        ),
+    )
     def _(event):
         """
         Override Control-D exit, to ask for confirmation.
@@ -167,10 +191,10 @@ def load_python_bindings(python_input):
         else:
             event.app.exit(exception=EOFError)
 
-    @handle('c-c', filter=has_focus(python_input.default_buffer))
+    @handle("c-c", filter=has_focus(python_input.default_buffer))
     def _(event):
         " Abort when Control-C has been pressed. "
-        event.app.exit(exception=KeyboardInterrupt, style='class:aborting')
+        event.app.exit(exception=KeyboardInterrupt, style="class:aborting")
 
     return bindings
 
@@ -184,42 +208,44 @@ def load_sidebar_bindings(python_input):
     handle = bindings.add
     sidebar_visible = Condition(lambda: python_input.show_sidebar)
 
-    @handle('up', filter=sidebar_visible)
-    @handle('c-p', filter=sidebar_visible)
-    @handle('k', filter=sidebar_visible)
+    @handle("up", filter=sidebar_visible)
+    @handle("c-p", filter=sidebar_visible)
+    @handle("k", filter=sidebar_visible)
     def _(event):
         " Go to previous option. "
         python_input.selected_option_index = (
-            (python_input.selected_option_index - 1) % python_input.option_count)
+            python_input.selected_option_index - 1
+        ) % python_input.option_count
 
-    @handle('down', filter=sidebar_visible)
-    @handle('c-n', filter=sidebar_visible)
-    @handle('j', filter=sidebar_visible)
+    @handle("down", filter=sidebar_visible)
+    @handle("c-n", filter=sidebar_visible)
+    @handle("j", filter=sidebar_visible)
     def _(event):
         " Go to next option. "
         python_input.selected_option_index = (
-            (python_input.selected_option_index + 1) % python_input.option_count)
+            python_input.selected_option_index + 1
+        ) % python_input.option_count
 
-    @handle('right', filter=sidebar_visible)
-    @handle('l', filter=sidebar_visible)
-    @handle(' ', filter=sidebar_visible)
+    @handle("right", filter=sidebar_visible)
+    @handle("l", filter=sidebar_visible)
+    @handle(" ", filter=sidebar_visible)
     def _(event):
         " Select next value for current option. "
         option = python_input.selected_option
         option.activate_next()
 
-    @handle('left', filter=sidebar_visible)
-    @handle('h', filter=sidebar_visible)
+    @handle("left", filter=sidebar_visible)
+    @handle("h", filter=sidebar_visible)
     def _(event):
         " Select previous value for current option. "
         option = python_input.selected_option
         option.activate_previous()
 
-    @handle('c-c', filter=sidebar_visible)
-    @handle('c-d', filter=sidebar_visible)
-    @handle('c-d', filter=sidebar_visible)
-    @handle('enter', filter=sidebar_visible)
-    @handle('escape', filter=sidebar_visible)
+    @handle("c-c", filter=sidebar_visible)
+    @handle("c-d", filter=sidebar_visible)
+    @handle("c-d", filter=sidebar_visible)
+    @handle("enter", filter=sidebar_visible)
+    @handle("escape", filter=sidebar_visible)
     def _(event):
         " Hide sidebar. "
         python_input.show_sidebar = False
@@ -237,15 +263,15 @@ def load_confirm_exit_bindings(python_input):
     handle = bindings.add
     confirmation_visible = Condition(lambda: python_input.show_exit_confirmation)
 
-    @handle('y', filter=confirmation_visible)
-    @handle('Y', filter=confirmation_visible)
-    @handle('enter', filter=confirmation_visible)
-    @handle('c-d', filter=confirmation_visible)
+    @handle("y", filter=confirmation_visible)
+    @handle("Y", filter=confirmation_visible)
+    @handle("enter", filter=confirmation_visible)
+    @handle("c-d", filter=confirmation_visible)
     def _(event):
         """
         Really quit.
         """
-        event.app.exit(exception=EOFError, style='class:exiting')
+        event.app.exit(exception=EOFError, style="class:exiting")
 
     @handle(Keys.Any, filter=confirmation_visible)
     def _(event):
@@ -265,14 +291,14 @@ def auto_newline(buffer):
 
     if buffer.document.current_line_after_cursor:
         # When we are in the middle of a line. Always insert a newline.
-        insert_text('\n')
+        insert_text("\n")
     else:
         # Go to new line, but also add indentation.
         current_line = buffer.document.current_line_before_cursor.rstrip()
-        insert_text('\n')
+        insert_text("\n")
 
         # Unident if the last line ends with 'pass', remove four spaces.
-        unindent = current_line.rstrip().endswith(' pass')
+        unindent = current_line.rstrip().endswith(" pass")
 
         # Copy whitespace from current line
         current_line2 = current_line[4:] if unindent else current_line
@@ -284,6 +310,6 @@ def auto_newline(buffer):
                 break
 
         # If the last line ends with a colon, add four extra spaces.
-        if current_line[-1:] == ':':
+        if current_line[-1:] == ":":
             for x in range(4):
-                insert_text(' ')
+                insert_text(" ")

@@ -12,9 +12,10 @@ to stdout, it won't break the input line, but instead writes nicely above the
 prompt.
 """
 from __future__ import unicode_literals
-from ptpython.repl import embed
 
 import asyncio
+
+from ptpython.repl import embed
 
 loop = asyncio.get_event_loop()
 counter = [0]
@@ -26,7 +27,7 @@ def print_counter():
     Coroutine that prints counters and saves it in a global variable.
     """
     while True:
-        print('Counter: %i' % counter[0])
+        print("Counter: %i" % counter[0])
         counter[0] += 1
         yield from asyncio.sleep(3)
 
@@ -37,9 +38,13 @@ def interactive_shell():
     Coroutine that starts a Python REPL from which we can access the global
     counter variable.
     """
-    print('You should be able to read and update the "counter[0]" variable from this shell.')
+    print(
+        'You should be able to read and update the "counter[0]" variable from this shell.'
+    )
     try:
-        yield from embed(globals=globals(), return_asyncio_coroutine=True, patch_stdout=True)
+        yield from embed(
+            globals=globals(), return_asyncio_coroutine=True, patch_stdout=True
+        )
     except EOFError:
         # Stop the loop when quitting the repl. (Ctrl-D press.)
         loop.stop()
@@ -53,5 +58,5 @@ def main():
     loop.close()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

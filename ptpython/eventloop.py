@@ -10,9 +10,7 @@ will fix it for Tk.)
 import sys
 import time
 
-__all__ = (
-    'inputhook',
-)
+__all__ = ["inputhook"]
 
 
 def _inputhook_tk(inputhook_context):
@@ -22,7 +20,8 @@ def _inputhook_tk(inputhook_context):
     """
     # Get the current TK application.
     import _tkinter  # Keep this imports inline!
-    from six.moves import tkinter
+    import tkinter
+
     root = tkinter._default_root
 
     def wait_using_filehandler():
@@ -33,6 +32,7 @@ def _inputhook_tk(inputhook_context):
         # Add a handler that sets the stop flag when `prompt-toolkit` has input
         # to process.
         stop = [False]
+
         def done(*a):
             stop[0] = True
 
@@ -52,13 +52,13 @@ def _inputhook_tk(inputhook_context):
         """
         while not inputhook_context.input_is_ready():
             while root.dooneevent(_tkinter.ALL_EVENTS | _tkinter.DONT_WAIT):
-                 pass
+                pass
             # Sleep to make the CPU idle, but not too long, so that the UI
             # stays responsive.
-            time.sleep(.01)
+            time.sleep(0.01)
 
     if root is not None:
-        if hasattr(root, 'createfilehandler'):
+        if hasattr(root, "createfilehandler"):
             wait_using_filehandler()
         else:
             wait_using_polling()
@@ -66,5 +66,5 @@ def _inputhook_tk(inputhook_context):
 
 def inputhook(inputhook_context):
     # Only call the real input hook when the 'Tkinter' library was loaded.
-    if 'Tkinter' in sys.modules or 'tkinter' in sys.modules:
+    if "Tkinter" in sys.modules or "tkinter" in sys.modules:
         _inputhook_tk(inputhook_context)

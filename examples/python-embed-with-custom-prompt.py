@@ -4,9 +4,10 @@ Example of embedding a Python REPL, and setting a custom prompt.
 """
 from __future__ import unicode_literals
 
-from ptpython.repl import embed
-from ptpython.prompt_style import PromptStyle
 from pygments.token import Token
+
+from ptpython.prompt_style import PromptStyle
+from ptpython.repl import embed
 
 
 def configure(repl):
@@ -18,25 +19,23 @@ def configure(repl):
     class CustomPrompt(PromptStyle):
         def in_tokens(self, cli):
             return [
-                (Token.In, 'Input['),
-                (Token.In.Number, '%s' % repl.current_statement_index),
-                (Token.In, '] >>: '),
+                (Token.In, "Input["),
+                (Token.In.Number, "%s" % repl.current_statement_index),
+                (Token.In, "] >>: "),
             ]
 
         def in2_tokens(self, cli, width):
-           return [
-                (Token.In, '...: '.rjust(width)),
-            ]
+            return [(Token.In, "...: ".rjust(width))]
 
         def out_tokens(self, cli):
             return [
-                (Token.Out, 'Result['),
-                (Token.Out.Number, '%s' % repl.current_statement_index),
-                (Token.Out, ']: '),
+                (Token.Out, "Result["),
+                (Token.Out.Number, "%s" % repl.current_statement_index),
+                (Token.Out, "]: "),
             ]
 
-    repl.all_prompt_styles['custom'] = CustomPrompt()
-    repl.prompt_style = 'custom'
+    repl.all_prompt_styles["custom"] = CustomPrompt()
+    repl.prompt_style = "custom"
 
     # 2. Assign a new callable to `get_input_prompt_tokens`. This will always take effect.
     ## repl.get_input_prompt_tokens = lambda cli: [(Token.In, '[hello] >>> ')]
@@ -52,5 +51,5 @@ def main():
     embed(globals(), locals(), configure=configure)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
