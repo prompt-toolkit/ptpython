@@ -4,6 +4,7 @@ Configuration example for ``ptpython``.
 Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
 """
 from __future__ import unicode_literals
+
 from prompt_toolkit.filters import ViInsertMode
 from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
@@ -11,9 +12,7 @@ from pygments.token import Token
 
 from ptpython.layout import CompletionVisualisation
 
-__all__ = (
-    'configure',
-)
+__all__ = ("configure",)
 
 
 def configure(repl):
@@ -50,7 +49,7 @@ def configure(repl):
 
     # Swap light/dark colors on or off
     repl.swap_light_and_dark = False
-    
+
     # Highlight matching parethesis.
     repl.highlight_matching_parenthesis = True
 
@@ -75,7 +74,7 @@ def configure(repl):
     repl.paste_mode = False
 
     # Use the classic prompt. (Display '>>>' instead of 'In [1]'.)
-    repl.prompt_style = 'classic'  # 'classic' or 'ipython'
+    repl.prompt_style = "classic"  # 'classic' or 'ipython'
 
     # Don't insert a blank line after the output.
     repl.insert_blank_line_after_output = False
@@ -108,14 +107,14 @@ def configure(repl):
     repl.enable_input_validation = True
 
     # Use this colorscheme for the code.
-    repl.use_code_colorscheme('pastie')
+    repl.use_code_colorscheme("pastie")
 
     # Set color depth (keep in mind that not all terminals support true color).
 
-    #repl.color_depth = 'DEPTH_1_BIT'  # Monochrome.
-    #repl.color_depth = 'DEPTH_4_BIT'  # ANSI colors only.
-    repl.color_depth = 'DEPTH_8_BIT'  # The default, 256 colors.
-    #repl.color_depth = 'DEPTH_24_BIT'  # True color.
+    # repl.color_depth = 'DEPTH_1_BIT'  # Monochrome.
+    # repl.color_depth = 'DEPTH_4_BIT'  # ANSI colors only.
+    repl.color_depth = "DEPTH_8_BIT"  # The default, 256 colors.
+    # repl.color_depth = 'DEPTH_24_BIT'  # True color.
 
     # Syntax.
     repl.enable_syntax_highlighting = True
@@ -141,7 +140,6 @@ def configure(repl):
     def _(event):
         event.current_buffer.validate_and_handle()
     """
-
 
     # Typing 'jj' in Vi Insert mode, should send escape. (Go back to navigation
     # mode.)
@@ -178,8 +176,7 @@ def configure(repl):
 # `ptpython/style.py` for all possible tokens.
 _custom_ui_colorscheme = {
     # Blue prompt.
-    Token.Layout.Prompt:                          'bg:#eeeeff #000000 bold',
-
+    Token.Layout.Prompt: "bg:#eeeeff #000000 bold",
     # Make the status toolbar red.
-    Token.Toolbar.Status:                         'bg:#ff0000 #000000',
+    Token.Toolbar.Status: "bg:#ff0000 #000000",
 }

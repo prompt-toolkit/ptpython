@@ -6,8 +6,9 @@ This requires Python 3, asyncio and asyncssh.
 Run this example and then SSH to localhost, port 8222.
 """
 import asyncio
-import asyncssh
 import logging
+
+import asyncssh
 
 from ptpython.contrib.asyncssh_repl import ReplSSHServerSession
 
@@ -19,6 +20,7 @@ class MySSHServer(asyncssh.SSHServer):
     """
     Server without authentication, running `ReplSSHServerSession`.
     """
+
     def __init__(self, get_namespace):
         self.get_namespace = get_namespace
 
@@ -37,22 +39,24 @@ def main(port=8222):
     loop = asyncio.get_event_loop()
 
     # Namespace exposed in the REPL.
-    environ = {'hello': 'world'}
+    environ = {"hello": "world"}
 
     # Start SSH server.
     def create_server():
         return MySSHServer(lambda: environ)
 
-    print('Listening on :%i' % port)
+    print("Listening on :%i" % port)
     print('To connect, do "ssh localhost -p %i"' % port)
 
     loop.run_until_complete(
-        asyncssh.create_server(create_server, '', port,
-                               server_host_keys=['/etc/ssh/ssh_host_dsa_key']))
+        asyncssh.create_server(
+            create_server, "", port, server_host_keys=["/etc/ssh/ssh_host_dsa_key"]
+        )
+    )
 
     # Run eventloop.
     loop.run_forever()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

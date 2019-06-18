@@ -6,22 +6,18 @@ Note that the code in this file is Python 3 only. However, we
 should make sure not to use Python 3-only syntax, because this
 package should be installable in Python 2 as well!
 """
-from __future__ import unicode_literals
-
 import asyncio
+from typing import Optional, TextIO, cast
+
 import asyncssh
+from prompt_toolkit.data_structures import Size
+from prompt_toolkit.input import create_pipe_input
+from prompt_toolkit.output.vt100 import Vt100_Output
 
-from prompt_toolkit.input import PipeInput
-from prompt_toolkit.interface import CommandLineInterface
-from prompt_toolkit.layout.screen import Size
-from prompt_toolkit.shortcuts import create_asyncio_eventloop
-from prompt_toolkit.terminal.vt100_output import Vt100_Output
-
+from ptpython.python_input import _GetNamespace
 from ptpython.repl import PythonRepl
 
-__all__ = (
-    'ReplSSHServerSession',
-)
+__all__ = ["ReplSSHServerSession"]
 
 
 class ReplSSHServerSession(asyncssh.SSHServerSession):
@@ -31,51 +27,47 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
     :param get_globals: callable that returns the current globals.
     :param get_locals: (optional) callable that returns the current locals.
     """
-    def __init__(self, get_globals, get_locals=None):
-        assert callable(get_globals)
-        assert get_locals is None or callable(get_locals)
 
+    def __init__(
+        self, get_globals: _GetNamespace, get_locals: Optional[_GetNamespace] = None
+    ) -> None:
         self._chan = None
 
-        def _globals():
+        def _globals() -> dict:
             data = get_globals()
-            data.setdefault('print', self._print)
+            data.setdefault("print", self._print)
             return data
-
-        repl = PythonRepl(get_globals=_globals,
-                          get_locals=get_locals or _globals)
-
-        # Disable open-in-editor and system prompt. Because it would run and
-        # display these commands on the server side, rather than in the SSH
-        # client.
-        repl.enable_open_in_editor = False
-        repl.enable_system_bindings = False
 
         # PipInput object, for sending input in the CLI.
         # (This is something that we can use in the prompt_toolkit event loop,
         # but still write date in manually.)
-        self._input_pipe = PipeInput()
+        self._input_pipe = create_pipe_input()
 
         # Output object. Don't render to the real stdout, but write everything
         # in the SSH channel.
-        class Stdout(object):
-            def write(s, data):
+        class Stdout:
+            def write(s, data: str) -> None:
                 if self._chan is not None:
-                    self._chan.write(data.replace('\n', '\r\n'))
+                    data = data.replace("\n", "\r\n")
+                    self._chan.write(data)
 
-            def flush(s):
+            def flush(s) -> None:
                 pass
 
-        # Create command line interface.
-        self.cli = CommandLineInterface(
-            application=repl.create_application(),
-            eventloop=create_asyncio_eventloop(),
+        self.repl = PythonRepl(
+            get_globals=_globals,
+            get_locals=get_locals or _globals,
             input=self._input_pipe,
-            output=Vt100_Output(Stdout(), self._get_size))
+            output=Vt100_Output(cast(TextIO, Stdout()), self._get_size),
+        )
 
-        self._callbacks = self.cli.create_eventloop_callbacks()
+        # Disable open-in-editor and system prompt. Because it would run and
+        # display these commands on the server side, rather than in the SSH
+        # client.
+        self.repl.enable_open_in_editor = False
+        self.repl.enable_system_bindings = False
 
-    def _get_size(self):
+    def _get_size(self) -> Size:
         """
         Callable that returns the current `Size`, required by Vt100_Output.
         """
@@ -92,22 +84,23 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         self._chan = chan
 
         # Run REPL interface.
-        f = asyncio.ensure_future(self.cli.run_async())
+        f = asyncio.ensure_future(self.repl.run_async())
 
         # Close channel when done.
-        def done(_):
+        def done(_) -> None:
             chan.close()
             self._chan = None
+
         f.add_done_callback(done)
 
-    def shell_requested(self):
+    def shell_requested(self) -> bool:
         return True
 
     def terminal_size_changed(self, width, height, pixwidth, pixheight):
         """
         When the terminal size changes, report back to CLI.
         """
-        self._callbacks.terminal_size_changed()
+        self.repl.app._on_resize()
 
     def data_received(self, data, datatype):
         """
@@ -115,19 +108,12 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         """
         self._input_pipe.send(data)
 
-    def _print(self, *data, **kw):
+    def _print(self, *data, sep=" ", end="\n", file=None) -> None:
         """
-        _print(self, *data, sep=' ', end='\n', file=None)
-
         Alternative 'print' function that prints back into the SSH channel.
         """
         # Pop keyword-only arguments. (We cannot use the syntax from the
         # signature. Otherwise, Python2 will give a syntax error message when
         # installing.)
-        sep = kw.pop('sep', ' ')
-        end = kw.pop('end', '\n')
-        _ = kw.pop('file', None)
-        assert not kw, 'Too many keyword-only arguments'
-
         data = sep.join(map(str, data))
         self._chan.write(data + end)

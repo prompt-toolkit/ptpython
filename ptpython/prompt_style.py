@@ -1,25 +1,26 @@
-from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod
-from six import with_metaclass
+from typing import TYPE_CHECKING
 
-__all__ = (
-    'PromptStyle',
-    'IPythonPrompt',
-    'ClassicPrompt',
-)
+from prompt_toolkit.formatted_text import StyleAndTextTuples
+
+if TYPE_CHECKING:
+    from .python_input import PythonInput
+
+__all__ = ["PromptStyle", "IPythonPrompt", "ClassicPrompt"]
 
 
-class PromptStyle(with_metaclass(ABCMeta, object)):
+class PromptStyle(metaclass=ABCMeta):
     """
     Base class for all prompts.
     """
+
     @abstractmethod
-    def in_prompt(self):
+    def in_prompt(self) -> StyleAndTextTuples:
         " Return the input tokens. "
         return []
 
     @abstractmethod
-    def in2_prompt(self, width):
+    def in2_prompt(self, width: int) -> StyleAndTextTuples:
         """
         Tokens for every following input line.
 
@@ -29,7 +30,7 @@ class PromptStyle(with_metaclass(ABCMeta, object)):
         return []
 
     @abstractmethod
-    def out_prompt(self):
+    def out_prompt(self) -> StyleAndTextTuples:
         " Return the output tokens. "
         return []
 
@@ -38,27 +39,26 @@ class IPythonPrompt(PromptStyle):
     """
     A prompt resembling the IPython prompt.
     """
-    def __init__(self, python_input):
+
+    def __init__(self, python_input: "PythonInput") -> None:
         self.python_input = python_input
 
-    def in_prompt(self):
+    def in_prompt(self) -> StyleAndTextTuples:
         return [
-            ('class:in', 'In ['),
-            ('class:in.number', '%s' % self.python_input.current_statement_index),
-            ('class:in', ']: '),
+            ("class:in", "In ["),
+            ("class:in.number", "%s" % self.python_input.current_statement_index),
+            ("class:in", "]: "),
         ]
 
-    def in2_prompt(self, width):
-        return [
-            ('class:in', '...: '.rjust(width)),
-        ]
+    def in2_prompt(self, width: int) -> StyleAndTextTuples:
+        return [("class:in", "...: ".rjust(width))]
 
-    def out_prompt(self):
+    def out_prompt(self) -> StyleAndTextTuples:
         return [
-            ('class:out', 'Out['),
-            ('class:out.number', '%s' % self.python_input.current_statement_index),
-            ('class:out', ']:'),
-            ('', ' '),
+            ("class:out", "Out["),
+            ("class:out.number", "%s" % self.python_input.current_statement_index),
+            ("class:out", "]:"),
+            ("", " "),
         ]
 
 
@@ -66,11 +66,12 @@ class ClassicPrompt(PromptStyle):
     """
     The classic Python prompt.
     """
-    def in_prompt(self):
-        return [('class:prompt', '>>> ')]
 
-    def in2_prompt(self, width):
-        return [('class:prompt.dots', '...')]
+    def in_prompt(self) -> StyleAndTextTuples:
+        return [("class:prompt", ">>> ")]
 
-    def out_prompt(self):
+    def in2_prompt(self, width: int) -> StyleAndTextTuples:
+        return [("class:prompt.dots", "...")]
+
+    def out_prompt(self) -> StyleAndTextTuples:
         return []

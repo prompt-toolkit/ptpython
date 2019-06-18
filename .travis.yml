@@ -4,18 +4,17 @@ language: python
 matrix:
   include:
       - python: 3.6
-      - python: 3.5
-      - python: 3.4
-      - python: 3.3
-      - python: 2.7
-      - python: 2.6
-      - python: pypy
-      - python: pypy3
+      - python: 3.7
 
 install:
-  - travis_retry pip install . pytest
+  - travis_retry pip install . pytest isort black
   - pip list
 
 script:
   - echo "$TRAVIS_PYTHON_VERSION"
   - ./tests/run_tests.py
+
+  # Check wheather the imports were sorted correctly.
+  - isort -c -rc ptpython tests setup.py examples
+
+  - black --check ptpython setup.py examples
