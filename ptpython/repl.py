@@ -13,7 +13,6 @@ from pygments.lexers import PythonTracebackLexer, PythonLexer
 from pygments.token import Token
 
 from prompt_toolkit.document import Document
-from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 from prompt_toolkit.formatted_text import merge_formatted_text, FormattedText
 from prompt_toolkit.formatted_text.utils import fragment_list_width
 from prompt_toolkit.utils import DummyContext
@@ -21,6 +20,7 @@ from prompt_toolkit.shortcuts import set_title, clear_title
 from prompt_toolkit.shortcuts import print_formatted_text
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
+from prompt_toolkit import __version__ as ptk_version
 
 from .python_input import PythonInput
 from .eventloop import inputhook
@@ -30,6 +30,11 @@ import six
 import sys
 import traceback
 import warnings
+
+PTK3 = ptk_version.startswith('3.')
+
+if not PTK3:
+    from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 
 __all__ = (
     'PythonRepl',
@@ -64,7 +69,7 @@ class PythonRepl(PythonInput):
         while True:
             # Run the UI.
             try:
-                text = self.app.run(inputhook=inputhook)
+                text = self.app.run()#inputhook=inputhook)
             except EOFError:
                 return
             except KeyboardInterrupt:
@@ -315,7 +320,7 @@ def embed(globals=None, locals=None, configure=None,
         return locals
 
     # Create eventloop.
-    if return_asyncio_coroutine:
+    if not PTK3 and return_asyncio_coroutine:
         use_asyncio_event_loop()
 
     # Create REPL.
@@ -334,6 +339,8 @@ def embed(globals=None, locals=None, configure=None,
     patch_context = patch_stdout_context() if patch_stdout else DummyContext()
 
     if return_asyncio_coroutine: # XXX
+        import asyncio
+        @asyncio.coroutine
         def coroutine():
             with patch_context:
                 while True:

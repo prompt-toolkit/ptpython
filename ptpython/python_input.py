@@ -5,7 +5,6 @@ This can be used for creation of Python REPLs.
 from __future__ import unicode_literals
 
 from prompt_toolkit.application import Application, get_app
-from prompt_toolkit.application.run_in_terminal import run_coroutine_in_terminal
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest, ThreadedAutoSuggest
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.key_binding.bindings.auto_suggest import load_auto_suggest_bindings
@@ -13,7 +12,6 @@ from prompt_toolkit.key_binding.bindings.open_in_editor import load_open_in_edit
 from prompt_toolkit.completion import ThreadedCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.eventloop.defaults import get_event_loop
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.history import FileHistory, InMemoryHistory, ThreadedHistory
 from prompt_toolkit.input.defaults import create_input
@@ -26,6 +24,7 @@ from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformat
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
 from prompt_toolkit.completion import FuzzyCompleter
+from prompt_toolkit import __version__ as ptk_version
 
 from .completer import PythonCompleter
 from .history_browser import History
@@ -41,6 +40,13 @@ from functools import partial
 import sys
 import six
 import __future__
+
+IS_PTK3 = ptk_version.startswith('3.')
+
+if IS_PTK3:
+    from asyncio import get_event_loop
+else:
+    from prompt_toolkit.eventloop.defaults import get_event_loop
 
 if six.PY2:
     from pygments.lexers import PythonLexer
@@ -138,8 +144,6 @@ class PythonInput(object):
                  get_globals=None, get_locals=None, history_filename=None,
                  vi_mode=False,
 
-                 input=None,
-                 output=None,
                  color_depth=None,
 
                  # For internal use.
@@ -255,9 +259,6 @@ class PythonInput(object):
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
         self._get_signatures_thread_running = False
-
-        self.output = output or create_output()
-        self.input = input or create_input(sys.stdin)
 
         self.style_transformation = merge_style_transformations([
             ConditionalStyleTransformation(
@@ -580,8 +581,6 @@ class PythonInput(object):
         Create an `Application` instance.
         """
         return Application(
-            input=self.input,
-            output=self.output,
             layout=self.ptpython_layout.layout,
             key_bindings=merge_key_bindings([
                 load_python_bindings(self),
@@ -645,7 +644,7 @@ class PythonInput(object):
         else:
             self.editing_mode = EditingMode.EMACS
 
-    def _on_input_timeout(self, buff):
+    def _on_input_timeout(self, buff, loop=None):
         """
         When there is no input activity,
         in another thread, get the signature of the current code.
@@ -659,6 +658,11 @@ class PythonInput(object):
         self._get_signatures_thread_running = True
 
         document = buff.document
+
+#        if IS_PTK3:
+        loop = loop or get_event_loop()
+#        else:
+#            loop = loop or run_in_executor(run)
 
         def run():
             script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
@@ -709,9 +713,12 @@ class PythonInput(object):
 
                 app.invalidate()
             else:
-                self._on_input_timeout(buff)
+                self._on_input_timeout(buff, loop=loop)
 
-        get_event_loop().run_in_executor(run)
+        if IS_PTK3:
+            loop.run_in_executor(None, run)
+        else:
+            loop.run_in_executor(run)
 
     def on_reset(self):
         self.signatures = []
@@ -723,14 +730,29 @@ class PythonInput(object):
         app = get_app()
         app.vi_state.input_mode = InputMode.NAVIGATION
 
-        def done(f):
-            result = f.result()
-            if result is not None:
-                self.default_buffer.text = result
-
-            app.vi_state.input_mode = InputMode.INSERT
-
         history = History(self, self.default_buffer.document)
 
-        future = run_coroutine_in_terminal(history.app.run_async)
-        future.add_done_callback(done)
+        if IS_PTK3:
+            from prompt_toolkit.application import in_terminal
+            import asyncio
+            async def do_in_terminal():
+                async with in_terminal():
+                    result = await history.app.run_async()
+                    if result is not None:
+                        self.default_buffer.text = result
+
+                    app.vi_state.input_mode = InputMode.INSERT
+
+            asyncio.ensure_future(do_in_terminal())
+        else:
+            from prompt_toolkit.application.run_in_terminal import run_coroutine_in_terminal
+
+            def done(f):
+                result = f.result()
+                if result is not None:
+                    self.default_buffer.text = result
+
+                app.vi_state.input_mode = InputMode.INSERT
+
+            future = run_coroutine_in_terminal(history.app.run_async)
+            future.add_done_callback(done)
