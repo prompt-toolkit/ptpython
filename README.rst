@@ -121,7 +121,7 @@ Running system commands: Press ``Meta-!`` in Emacs mode or just ``!`` in Vi
 navigation mode to see the "Shell command" prompt. There you can enter system
 commands without leaving the REPL.
 
-Selecting text: Press ``Control+Space`` in Emacs mode on ``V`` (major V) in Vi
+Selecting text: Press ``Control+Space`` in Emacs mode or ``V`` (major V) in Vi
 navigation mode.
 
 
