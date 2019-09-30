@@ -21,6 +21,11 @@ setup(
         'prompt_toolkit>=2.0.6,<2.1.0',
         'pygments',
     ],
+    classifiers=[
+        'Programming Language :: Python',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 2',
+    ],
     entry_points={
         'console_scripts': [
             'ptpython = ptpython.entry_points.run_ptpython:run',
