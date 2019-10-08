@@ -61,6 +61,10 @@ def configure(repl):
     # completion menu is shown.)
     repl.complete_while_typing = True
 
+    # Fuzzy and dictionary completion.
+    self.enable_fuzzy_completion = False
+    self.enable_dictionary_completion = False
+
     # Vi mode.
     repl.vi_mode = False
 
