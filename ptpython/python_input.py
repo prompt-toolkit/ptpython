@@ -25,6 +25,7 @@ from prompt_toolkit.output.defaults import create_output
 from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformation, ConditionalStyleTransformation, AdjustBrightnessStyleTransformation, merge_style_transformations
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
+from prompt_toolkit.completion import FuzzyCompleter
 
 from .completer import PythonCompleter
 from .history_browser import History
@@ -151,7 +152,10 @@ class PythonInput(object):
         self.get_globals = get_globals or (lambda: {})
         self.get_locals = get_locals or self.get_globals
 
-        self._completer = _completer or PythonCompleter(self.get_globals, self.get_locals)
+        self._completer = _completer or FuzzyCompleter(
+            PythonCompleter(self.get_globals, self.get_locals,
+                            lambda: self.enable_dictionary_completion),
+            enable_fuzzy=Condition(lambda: self.enable_fuzzy_completion))
         self._validator = _validator or PythonValidator(self.get_compiler_flags)
         self._lexer = _lexer or PygmentsLexer(PythonLexer)
 
@@ -193,6 +197,8 @@ class PythonInput(object):
                                             # with the current input.
 
         self.enable_syntax_highlighting = True
+        self.enable_fuzzy_completion = False
+        self.enable_dictionary_completion = False
         self.swap_light_and_dark = False
         self.highlight_matching_parenthesis = False
         self.show_sidebar = False  # Currently show the sidebar.
@@ -432,6 +438,23 @@ class PythonInput(object):
                        get_values=lambda: {
                            'on': lambda: enable('complete_while_typing') and disable('enable_history_search'),
                            'off': lambda: disable('complete_while_typing'),
+                       }),
+                Option(title='Enable fuzzy completion',
+                       description="Enable fuzzy completion.",
+                       get_current_value=lambda: ['off', 'on'][self.enable_fuzzy_completion],
+                       get_values=lambda: {
+                           'on': lambda: enable('enable_fuzzy_completion'),
+                           'off': lambda: disable('enable_fuzzy_completion'),
+                       }),
+                Option(title='Dictionary completion',
+                       description='Enable experimental dictionary completion.\n'
+                                   'WARNING: this does "eval" on fragments of\n'
+                                   '         your Python input and is\n'
+                                   '         potentially unsafe.',
+                       get_current_value=lambda: ['off', 'on'][self.enable_dictionary_completion],
+                       get_values=lambda: {
+                           'on': lambda: enable('enable_dictionary_completion'),
+                           'off': lambda: disable('enable_dictionary_completion'),
                        }),
                 Option(title='History search',
                        description='When pressing the up-arrow, filter the history on input starting '

@@ -18,7 +18,7 @@ setup(
     install_requires = [
         'docopt',
         'jedi>=0.9.0',
-        'prompt_toolkit>=2.0.6,<2.1.0',
+        'prompt_toolkit>=2.0.8,<2.1.0',
         'pygments',
     ],
     classifiers=[

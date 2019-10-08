@@ -83,6 +83,13 @@ default_ui_style = {
     'out':                                    '#ff0000',
     'out.number':                             '#ff0000',
 
+    # Completions.
+    'completion.builtin':                     '',
+    'completion.keyword':                     'fg:#008800',
+
+    'completion.keyword fuzzymatch.inside':   'fg:#008800',
+    'completion.keyword fuzzymatch.outside':  'fg:#44aa44',
+
     # Separator between windows. (Used above docstring.)
     'separator':                              '#bbbbbb',
 
