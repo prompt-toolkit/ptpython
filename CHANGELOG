@@ -1,6 +1,22 @@
 CHANGELOG
 =========
 
+
+2.0.5: 2019-10-09
+-----------------
+
+New features:
+- Added dictionary completer (off by default).
+- Added fuzzy completion (off by default).
+- Highlight keywords in completion dropdown menu.
+- Enable universal wheels.
+
+Fixes:
+- Fixed embedding repl as asyncio coroutine.
+- Fixed patching stdout in embedded repl.
+- Fixed ResourceWarning in setup.py.
+
+
 2.0.4: 2018-10-30
 -----------------
 
