@@ -90,11 +90,12 @@ def create_ipython_grammar():
     """)
 
 
-def create_completer(get_globals, get_locals, magics_manager, alias_manager):
+def create_completer(get_globals, get_locals, magics_manager, alias_manager,
+                     get_enable_dictionary_completion):
     g = create_ipython_grammar()
 
     return GrammarCompleter(g, {
-        'python': PythonCompleter(get_globals, get_locals),
+        'python': PythonCompleter(get_globals, get_locals, get_enable_dictionary_completion),
         'magic': MagicsCompleter(magics_manager),
         'alias_name': AliasCompleter(alias_manager),
         'pdb_arg': WordCompleter(['on', 'off'], ignore_case=True),
@@ -154,7 +155,8 @@ class IPythonInput(PythonInput):
     def __init__(self, ipython_shell, *a, **kw):
         kw['_completer'] = create_completer(kw['get_globals'], kw['get_globals'],
                                             ipython_shell.magics_manager,
-                                            ipython_shell.alias_manager)
+                                            ipython_shell.alias_manager,
+                                            lambda: self.enable_dictionary_completion)
         kw['_lexer'] = create_lexer()
         kw['_validator'] = IPythonValidator(
             get_compiler_flags=self.get_compiler_flags)
