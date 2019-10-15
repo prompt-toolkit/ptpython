@@ -338,7 +338,6 @@ class PythonInput(object):
         Install a new code color scheme.
         """
         assert isinstance(name, six.text_type)
-        assert isinstance(style_dict, dict)
 
         self.code_styles[name] = style_dict
 
@@ -356,7 +355,6 @@ class PythonInput(object):
         Install a new UI color scheme.
         """
         assert isinstance(name, six.text_type)
-        assert isinstance(style_dict, dict)
 
         self.ui_styles[name] = style_dict
 
