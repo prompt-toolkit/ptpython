@@ -22,7 +22,7 @@ from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.lexers import PygmentsLexer, DynamicLexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.output.defaults import create_output
-from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformation, ConditionalStyleTransformation, AdjustBrightnessStyleTransformation, merge_style_transformations
+from prompt_toolkit.styles import DynamicStyle, SwapLightAndDarkStyleTransformation, ConditionalStyleTransformation, AdjustBrightnessStyleTransformation, merge_style_transformations, Style
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
 from prompt_toolkit.completion import FuzzyCompleter
@@ -340,7 +340,7 @@ class PythonInput(object):
         assert isinstance(name, six.text_type)
         assert isinstance(style_dict, dict)
 
-        self.code_styles[name] = style_dict
+        self.code_styles[name] = Style.from_dict(style_dict)
 
     def use_code_colorscheme(self, name):
         """
@@ -358,7 +358,7 @@ class PythonInput(object):
         assert isinstance(name, six.text_type)
         assert isinstance(style_dict, dict)
 
-        self.ui_styles[name] = style_dict
+        self.ui_styles[name] = Style.from_dict(style_dict)
 
     def use_ui_colorscheme(self, name):
         """
