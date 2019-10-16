@@ -1,7 +1,9 @@
 """
 Configuration example for ``ptpython``.
 
-Copy this file to ~/.ptpython/config.py
+Copy this file to ~/.ptpython/config.py on windows use 
+`os.path.expanduser("~/.ptpython/config.py")` to find the 
+correct location.
 """
 from __future__ import unicode_literals
 from prompt_toolkit.filters import ViInsertMode
