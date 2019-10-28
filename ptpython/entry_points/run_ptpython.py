@@ -55,7 +55,9 @@ def run():
         path = a['<arg>'][0]
         with open(path, 'rb') as f:
             code = compile(f.read(), path, 'exec')
-            six.exec_(code)
+            # NOTE: We have to pass an empty dictionary as namespace. Omitting
+            #       this argument causes imports to not be found. See issue #326.
+            six.exec_(code, {})
 
     # Run interactive shell.
     else:
