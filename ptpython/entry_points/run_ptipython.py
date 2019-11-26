@@ -26,8 +26,8 @@ def run(user_ns=None):
 
     vi_mode = bool(a['--vi'])
 
-    config_dir = appdirs.user_config_dir('ptpython', 'Jonathan Slenders')
-    data_dir = appdirs.user_data_dir('ptpython', 'Jonathan Slenders')
+    config_dir = appdirs.user_config_dir('ptpython', 'prompt_toolkit')
+    data_dir = appdirs.user_data_dir('ptpython', 'prompt_toolkit')
 
     if a['--config-dir']:
         # Override config_dir.
