@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from prompt_toolkit.filters import Filter
 
 __all__ = (

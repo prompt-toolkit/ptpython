@@ -15,12 +15,9 @@ Options:
 Other environment variables:
 PYTHONSTARTUP: file executed on interactive startup (no default)
 """
-from __future__ import absolute_import, unicode_literals, print_function
-
 import appdirs
 import docopt
 import os
-import six
 import sys
 
 from ptpython.repl import embed, enable_deprecation_warnings, run_config
@@ -70,7 +67,7 @@ def run():
             code = compile(f.read(), path, 'exec')
             # NOTE: We have to pass an empty dictionary as namespace. Omitting
             #       this argument causes imports to not be found. See issue #326.
-            six.exec_(code, {})
+            exec(code, {})
 
     # Run interactive shell.
     else:

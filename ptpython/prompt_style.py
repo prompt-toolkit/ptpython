@@ -1,6 +1,4 @@
-from __future__ import unicode_literals
 from abc import ABCMeta, abstractmethod
-from six import with_metaclass
 
 __all__ = (
     'PromptStyle',
@@ -9,7 +7,7 @@ __all__ = (
 )
 
 
-class PromptStyle(with_metaclass(ABCMeta, object)):
+class PromptStyle(metaclass=ABCMeta):
     """
     Base class for all prompts.
     """

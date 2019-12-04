@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from prompt_toolkit.completion import Completer, Completion, PathCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile as compile_grammar
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
@@ -9,7 +7,6 @@ from ptpython.utils import get_jedi_script_from_document
 import keyword
 import ast
 import re
-import six
 
 __all__ = (
     'PythonCompleter',
@@ -21,7 +18,7 @@ class PythonCompleter(Completer):
     Completer for Python code.
     """
     def __init__(self, get_globals, get_locals, get_enable_dictionary_completion):
-        super(PythonCompleter, self).__init__()
+        super().__init__()
 
         self.get_globals = get_globals
         self.get_locals = get_locals
@@ -192,7 +189,7 @@ class DictionaryCompleter(Completer):
              function calls, so it only triggers attribute access.
     """
     def __init__(self, get_globals, get_locals):
-        super(DictionaryCompleter, self).__init__()
+        super().__init__()
 
         self.get_globals = get_globals
         self.get_locals = get_locals
@@ -256,11 +253,11 @@ class DictionaryCompleter(Completer):
                         break
 
                 for k in result:
-                    if six.text_type(k).startswith(key_obj):
+                    if str(k).startswith(key_obj):
                         yield Completion(
-                            six.text_type(repr(k)),
+                            str(repr(k)),
                             - len(key),
-                            display=six.text_type(repr(k))
+                            display=str(repr(k))
                         )
 
 try:

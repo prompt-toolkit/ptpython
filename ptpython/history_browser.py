@@ -4,8 +4,6 @@ Utility to easily select lines from the history and execute them again.
 `create_history_application` creates an `Application` instance that runs will
 run as a sub application of the Repl/PythonInput.
 """
-from __future__ import unicode_literals
-
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import Buffer
@@ -29,12 +27,8 @@ from .utils import if_mousedown
 
 from ptpython.layout import get_inputmode_fragments
 from functools import partial
-import six
 
-if six.PY2:
-    from pygments.lexers import PythonLexer
-else:
-    from pygments.lexers import Python3Lexer as PythonLexer
+from pygments.lexers import Python3Lexer as PythonLexer
 
 
 HISTORY_COUNT = 2000
@@ -94,17 +88,15 @@ class BORDER:
     LIGHT_VERTICAL = '\u2502'
 
 
-def _create_popup_window(title, body):
+def _create_popup_window(title: str, body: Container) -> Frame:
     """
     Return the layout for a pop-up window. It consists of a title bar showing
     the `title` text, and a body layout. The window is surrounded by borders.
     """
-    assert isinstance(title, six.text_type)
-    assert isinstance(body, Container)
     return Frame(body=body, title=title)
 
 
-class HistoryLayout(object):
+class HistoryLayout:
     """
     Create and return a `Container` instance for the history
     application.
@@ -316,7 +308,7 @@ class GrayExistingText(Processor):
             return Transformation(fragments=fragments)
 
 
-class HistoryMapping(object):
+class HistoryMapping:
     """
     Keep a list of all the lines from the history and the selected lines.
     """
@@ -514,7 +506,7 @@ def create_key_bindings(history, python_input, history_mapping):
     return bindings
 
 
-class History(object):
+class History:
     def __init__(self, python_input, original_document):
         """
         Create an `Application` for the history screen.

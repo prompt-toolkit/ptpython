@@ -8,8 +8,6 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
-from __future__ import unicode_literals, print_function
-
 from prompt_toolkit.completion import Completion, Completer
 from prompt_toolkit.completion import PathCompleter, WordCompleter
 from prompt_toolkit.contrib.completers import SystemCompleter
@@ -161,7 +159,7 @@ class IPythonInput(PythonInput):
         kw['_validator'] = IPythonValidator(
             get_compiler_flags=self.get_compiler_flags)
 
-        super(IPythonInput, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
         self.ipython_shell = ipython_shell
 
         self.all_prompt_styles['ipython'] = IPythonPrompt(ipython_shell.prompts)
@@ -199,7 +197,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
         # Don't ask IPython to confirm for exit. We have our own exit prompt.
         self.confirm_exit = False
 
-        super(InteractiveShellEmbed, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
 
         def get_globals():
             return self.user_ns

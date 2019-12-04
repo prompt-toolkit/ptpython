@@ -7,8 +7,6 @@ Utility for creating a Python repl.
     embed(globals(), locals(), vi_mode=False)
 
 """
-from __future__ import unicode_literals
-
 from pygments.lexers import PythonTracebackLexer, PythonLexer
 from pygments.token import Token
 
@@ -25,16 +23,11 @@ from prompt_toolkit import __version__ as ptk_version
 from .python_input import PythonInput
 from .eventloop import inputhook
 
+import builtins
 import os
-import six
 import sys
 import traceback
 import warnings
-
-PTK3 = ptk_version.startswith('3.')
-
-if not PTK3:
-    from prompt_toolkit.eventloop.defaults import use_asyncio_event_loop
 
 __all__ = (
     'PythonRepl',
@@ -47,7 +40,7 @@ __all__ = (
 class PythonRepl(PythonInput):
     def __init__(self, *a, **kw):
         self._startup_paths = kw.pop('startup_paths', None)
-        super(PythonRepl, self).__init__(*a, **kw)
+        super().__init__(*a, **kw)
         self._load_start_paths()
 
     def _load_start_paths(self):
@@ -57,7 +50,7 @@ class PythonRepl(PythonInput):
                 if os.path.exists(path):
                     with open(path, 'rb') as f:
                         code = compile(f.read(), path, 'exec')
-                        six.exec_(code, self.get_globals(), self.get_locals())
+                        exec(code, self.get_globals(), self.get_locals())
                 else:
                     output = self.app.output
                     output.write('WARNING | File not found: {}\n\n'.format(path))
@@ -165,7 +158,7 @@ class PythonRepl(PythonInput):
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, 'exec')
-                six.exec_(code, self.get_globals(), self.get_locals())
+                exec(code, self.get_globals(), self.get_locals())
 
             output.flush()
 
@@ -190,11 +183,6 @@ class PythonRepl(PythonInput):
         if l:
             l.insert(0, "Traceback (most recent call last):\n")
         l.extend(traceback.format_exception_only(t, v))
-
-        # For Python2: `format_list` and `format_exception_only` return
-        # non-unicode strings. Ensure that everything is unicode.
-        if six.PY2:
-            l = [i.decode('utf-8') if isinstance(i, six.binary_type) else i for i in l]
 
         tb = ''.join(l)
 
@@ -245,21 +233,18 @@ def enable_deprecation_warnings():
                             module='__main__')
 
 
-def run_config(repl, config_file):
+def run_config(repl: PythonInput, config_file: str):
     """
     Execute REPL config file.
 
     :param repl: `PythonInput` instance.
     :param config_file: Path of the configuration file.
     """
-    assert isinstance(repl, PythonInput)
-    assert isinstance(config_file, six.text_type)
-
     # Expand tildes.
     config_file = os.path.expanduser(config_file)
 
     def enter_to_continue():
-         six.moves.input('\nPress ENTER to continue...')
+         input('\nPress ENTER to continue...')
 
     # Check whether this file exists.
     if not os.path.exists(config_file):
@@ -273,7 +258,7 @@ def run_config(repl, config_file):
 
         with open(config_file, 'rb') as f:
             code = compile(f.read(), config_file, 'exec')
-            six.exec_(code, namespace, namespace)
+            exec(code, namespace, namespace)
 
         # Now we should have a 'configure' method in this namespace. We call this
         # method with the repl as an argument.
@@ -308,7 +293,7 @@ def embed(globals=None, locals=None, configure=None,
             '__name__': '__main__',
             '__package__': None,
             '__doc__': None,
-            '__builtins__': six.moves.builtins,
+            '__builtins__': builtins,
         }
 
     locals = locals or globals
@@ -318,10 +303,6 @@ def embed(globals=None, locals=None, configure=None,
 
     def get_locals():
         return locals
-
-    # Create eventloop.
-    if not PTK3 and return_asyncio_coroutine:
-        use_asyncio_event_loop()
 
     # Create REPL.
     repl = PythonRepl(get_globals=get_globals, get_locals=get_locals, vi_mode=vi_mode,
@@ -338,18 +319,13 @@ def embed(globals=None, locals=None, configure=None,
     # Start repl.
     patch_context = patch_stdout_context() if patch_stdout else DummyContext()
 
-    if return_asyncio_coroutine: # XXX
+    if return_asyncio_coroutine:
         import asyncio
-        @asyncio.coroutine
-        def coroutine():
+
+        async def coroutine():
             with patch_context:
                 while True:
-                    iterator = iter(app.run_async().to_asyncio_future())
-                    try:
-                        while True:
-                            yield next(iterator)
-                    except StopIteration as exc:
-                        text = exc.args[0]
+                    text = app.run_async()
                     repl._process_text(text)
         return coroutine()
     else:

@@ -22,7 +22,7 @@ def _inputhook_tk(inputhook_context):
     """
     # Get the current TK application.
     import _tkinter  # Keep this imports inline!
-    from six.moves import tkinter
+    import tkinter
     root = tkinter._default_root
 
     def wait_using_filehandler():

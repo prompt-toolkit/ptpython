@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import has_selection, has_focus, Condition, vi_insert_mode, emacs_insert_mode, emacs_mode

@@ -1,8 +1,6 @@
 """
 Creation of the `Layout` instance for the Python input/REPL.
 """
-from __future__ import unicode_literals
-
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import is_done, has_completions, renderer_height_is_known, has_focus, Condition
@@ -480,7 +478,7 @@ def meta_enter_message(python_input):
         filter=visible)
 
 
-class PtPythonLayout(object):
+class PtPythonLayout:
     def __init__(self, python_input, lexer=PythonLexer, extra_body=None,
                  extra_toolbars=None, extra_buffer_processors=None,
                  input_buffer_height=None):

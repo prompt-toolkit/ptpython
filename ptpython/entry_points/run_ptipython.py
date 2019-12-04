@@ -12,12 +12,9 @@ Options:
     --config-dir=<directory> : Pass config directory. By default '$XDG_CONFIG_HOME/ptpython'.
     -i, --interactive=<filename> : Start interactive shell after executing this file.
 """
-from __future__ import absolute_import, unicode_literals, print_function
-
 import appdirs
 import docopt
 import os
-import six
 import sys
 
 
@@ -64,7 +61,7 @@ def run(user_ns=None):
         path = a['<arg>'][0]
         with open(path, 'rb') as f:
             code = compile(f.read(), path, 'exec')
-            six.exec_(code)
+            exec(code)
     else:
         enable_deprecation_warnings()
 
@@ -89,7 +86,7 @@ def run(user_ns=None):
             if os.path.exists(path):
                 with open(path, 'rb') as f:
                     code = compile(f.read(), path, 'exec')
-                    six.exec_(code, user_ns, user_ns)
+                    exec(code, user_ns, user_ns)
             else:
                 print('File not found: {}\n\n'.format(path))
                 sys.exit(1)

@@ -1,8 +1,6 @@
 """
 For internal use only.
 """
-from __future__ import unicode_literals
-
 from prompt_toolkit.mouse_events import MouseEventType
 import re
 

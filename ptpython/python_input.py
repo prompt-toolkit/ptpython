@@ -2,8 +2,6 @@
 Application for reading Python input.
 This can be used for creation of Python REPLs.
 """
-from __future__ import unicode_literals
-
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory, ConditionalAutoSuggest, ThreadedAutoSuggest
 from prompt_toolkit.buffer import Buffer
@@ -35,39 +33,28 @@ from .style import get_all_code_styles, get_all_ui_styles, generate_style
 from .utils import get_jedi_script_from_document
 from .validator import PythonValidator
 
+from typing import Callable
 from functools import partial
 
 import sys
-import six
 import __future__
 
-IS_PTK3 = ptk_version.startswith('3.')
+from asyncio import get_event_loop
 
-if IS_PTK3:
-    from asyncio import get_event_loop
-else:
-    from prompt_toolkit.eventloop.defaults import get_event_loop
-
-if six.PY2:
-    from pygments.lexers import PythonLexer
-else:
-    from pygments.lexers import Python3Lexer as PythonLexer
+from pygments.lexers import Python3Lexer as PythonLexer
 
 __all__ = (
     'PythonInput',
 )
 
 
-class OptionCategory(object):
-    def __init__(self, title, options):
-        assert isinstance(title, six.text_type)
-        assert isinstance(options, list)
-
+class OptionCategory:
+    def __init__(self, title: str, options: list) -> None:
         self.title = title
         self.options = options
 
 
-class Option(object):
+class Option:
     """
     Ptpython configuration option that can be shown and modified from the
     sidebar.
@@ -78,12 +65,7 @@ class Option(object):
             possible values to callbacks that activate these value.
     :param get_current_value: Callable that returns the current, active value.
     """
-    def __init__(self, title, description, get_current_value, get_values):
-        assert isinstance(title, six.text_type)
-        assert isinstance(description, six.text_type)
-        assert callable(get_current_value)
-        assert callable(get_values)
-
+    def __init__(self, title: str, description: str, get_current_value: Callable, get_values: Callable) -> None:
         self.title = title
         self.description = description
         self.get_current_value = get_current_value
@@ -131,7 +113,7 @@ COLOR_DEPTHS = {
 }
 
 
-class PythonInput(object):
+class PythonInput:
     """
     Prompt for reading Python input.
 
@@ -334,13 +316,10 @@ class PythonInput(object):
             return self.extra_key_bindings.add(*k, **kw)
         return add_binding_decorator
 
-    def install_code_colorscheme(self, name, style_dict):
+    def install_code_colorscheme(self, name: str, style_dict: dict):
         """
         Install a new code color scheme.
         """
-        assert isinstance(name, six.text_type)
-        assert isinstance(style_dict, dict)
-
         self.code_styles[name] = style_dict
 
     def use_code_colorscheme(self, name):
@@ -352,13 +331,10 @@ class PythonInput(object):
         self._current_code_style_name = name
         self._current_style = self._generate_style()
 
-    def install_ui_colorscheme(self, name, style_dict):
+    def install_ui_colorscheme(self, name: str, style_dict: dict):
         """
         Install a new UI color scheme.
         """
-        assert isinstance(name, six.text_type)
-        assert isinstance(style_dict, dict)
-
         self.ui_styles[name] = style_dict
 
     def use_ui_colorscheme(self, name):
@@ -659,10 +635,7 @@ class PythonInput(object):
 
         document = buff.document
 
-#        if IS_PTK3:
         loop = loop or get_event_loop()
-#        else:
-#            loop = loop or run_in_executor(run)
 
         def run():
             script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
@@ -704,7 +677,7 @@ class PythonInput(object):
                 # Set docstring in docstring buffer.
                 if signatures:
                     string = signatures[0].docstring()
-                    if not isinstance(string, six.text_type):
+                    if not isinstance(string, str):
                         string = string.decode('utf-8')
                     self.docstring_buffer.reset(
                         document=Document(string, cursor_position=0))
@@ -715,10 +688,7 @@ class PythonInput(object):
             else:
                 self._on_input_timeout(buff, loop=loop)
 
-        if IS_PTK3:
-            loop.run_in_executor(None, run)
-        else:
-            loop.run_in_executor(run)
+        loop.run_in_executor(None, run)
 
     def on_reset(self):
         self.signatures = []
@@ -732,27 +702,14 @@ class PythonInput(object):
 
         history = History(self, self.default_buffer.document)
 
-        if IS_PTK3:
-            from prompt_toolkit.application import in_terminal
-            import asyncio
-            async def do_in_terminal():
-                async with in_terminal():
-                    result = await history.app.run_async()
-                    if result is not None:
-                        self.default_buffer.text = result
-
-                    app.vi_state.input_mode = InputMode.INSERT
-
-            asyncio.ensure_future(do_in_terminal())
-        else:
-            from prompt_toolkit.application.run_in_terminal import run_coroutine_in_terminal
-
-            def done(f):
-                result = f.result()
+        from prompt_toolkit.application import in_terminal
+        import asyncio
+        async def do_in_terminal():
+            async with in_terminal():
+                result = await history.app.run_async()
                 if result is not None:
                     self.default_buffer.text = result
 
                 app.vi_state.input_mode = InputMode.INSERT
 
-            future = run_coroutine_in_terminal(history.app.run_async)
-            future.add_done_callback(done)
+        asyncio.ensure_future(do_in_terminal())

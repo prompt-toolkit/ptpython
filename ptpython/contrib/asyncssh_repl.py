@@ -6,8 +6,6 @@ Note that the code in this file is Python 3 only. However, we
 should make sure not to use Python 3-only syntax, because this
 package should be installable in Python 2 as well!
 """
-from __future__ import unicode_literals
-
 import asyncio
 import asyncssh
 
@@ -58,7 +56,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
 
         # Output object. Don't render to the real stdout, but write everything
         # in the SSH channel.
-        class Stdout(object):
+        class Stdout:
             def write(s, data):
                 if self._chan is not None:
                     self._chan.write(data.replace('\n', '\r\n'))

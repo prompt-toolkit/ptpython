@@ -1,5 +1,3 @@
-from __future__ import unicode_literals
-
 from prompt_toolkit.styles import Style, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls
 from prompt_toolkit.utils import is_windows, is_conemu_ansi, is_windows_vt100_supported
@@ -16,7 +14,7 @@ def get_all_code_styles():
     """
     Return a mapping from style names to their classes.
     """
-    result = dict((name, style_from_pygments_cls(get_style_by_name(name))) for name in get_all_styles())
+    result = {name: style_from_pygments_cls(get_style_by_name(name)) for name in get_all_styles()}
     result['win32'] = Style.from_dict(win32_code_style)
     return result
 
