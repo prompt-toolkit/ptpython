@@ -12,6 +12,7 @@ import os
 import sys
 import traceback
 import warnings
+from typing import Any, Callable, ContextManager, Dict, Optional
 
 from prompt_toolkit import __version__ as ptk_version
 from prompt_toolkit.document import Document
@@ -30,16 +31,16 @@ from pygments.token import Token
 from .eventloop import inputhook
 from .python_input import PythonInput
 
-__all__ = ("PythonRepl", "enable_deprecation_warnings", "run_config", "embed")
+__all__ = ["PythonRepl", "enable_deprecation_warnings", "run_config", "embed"]
 
 
 class PythonRepl(PythonInput):
-    def __init__(self, *a, **kw):
+    def __init__(self, *a, **kw) -> None:
         self._startup_paths = kw.pop("startup_paths", None)
         super().__init__(*a, **kw)
         self._load_start_paths()
 
-    def _load_start_paths(self):
+    def _load_start_paths(self) -> None:
         " Start the Read-Eval-Print Loop. "
         if self._startup_paths:
             for path in self._startup_paths:
@@ -51,7 +52,7 @@ class PythonRepl(PythonInput):
                     output = self.app.output
                     output.write("WARNING | File not found: {}\n\n".format(path))
 
-    def run(self):
+    def run(self) -> None:
         if self.terminal_title:
             set_title(self.terminal_title)
 
@@ -70,7 +71,12 @@ class PythonRepl(PythonInput):
         if self.terminal_title:
             clear_title()
 
-    def _process_text(self, line):
+    async def run_async(self) -> None:
+        while True:
+            text = await self.app.run_async()
+            self._process_text(text)
+
+    def _process_text(self, line: str) -> None:
 
         if line and not line.isspace():
             try:
@@ -87,7 +93,7 @@ class PythonRepl(PythonInput):
             self.current_statement_index += 1
             self.signatures = []
 
-    def _execute(self, line):
+    def _execute(self, line: str) -> None:
         """
         Evaluate the line and print the result.
         """
@@ -98,7 +104,7 @@ class PythonRepl(PythonInput):
         if "" not in sys.path:
             sys.path.insert(0, "")
 
-        def compile_with_flags(code, mode):
+        def compile_with_flags(code: str, mode: str):
             " Compile code with the right compiler flags. "
             return compile(
                 code,
@@ -121,7 +127,7 @@ class PythonRepl(PythonInput):
                 code = compile_with_flags(line, "eval")
                 result = eval(code, self.get_globals(), self.get_locals())
 
-                locals = self.get_locals()
+                locals: Dict[str, Any] = self.get_locals()
                 locals["_"] = locals["_%i" % self.current_statement_index] = result
 
                 if result is not None:
@@ -134,7 +140,9 @@ class PythonRepl(PythonInput):
                         # so to put it in a unicode context could raise an
                         # exception that the 'ascii' codec can't decode certain
                         # characters. Decode as utf-8 in that case.
-                        result_str = "%s\n" % repr(result).decode("utf-8")
+                        result_str = "%s\n" % repr(result).decode(  # type: ignore
+                            "utf-8"
+                        )
 
                     # Align every line to the first one.
                     line_sep = "\n" + " " * fragment_list_width(out_prompt)
@@ -167,7 +175,7 @@ class PythonRepl(PythonInput):
 
             output.flush()
 
-    def _handle_exception(self, e):
+    def _handle_exception(self, e: Exception) -> None:
         output = self.app.output
 
         # Instead of just calling ``traceback.format_exc``, we take the
@@ -177,7 +185,7 @@ class PythonRepl(PythonInput):
         # Required for pdb.post_mortem() to work.
         sys.last_type, sys.last_value, sys.last_traceback = t, v, tb
 
-        tblist = traceback.extract_tb(tb)
+        tblist = list(traceback.extract_tb(tb))
 
         for line_nr, tb_tuple in enumerate(tblist):
             if tb_tuple[0] == "<stdin>":
@@ -189,15 +197,15 @@ class PythonRepl(PythonInput):
             l.insert(0, "Traceback (most recent call last):\n")
         l.extend(traceback.format_exception_only(t, v))
 
-        tb = "".join(l)
+        tb_str = "".join(l)
 
         # Format exception and write to output.
         # (We use the default style. Most other styles result
         # in unreadable colors for the traceback.)
         if self.enable_syntax_highlighting:
-            tokens = list(_lex_python_traceback(tb))
+            tokens = list(_lex_python_traceback(tb_str))
         else:
-            tokens = [(Token, tb)]
+            tokens = [(Token, tb_str)]
 
         print_formatted_text(
             PygmentsTokens(tokens),
@@ -209,7 +217,7 @@ class PythonRepl(PythonInput):
         output.write("%s\n" % e)
         output.flush()
 
-    def _handle_keyboard_interrupt(self, e):
+    def _handle_keyboard_interrupt(self, e: KeyboardInterrupt) -> None:
         output = self.app.output
 
         output.write("\rKeyboardInterrupt\n\n")
@@ -228,7 +236,7 @@ def _lex_python_result(tb):
     return lexer.get_tokens(tb)
 
 
-def enable_deprecation_warnings():
+def enable_deprecation_warnings() -> None:
     """
     Show deprecation warnings, when they are triggered directly by actions in
     the REPL. This is recommended to call, before calling `embed`.
@@ -239,7 +247,7 @@ def enable_deprecation_warnings():
     warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
 
 
-def run_config(repl: PythonInput, config_file: str):
+def run_config(repl: PythonInput, config_file: str) -> None:
     """
     Execute REPL config file.
 
@@ -249,7 +257,7 @@ def run_config(repl: PythonInput, config_file: str):
     # Expand tildes.
     config_file = os.path.expanduser(config_file)
 
-    def enter_to_continue():
+    def enter_to_continue() -> None:
         input("\nPress ENTER to continue...")
 
     # Check whether this file exists.
@@ -260,7 +268,7 @@ def run_config(repl: PythonInput, config_file: str):
 
     # Run the config file in an empty namespace.
     try:
-        namespace = {}
+        namespace: Dict[str, Any] = {}
 
         with open(config_file, "rb") as f:
             code = compile(f.read(), config_file, "exec")
@@ -279,14 +287,14 @@ def run_config(repl: PythonInput, config_file: str):
 def embed(
     globals=None,
     locals=None,
-    configure=None,
-    vi_mode=False,
-    history_filename=None,
-    title=None,
+    configure: Optional[Callable] = None,
+    vi_mode: bool = False,
+    history_filename: Optional[str] = None,
+    title: Optional[str] = None,
     startup_paths=None,
-    patch_stdout=False,
-    return_asyncio_coroutine=False,
-):
+    patch_stdout: bool = False,
+    return_asyncio_coroutine: bool = False,
+) -> None:
     """
     Call this to embed  Python shell at the current point in your program.
     It's similar to `IPython.embed` and `bpython.embed`. ::
@@ -299,8 +307,6 @@ def embed(
                       argument, to trigger configuration.
     :param title: Title to be displayed in the terminal titlebar. (None or string.)
     """
-    assert configure is None or callable(configure)
-
     # Default globals/locals
     if globals is None:
         globals = {
@@ -333,19 +339,14 @@ def embed(
     if configure:
         configure(repl)
 
-    app = repl.app
-
     # Start repl.
-    patch_context = patch_stdout_context() if patch_stdout else DummyContext()
+    patch_context: ContextManager = patch_stdout_context() if patch_stdout else DummyContext()
 
     if return_asyncio_coroutine:
-        import asyncio
 
         async def coroutine():
             with patch_context:
-                while True:
-                    text = app.run_async()
-                    repl._process_text(text)
+                await repl.run_async()
 
         return coroutine()
     else:

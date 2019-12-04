@@ -10,8 +10,8 @@ def main():
     prompt = PythonInput()
 
     text = prompt.app.run()
-    print('You said: ' + text)
+    print("You said: " + text)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

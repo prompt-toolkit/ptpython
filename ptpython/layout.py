@@ -3,6 +3,8 @@ Creation of the `Layout` instance for the Python input/REPL.
 """
 import platform
 import sys
+from enum import Enum
+from typing import TYPE_CHECKING, Optional
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
@@ -14,9 +16,11 @@ from prompt_toolkit.filters import (
     renderer_height_is_known,
 )
 from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
+from prompt_toolkit.formatted_text.base import StyleAndTextTuples
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import (
     ConditionalContainer,
+    Container,
     Float,
     FloatContainer,
     HSplit,
@@ -25,13 +29,14 @@ from prompt_toolkit.layout.containers import (
     Window,
 )
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
-from prompt_toolkit.layout.dimension import Dimension
+from prompt_toolkit.layout.dimension import AnyDimension, Dimension
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.processors import (
     AppendAutoSuggestion,
     ConditionalProcessor,
+    DisplayMultipleCursors,
     HighlightIncrementalSearchProcessor,
     HighlightMatchingBracketProcessor,
     HighlightSelectionProcessor,
@@ -39,6 +44,7 @@ from prompt_toolkit.layout.processors import (
     Transformation,
 )
 from prompt_toolkit.lexers import SimpleLexer
+from prompt_toolkit.mouse_events import MouseEvent
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.widgets.toolbars import (
     ArgToolbar,
@@ -52,25 +58,13 @@ from pygments.lexers import PythonLexer
 from .filters import HasSignature, ShowDocstring, ShowSidebar, ShowSignature
 from .utils import if_mousedown
 
-__all__ = ("PtPythonLayout", "CompletionVisualisation")
+if TYPE_CHECKING:
+    from .python_input import PythonInput, OptionCategory
+
+__all__ = ["PtPythonLayout", "CompletionVisualisation"]
 
 
-# DisplayMultipleCursors: Only for prompt_toolkit>=1.0.8
-try:
-    from prompt_toolkit.layout.processors import DisplayMultipleCursors
-except ImportError:
-
-    class DisplayMultipleCursors(Processor):
-        " Dummy. "
-
-        def __init__(self, *a):
-            pass
-
-        def apply_transformation(self, document, lineno, source_to_display, tokens):
-            return Transformation(tokens)
-
-
-class CompletionVisualisation:
+class CompletionVisualisation(Enum):
     " Visualisation method for the completions. "
     NONE = "none"
     POP_UP = "pop-up"
@@ -78,34 +72,34 @@ class CompletionVisualisation:
     TOOLBAR = "toolbar"
 
 
-def show_completions_toolbar(python_input):
+def show_completions_toolbar(python_input: "PythonInput") -> Condition:
     return Condition(
         lambda: python_input.completion_visualisation == CompletionVisualisation.TOOLBAR
     )
 
 
-def show_completions_menu(python_input):
+def show_completions_menu(python_input: "PythonInput") -> Condition:
     return Condition(
         lambda: python_input.completion_visualisation == CompletionVisualisation.POP_UP
     )
 
 
-def show_multi_column_completions_menu(python_input):
+def show_multi_column_completions_menu(python_input: "PythonInput") -> Condition:
     return Condition(
         lambda: python_input.completion_visualisation
         == CompletionVisualisation.MULTI_COLUMN
     )
 
 
-def python_sidebar(python_input):
+def python_sidebar(python_input: "PythonInput") -> Window:
     """
     Create the `Layout` for the sidebar with the configurable options.
     """
 
-    def get_text_fragments():
-        tokens = []
+    def get_text_fragments() -> StyleAndTextTuples:
+        tokens: StyleAndTextTuples = []
 
-        def append_category(category):
+        def append_category(category: "OptionCategory") -> None:
             tokens.extend(
                 [
                     ("class:sidebar", "  "),
@@ -114,15 +108,15 @@ def python_sidebar(python_input):
                 ]
             )
 
-        def append(index, label, status):
+        def append(index: int, label: str, status: str) -> None:
             selected = index == python_input.selected_option_index
 
             @if_mousedown
-            def select_item(mouse_event):
+            def select_item(mouse_event: MouseEvent) -> None:
                 python_input.selected_option_index = index
 
             @if_mousedown
-            def goto_next(mouse_event):
+            def goto_next(mouse_event: MouseEvent) -> None:
                 " Select item and go to next value. "
                 python_input.selected_option_index = index
                 option = python_input.selected_option
@@ -178,23 +172,17 @@ def python_sidebar_navigation(python_input):
     """
 
     def get_text_fragments():
-        tokens = []
-
         # Show navigation info.
-        tokens.extend(
-            [
-                ("class:sidebar", "    "),
-                ("class:sidebar.key", "[Arrows]"),
-                ("class:sidebar", " "),
-                ("class:sidebar.description", "Navigate"),
-                ("class:sidebar", " "),
-                ("class:sidebar.key", "[Enter]"),
-                ("class:sidebar", " "),
-                ("class:sidebar.description", "Hide menu"),
-            ]
-        )
-
-        return tokens
+        return [
+            ("class:sidebar", "    "),
+            ("class:sidebar.key", "[Arrows]"),
+            ("class:sidebar", " "),
+            ("class:sidebar.description", "Navigate"),
+            ("class:sidebar", " "),
+            ("class:sidebar.key", "[Enter]"),
+            ("class:sidebar", " "),
+            ("class:sidebar.description", "Hide menu"),
+        ]
 
     return Window(
         FormattedTextControl(get_text_fragments),
@@ -333,27 +321,27 @@ class PythonPromptMargin(PromptMargin):
             else:
                 return get_prompt_style().in2_prompt(width)
 
-        super(PythonPromptMargin, self).__init__(get_prompt, get_continuation)
+        super().__init__(get_prompt, get_continuation)
 
 
-def status_bar(python_input):
+def status_bar(python_input: "PythonInput") -> Container:
     """
     Create the `Layout` for the status bar.
     """
     TB = "class:status-toolbar"
 
     @if_mousedown
-    def toggle_paste_mode(mouse_event):
+    def toggle_paste_mode(mouse_event: MouseEvent) -> None:
         python_input.paste_mode = not python_input.paste_mode
 
     @if_mousedown
-    def enter_history(mouse_event):
+    def enter_history(mouse_event: MouseEvent) -> None:
         python_input.enter_history()
 
-    def get_text_fragments():
+    def get_text_fragments() -> StyleAndTextTuples:
         python_buffer = python_input.default_buffer
 
-        result = []
+        result: StyleAndTextTuples = []
         append = result.append
 
         append((TB, " "))
@@ -409,7 +397,7 @@ def status_bar(python_input):
     )
 
 
-def get_inputmode_fragments(python_input):
+def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
@@ -417,14 +405,14 @@ def get_inputmode_fragments(python_input):
     app = get_app()
 
     @if_mousedown
-    def toggle_vi_mode(mouse_event):
+    def toggle_vi_mode(mouse_event: MouseEvent) -> None:
         python_input.vi_mode = not python_input.vi_mode
 
     token = "class:status-toolbar"
     input_mode_t = "class:status-toolbar.input-mode"
 
     mode = app.vi_state.input_mode
-    result = []
+    result: StyleAndTextTuples = []
     append = result.append
 
     append((input_mode_t, "[F4] ", toggle_vi_mode))
@@ -437,7 +425,7 @@ def get_inputmode_fragments(python_input):
             append((token + " class:record", "RECORD({})".format(recording_register)))
             append((token, " - "))
 
-        if bool(app.current_buffer.selection_state):
+        if app.current_buffer.selection_state is not None:
             if app.current_buffer.selection_state.type == SelectionType.LINES:
                 append((input_mode_t, "Vi (VISUAL LINE)", toggle_vi_mode))
             elif app.current_buffer.selection_state.type == SelectionType.CHARACTERS:
@@ -467,19 +455,19 @@ def get_inputmode_fragments(python_input):
     return result
 
 
-def show_sidebar_button_info(python_input):
+def show_sidebar_button_info(python_input: "PythonInput") -> Container:
     """
     Create `Layout` for the information in the right-bottom corner.
     (The right part of the status bar.)
     """
 
     @if_mousedown
-    def toggle_sidebar(mouse_event):
+    def toggle_sidebar(mouse_event: MouseEvent) -> None:
         " Click handler for the menu. "
         python_input.show_sidebar = not python_input.show_sidebar
 
     version = sys.version_info
-    tokens = [
+    tokens: StyleAndTextTuples = [
         ("class:status-toolbar.key", "[F2]", toggle_sidebar),
         ("class:status-toolbar", " Menu", toggle_sidebar),
         ("class:status-toolbar", " - "),
@@ -492,7 +480,7 @@ def show_sidebar_button_info(python_input):
     ]
     width = fragment_list_width(tokens)
 
-    def get_text_fragments():
+    def get_text_fragments() -> StyleAndTextTuples:
         # Python version
         return tokens
 
@@ -512,7 +500,9 @@ def show_sidebar_button_info(python_input):
     )
 
 
-def exit_confirmation(python_input, style="class:exit-confirmation"):
+def exit_confirmation(
+    python_input: "PythonInput", style="class:exit-confirmation"
+) -> Container:
     """
     Create `Layout` for the exit message.
     """
@@ -535,15 +525,16 @@ def exit_confirmation(python_input, style="class:exit-confirmation"):
     )
 
 
-def meta_enter_message(python_input):
+def meta_enter_message(python_input: "PythonInput") -> Container:
     """
     Create the `Layout` for the 'Meta+Enter` message.
     """
 
-    def get_text_fragments():
+    def get_text_fragments() -> StyleAndTextTuples:
         return [("class:accept-message", " [Meta+Enter] Execute ")]
 
-    def extra_condition():
+    @Condition
+    def extra_condition() -> bool:
         " Only show when... "
         b = python_input.default_buffer
 
@@ -556,7 +547,7 @@ def meta_enter_message(python_input):
             and "\n" in b.text
         )
 
-    visible = ~is_done & has_focus(DEFAULT_BUFFER) & Condition(extra_condition)
+    visible = ~is_done & has_focus(DEFAULT_BUFFER) & extra_condition
 
     return ConditionalContainer(
         content=Window(FormattedTextControl(get_text_fragments)), filter=visible
@@ -566,12 +557,12 @@ def meta_enter_message(python_input):
 class PtPythonLayout:
     def __init__(
         self,
-        python_input,
+        python_input: "PythonInput",
         lexer=PythonLexer,
         extra_body=None,
         extra_toolbars=None,
         extra_buffer_processors=None,
-        input_buffer_height=None,
+        input_buffer_height: Optional[AnyDimension] = None,
     ):
         D = Dimension
         extra_body = [extra_body] if extra_body else []

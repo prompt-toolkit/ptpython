@@ -10,7 +10,7 @@ will fix it for Tk.)
 import sys
 import time
 
-__all__ = ("inputhook",)
+__all__ = ["inputhook"]
 
 
 def _inputhook_tk(inputhook_context):

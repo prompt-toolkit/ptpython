@@ -19,12 +19,12 @@ import os
 import sys
 
 import appdirs
-
 import docopt
+
 from ptpython.repl import embed, enable_deprecation_warnings, run_config
 
 
-def run():
+def run() -> None:
     a = docopt.docopt(__doc__)
 
     vi_mode = bool(a["--vi"])
@@ -79,7 +79,7 @@ def run():
         enable_deprecation_warnings()
 
         # Apply config file
-        def configure(repl):
+        def configure(repl) -> None:
             path = os.path.join(config_dir, "config.py")
             if os.path.exists(path):
                 run_config(repl, path)

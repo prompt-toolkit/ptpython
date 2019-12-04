@@ -42,7 +42,7 @@ from .utils import if_mousedown
 
 HISTORY_COUNT = 2000
 
-__all__ = ("HistoryLayout",)
+__all__ = ["HistoryLayout", "PythonHistory"]
 
 HELP_TEXT = """
 This interface is meant to select multiple lines from the
@@ -557,7 +557,7 @@ def create_key_bindings(history, python_input, history_mapping):
     return bindings
 
 
-class History:
+class PythonHistory:
     def __init__(self, python_input, original_document):
         """
         Create an `Application` for the history screen.

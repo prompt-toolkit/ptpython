@@ -2,17 +2,18 @@
 For internal use only.
 """
 import re
+from typing import Callable, TypeVar
 
-from prompt_toolkit.mouse_events import MouseEventType
+from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 
-__all__ = (
+__all__ = [
     "has_unclosed_brackets",
     "get_jedi_script_from_document",
     "document_is_multiline_python",
-)
+]
 
 
-def has_unclosed_brackets(text):
+def has_unclosed_brackets(text: str) -> bool:
     """
     Starting at the end of the string. If we find an opening bracket
     for which we didn't had a closing one yet, return True.
@@ -81,7 +82,7 @@ def document_is_multiline_python(document):
     Determine whether this is a multiline Python document.
     """
 
-    def ends_in_multiline_string():
+    def ends_in_multiline_string() -> bool:
         """
         ``True`` if we're inside a multiline string at the end of the text.
         """
@@ -97,7 +98,7 @@ def document_is_multiline_python(document):
     if "\n" in document.text or ends_in_multiline_string():
         return True
 
-    def line_ends_with_colon():
+    def line_ends_with_colon() -> bool:
         return document.current_line.rstrip()[-1:] == ":"
 
     # If we just typed a colon, or still have open brackets, always insert a real newline.
@@ -119,7 +120,10 @@ def document_is_multiline_python(document):
     return False
 
 
-def if_mousedown(handler):
+_T = TypeVar("_T", bound=Callable[[MouseEvent], None])
+
+
+def if_mousedown(handler: _T) -> _T:
     """
     Decorator for mouse handlers.
     Only handle event when the user pressed mouse down.
@@ -128,7 +132,7 @@ def if_mousedown(handler):
     by the Window.)
     """
 
-    def handle_if_mouse_down(mouse_event):
+    def handle_if_mouse_down(mouse_event: MouseEvent):
         if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
             return handler(mouse_event)
         else:

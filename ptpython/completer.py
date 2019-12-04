@@ -1,14 +1,24 @@
 import ast
 import keyword
 import re
+from typing import TYPE_CHECKING, Iterable
 
-from prompt_toolkit.completion import Completer, Completion, PathCompleter
+from prompt_toolkit.completion import (
+    CompleteEvent,
+    Completer,
+    Completion,
+    PathCompleter,
+)
 from prompt_toolkit.contrib.regular_languages.compiler import compile as compile_grammar
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
+from prompt_toolkit.document import Document
 
 from ptpython.utils import get_jedi_script_from_document
 
-__all__ = ("PythonCompleter",)
+if TYPE_CHECKING:
+    from prompt_toolkit.contrib.regular_languages.compiler import _CompiledGrammar
+
+__all__ = ["PythonCompleter"]
 
 
 class PythonCompleter(Completer):
@@ -29,7 +39,7 @@ class PythonCompleter(Completer):
         self._path_completer_grammar_cache = None
 
     @property
-    def _path_completer(self):
+    def _path_completer(self) -> GrammarCompleter:
         if self._path_completer_cache is None:
             self._path_completer_cache = GrammarCompleter(
                 self._path_completer_grammar,
@@ -41,7 +51,7 @@ class PythonCompleter(Completer):
         return self._path_completer_cache
 
     @property
-    def _path_completer_grammar(self):
+    def _path_completer_grammar(self) -> "_CompiledGrammar":
         """
         Return the grammar for matching paths inside strings inside Python
         code.
@@ -52,14 +62,14 @@ class PythonCompleter(Completer):
             self._path_completer_grammar_cache = self._create_path_completer_grammar()
         return self._path_completer_grammar_cache
 
-    def _create_path_completer_grammar(self):
-        def unwrapper(text):
+    def _create_path_completer_grammar(self) -> "_CompiledGrammar":
+        def unwrapper(text: str) -> str:
             return re.sub(r"\\(.)", r"\1", text)
 
-        def single_quoted_wrapper(text):
+        def single_quoted_wrapper(text: str) -> str:
             return text.replace("\\", "\\\\").replace("'", "\\'")
 
-        def double_quoted_wrapper(text):
+        def double_quoted_wrapper(text: str) -> str:
             return text.replace("\\", "\\\\").replace('"', '\\"')
 
         grammar = r"""
@@ -93,19 +103,23 @@ class PythonCompleter(Completer):
             unescape_funcs={"var1": unwrapper, "var2": unwrapper},
         )
 
-    def _complete_path_while_typing(self, document):
+    def _complete_path_while_typing(self, document: Document) -> bool:
         char_before_cursor = document.char_before_cursor
-        return document.text and (
-            char_before_cursor.isalnum() or char_before_cursor in "/.~"
+        return bool(
+            document.text
+            and (char_before_cursor.isalnum() or char_before_cursor in "/.~")
         )
 
-    def _complete_python_while_typing(self, document):
+    def _complete_python_while_typing(self, document: Document) -> bool:
         char_before_cursor = document.char_before_cursor
-        return document.text and (
-            char_before_cursor.isalnum() or char_before_cursor in "_."
+        return bool(
+            document.text
+            and (char_before_cursor.isalnum() or char_before_cursor in "_.")
         )
 
-    def get_completions(self, document, complete_event):
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
         """
         Get Python completions.
         """
@@ -237,7 +251,9 @@ class DictionaryCompleter(Completer):
             re.VERBOSE,
         )
 
-    def get_completions(self, document, complete_event):
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
         match = self.pattern.search(document.text_before_cursor)
         if match is not None:
             object_var, key = match.groups()
@@ -274,7 +290,7 @@ except ImportError:  # Python 2.
     _builtin_names = []
 
 
-def _get_style_for_name(name):
+def _get_style_for_name(name: str) -> str:
     """
     Return completion style to use for this name.
     """

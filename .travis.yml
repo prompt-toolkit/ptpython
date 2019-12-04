@@ -19,3 +19,8 @@ install:
 script:
   - echo "$TRAVIS_PYTHON_VERSION"
   - ./tests/run_tests.py
+
+  # Check wheather the imports were sorted correctly.
+  - isort -c -rc ptpython tests setup.py examples
+
+  - black --check ptpython setup.py examples

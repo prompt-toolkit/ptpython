@@ -1,26 +1,27 @@
 #!/usr/bin/env python
 import os
 import sys
-from setuptools import setup, find_packages
 
-with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as f:
+from setuptools import find_packages, setup
+
+with open(os.path.join(os.path.dirname(__file__), "README.rst")) as f:
     long_description = f.read()
 
 
 setup(
-    name='ptpython',
-    author='Jonathan Slenders',
-    version='2.0.5',
-    url='https://github.com/jonathanslenders/ptpython',
-    description='Python REPL build on top of prompt_toolkit',
+    name="ptpython",
+    author="Jonathan Slenders",
+    version="2.0.5",
+    url="https://github.com/jonathanslenders/ptpython",
+    description="Python REPL build on top of prompt_toolkit",
     long_description=long_description,
-    packages=find_packages('.'),
-    install_requires = [
-        'appdirs',
-        'docopt',
-        'jedi>=0.9.0',
-        'prompt_toolkit>=3.0.0,<3.1.0',
-        'pygments',
+    packages=find_packages("."),
+    install_requires=[
+        "appdirs",
+        "docopt",
+        "jedi>=0.9.0",
+        "prompt_toolkit>=3.0.0,<3.1.0",
+        "pygments",
     ],
     python_requires=">=3.6",
     classifiers=[
@@ -32,16 +33,17 @@ setup(
         "Programming Language :: Python",
     ],
     entry_points={
-        'console_scripts': [
-            'ptpython = ptpython.entry_points.run_ptpython:run',
-            'ptipython = ptpython.entry_points.run_ptipython:run',
-            'ptpython%s = ptpython.entry_points.run_ptpython:run' % sys.version_info[0],
-            'ptpython%s.%s = ptpython.entry_points.run_ptpython:run' % sys.version_info[:2],
-            'ptipython%s = ptpython.entry_points.run_ptipython:run' % sys.version_info[0],
-            'ptipython%s.%s = ptpython.entry_points.run_ptipython:run' % sys.version_info[:2],
+        "console_scripts": [
+            "ptpython = ptpython.entry_points.run_ptpython:run",
+            "ptipython = ptpython.entry_points.run_ptipython:run",
+            "ptpython%s = ptpython.entry_points.run_ptpython:run" % sys.version_info[0],
+            "ptpython%s.%s = ptpython.entry_points.run_ptpython:run"
+            % sys.version_info[:2],
+            "ptipython%s = ptpython.entry_points.run_ptipython:run"
+            % sys.version_info[0],
+            "ptipython%s.%s = ptpython.entry_points.run_ptipython:run"
+            % sys.version_info[:2],
         ]
     },
-    extras_require={
-        'ptipython':  ['ipython'] # For ptipython, we need to have IPython
-    }
+    extras_require={"ptipython": ["ipython"]},  # For ptipython, we need to have IPython
 )

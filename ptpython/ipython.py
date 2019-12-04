@@ -33,7 +33,7 @@ from ptpython.prompt_style import PromptStyle
 from .python_input import PythonCompleter, PythonInput, PythonValidator
 from .style import default_ui_style
 
-__all__ = ("embed",)
+__all__ = ["embed"]
 
 
 class IPythonPrompt(PromptStyle):
@@ -272,7 +272,7 @@ def embed(**kwargs):
     Copied from `IPython/terminal/embed.py`, but using our `InteractiveShellEmbed` instead.
     """
     config = kwargs.get("config")
-    header = kwargs.pop("header", u"")
+    header = kwargs.pop("header", "")
     compile_flags = kwargs.pop("compile_flags", None)
     if config is None:
         config = load_default_config()

@@ -14,11 +14,11 @@ from prompt_toolkit.keys import Keys
 
 from .utils import document_is_multiline_python
 
-__all__ = (
+__all__ = [
     "load_python_bindings",
     "load_sidebar_bindings",
     "load_confirm_exit_bindings",
-)
+]
 
 
 @Condition

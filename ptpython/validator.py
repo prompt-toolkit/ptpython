@@ -1,6 +1,6 @@
 from prompt_toolkit.validation import ValidationError, Validator
 
-__all__ = ("PythonValidator",)
+__all__ = ["PythonValidator"]
 
 
 class PythonValidator(Validator):
