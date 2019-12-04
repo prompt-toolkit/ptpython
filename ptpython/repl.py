@@ -29,17 +29,12 @@ import sys
 import traceback
 import warnings
 
-__all__ = (
-    'PythonRepl',
-    'enable_deprecation_warnings',
-    'run_config',
-    'embed',
-)
+__all__ = ("PythonRepl", "enable_deprecation_warnings", "run_config", "embed")
 
 
 class PythonRepl(PythonInput):
     def __init__(self, *a, **kw):
-        self._startup_paths = kw.pop('startup_paths', None)
+        self._startup_paths = kw.pop("startup_paths", None)
         super().__init__(*a, **kw)
         self._load_start_paths()
 
@@ -48,12 +43,12 @@ class PythonRepl(PythonInput):
         if self._startup_paths:
             for path in self._startup_paths:
                 if os.path.exists(path):
-                    with open(path, 'rb') as f:
-                        code = compile(f.read(), path, 'exec')
+                    with open(path, "rb") as f:
+                        code = compile(f.read(), path, "exec")
                         exec(code, self.get_globals(), self.get_locals())
                 else:
                     output = self.app.output
-                    output.write('WARNING | File not found: {}\n\n'.format(path))
+                    output.write("WARNING | File not found: {}\n\n".format(path))
 
     def run(self):
         if self.terminal_title:
@@ -62,7 +57,7 @@ class PythonRepl(PythonInput):
         while True:
             # Run the UI.
             try:
-                text = self.app.run()#inputhook=inputhook)
+                text = self.app.run()  # inputhook=inputhook)
             except EOFError:
                 return
             except KeyboardInterrupt:
@@ -86,7 +81,7 @@ class PythonRepl(PythonInput):
                 self._handle_exception(e)
 
             if self.insert_blank_line_after_output:
-                self.app.output.write('\n')
+                self.app.output.write("\n")
 
             self.current_statement_index += 1
             self.signatures = []
@@ -99,65 +94,74 @@ class PythonRepl(PythonInput):
 
         # WORKAROUND: Due to a bug in Jedi, the current directory is removed
         # from sys.path. See: https://github.com/davidhalter/jedi/issues/1148
-        if '' not in sys.path:
-            sys.path.insert(0, '')
+        if "" not in sys.path:
+            sys.path.insert(0, "")
 
         def compile_with_flags(code, mode):
             " Compile code with the right compiler flags. "
-            return compile(code, '<stdin>', mode,
-                           flags=self.get_compiler_flags(),
-                           dont_inherit=True)
+            return compile(
+                code,
+                "<stdin>",
+                mode,
+                flags=self.get_compiler_flags(),
+                dont_inherit=True,
+            )
 
-        if line.lstrip().startswith('\x1a'):
+        if line.lstrip().startswith("\x1a"):
             # When the input starts with Ctrl-Z, quit the REPL.
             self.app.exit()
 
-        elif line.lstrip().startswith('!'):
+        elif line.lstrip().startswith("!"):
             # Run as shell command
             os.system(line[1:])
         else:
             # Try eval first
             try:
-                code = compile_with_flags(line, 'eval')
+                code = compile_with_flags(line, "eval")
                 result = eval(code, self.get_globals(), self.get_locals())
 
                 locals = self.get_locals()
-                locals['_'] = locals['_%i' % self.current_statement_index] = result
+                locals["_"] = locals["_%i" % self.current_statement_index] = result
 
                 if result is not None:
                     out_prompt = self.get_output_prompt()
 
                     try:
-                        result_str = '%r\n' % (result, )
+                        result_str = "%r\n" % (result,)
                     except UnicodeDecodeError:
                         # In Python 2: `__repr__` should return a bytestring,
                         # so to put it in a unicode context could raise an
                         # exception that the 'ascii' codec can't decode certain
                         # characters. Decode as utf-8 in that case.
-                        result_str = '%s\n' % repr(result).decode('utf-8')
+                        result_str = "%s\n" % repr(result).decode("utf-8")
 
                     # Align every line to the first one.
-                    line_sep = '\n' + ' ' * fragment_list_width(out_prompt)
-                    result_str = line_sep.join(result_str.splitlines()) + '\n'
+                    line_sep = "\n" + " " * fragment_list_width(out_prompt)
+                    result_str = line_sep.join(result_str.splitlines()) + "\n"
 
                     # Write output tokens.
                     if self.enable_syntax_highlighting:
-                        formatted_output = merge_formatted_text([
-                            out_prompt,
-                            PygmentsTokens(list(_lex_python_result(result_str))),
-                        ])
+                        formatted_output = merge_formatted_text(
+                            [
+                                out_prompt,
+                                PygmentsTokens(list(_lex_python_result(result_str))),
+                            ]
+                        )
                     else:
                         formatted_output = FormattedText(
-                                out_prompt + [('', result_str)])
+                            out_prompt + [("", result_str)]
+                        )
 
                     print_formatted_text(
-                        formatted_output, style=self._current_style,
+                        formatted_output,
+                        style=self._current_style,
                         style_transformation=self.style_transformation,
-                        include_default_pygments_style=False)
+                        include_default_pygments_style=False,
+                    )
 
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
-                code = compile_with_flags(line, 'exec')
+                code = compile_with_flags(line, "exec")
                 exec(code, self.get_globals(), self.get_locals())
 
             output.flush()
@@ -175,7 +179,7 @@ class PythonRepl(PythonInput):
         tblist = traceback.extract_tb(tb)
 
         for line_nr, tb_tuple in enumerate(tblist):
-            if tb_tuple[0] == '<stdin>':
+            if tb_tuple[0] == "<stdin>":
                 tblist = tblist[line_nr:]
                 break
 
@@ -184,7 +188,7 @@ class PythonRepl(PythonInput):
             l.insert(0, "Traceback (most recent call last):\n")
         l.extend(traceback.format_exception_only(t, v))
 
-        tb = ''.join(l)
+        tb = "".join(l)
 
         # Format exception and write to output.
         # (We use the default style. Most other styles result
@@ -195,17 +199,19 @@ class PythonRepl(PythonInput):
             tokens = [(Token, tb)]
 
         print_formatted_text(
-            PygmentsTokens(tokens), style=self._current_style,
+            PygmentsTokens(tokens),
+            style=self._current_style,
             style_transformation=self.style_transformation,
-            include_default_pygments_style=False)
+            include_default_pygments_style=False,
+        )
 
-        output.write('%s\n' % e)
+        output.write("%s\n" % e)
         output.flush()
 
     def _handle_keyboard_interrupt(self, e):
         output = self.app.output
 
-        output.write('\rKeyboardInterrupt\n\n')
+        output.write("\rKeyboardInterrupt\n\n")
         output.flush()
 
 
@@ -229,8 +235,7 @@ def enable_deprecation_warnings():
     e.g. This will show an error message when the user imports the 'sha'
          library on Python 2.7.
     """
-    warnings.filterwarnings('default', category=DeprecationWarning,
-                            module='__main__')
+    warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
 
 
 def run_config(repl: PythonInput, config_file: str):
@@ -244,11 +249,11 @@ def run_config(repl: PythonInput, config_file: str):
     config_file = os.path.expanduser(config_file)
 
     def enter_to_continue():
-         input('\nPress ENTER to continue...')
+        input("\nPress ENTER to continue...")
 
     # Check whether this file exists.
     if not os.path.exists(config_file):
-        print('Impossible to read %r' % config_file)
+        print("Impossible to read %r" % config_file)
         enter_to_continue()
         return
 
@@ -256,23 +261,31 @@ def run_config(repl: PythonInput, config_file: str):
     try:
         namespace = {}
 
-        with open(config_file, 'rb') as f:
-            code = compile(f.read(), config_file, 'exec')
+        with open(config_file, "rb") as f:
+            code = compile(f.read(), config_file, "exec")
             exec(code, namespace, namespace)
 
         # Now we should have a 'configure' method in this namespace. We call this
         # method with the repl as an argument.
-        if 'configure' in namespace:
-            namespace['configure'](repl)
+        if "configure" in namespace:
+            namespace["configure"](repl)
 
     except Exception:
-         traceback.print_exc()
-         enter_to_continue()
+        traceback.print_exc()
+        enter_to_continue()
 
 
-def embed(globals=None, locals=None, configure=None,
-          vi_mode=False, history_filename=None, title=None,
-          startup_paths=None, patch_stdout=False, return_asyncio_coroutine=False):
+def embed(
+    globals=None,
+    locals=None,
+    configure=None,
+    vi_mode=False,
+    history_filename=None,
+    title=None,
+    startup_paths=None,
+    patch_stdout=False,
+    return_asyncio_coroutine=False,
+):
     """
     Call this to embed  Python shell at the current point in your program.
     It's similar to `IPython.embed` and `bpython.embed`. ::
@@ -290,10 +303,10 @@ def embed(globals=None, locals=None, configure=None,
     # Default globals/locals
     if globals is None:
         globals = {
-            '__name__': '__main__',
-            '__package__': None,
-            '__doc__': None,
-            '__builtins__': builtins,
+            "__name__": "__main__",
+            "__package__": None,
+            "__doc__": None,
+            "__builtins__": builtins,
         }
 
     locals = locals or globals
@@ -305,8 +318,13 @@ def embed(globals=None, locals=None, configure=None,
         return locals
 
     # Create REPL.
-    repl = PythonRepl(get_globals=get_globals, get_locals=get_locals, vi_mode=vi_mode,
-                      history_filename=history_filename, startup_paths=startup_paths)
+    repl = PythonRepl(
+        get_globals=get_globals,
+        get_locals=get_locals,
+        vi_mode=vi_mode,
+        history_filename=history_filename,
+        startup_paths=startup_paths,
+    )
 
     if title:
         repl.terminal_title = title
@@ -327,6 +345,7 @@ def embed(globals=None, locals=None, configure=None,
                 while True:
                     text = app.run_async()
                     repl._process_text(text)
+
         return coroutine()
     else:
         with patch_context:

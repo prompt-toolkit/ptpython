@@ -21,19 +21,23 @@ import sys
 def run(user_ns=None):
     a = docopt.docopt(__doc__)
 
-    vi_mode = bool(a['--vi'])
+    vi_mode = bool(a["--vi"])
 
-    config_dir = appdirs.user_config_dir('ptpython', 'prompt_toolkit')
-    data_dir = appdirs.user_data_dir('ptpython', 'prompt_toolkit')
+    config_dir = appdirs.user_config_dir("ptpython", "prompt_toolkit")
+    data_dir = appdirs.user_data_dir("ptpython", "prompt_toolkit")
 
-    if a['--config-dir']:
+    if a["--config-dir"]:
         # Override config_dir.
-        config_dir = os.path.expanduser(a['--config-dir'])
+        config_dir = os.path.expanduser(a["--config-dir"])
     else:
         # Warn about the legacy directory.
-        legacy_dir = os.path.expanduser('~/.ptpython')
+        legacy_dir = os.path.expanduser("~/.ptpython")
         if os.path.isdir(legacy_dir):
-            print('{0} is deprecated, migrate your configuration to {1}'.format(legacy_dir, config_dir))
+            print(
+                "{0} is deprecated, migrate your configuration to {1}".format(
+                    legacy_dir, config_dir
+                )
+            )
 
     # Create directories.
     for d in (config_dir, data_dir):
@@ -45,22 +49,22 @@ def run(user_ns=None):
     try:
         import IPython
     except ImportError:
-        print('IPython not found. Please install IPython (pip install ipython).')
+        print("IPython not found. Please install IPython (pip install ipython).")
         sys.exit(1)
     else:
         from ptpython.ipython import embed
         from ptpython.repl import run_config, enable_deprecation_warnings
 
     # Add the current directory to `sys.path`.
-    if sys.path[0] != '':
-        sys.path.insert(0, '')
+    if sys.path[0] != "":
+        sys.path.insert(0, "")
 
     # When a file has been given, run that, otherwise start the shell.
-    if a['<arg>'] and not a['--interactive']:
-        sys.argv = a['<arg>']
-        path = a['<arg>'][0]
-        with open(path, 'rb') as f:
-            code = compile(f.read(), path, 'exec')
+    if a["<arg>"] and not a["--interactive"]:
+        sys.argv = a["<arg>"]
+        path = a["<arg>"][0]
+        with open(path, "rb") as f:
+            code = compile(f.read(), path, "exec")
             exec(code)
     else:
         enable_deprecation_warnings()
@@ -73,37 +77,39 @@ def run(user_ns=None):
 
         # Startup path
         startup_paths = []
-        if 'PYTHONSTARTUP' in os.environ:
-            startup_paths.append(os.environ['PYTHONSTARTUP'])
+        if "PYTHONSTARTUP" in os.environ:
+            startup_paths.append(os.environ["PYTHONSTARTUP"])
 
         # --interactive
-        if a['--interactive']:
-            startup_paths.append(a['--interactive'])
-            sys.argv = [a['--interactive']] + a['<arg>']
+        if a["--interactive"]:
+            startup_paths.append(a["--interactive"])
+            sys.argv = [a["--interactive"]] + a["<arg>"]
 
         # exec scripts from startup paths
         for path in startup_paths:
             if os.path.exists(path):
-                with open(path, 'rb') as f:
-                    code = compile(f.read(), path, 'exec')
+                with open(path, "rb") as f:
+                    code = compile(f.read(), path, "exec")
                     exec(code, user_ns, user_ns)
             else:
-                print('File not found: {}\n\n'.format(path))
+                print("File not found: {}\n\n".format(path))
                 sys.exit(1)
 
         # Apply config file
         def configure(repl):
-            path = os.path.join(config_dir, 'config.py')
+            path = os.path.join(config_dir, "config.py")
             if os.path.exists(path):
                 run_config(repl, path)
 
         # Run interactive shell.
-        embed(vi_mode=vi_mode,
-              history_filename=os.path.join(data_dir, 'history'),
-              configure=configure,
-              user_ns=user_ns,
-              title='IPython REPL (ptipython)')
+        embed(
+            vi_mode=vi_mode,
+            history_filename=os.path.join(data_dir, "history"),
+            configure=configure,
+            user_ns=user_ns,
+            title="IPython REPL (ptipython)",
+        )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     run()

@@ -12,7 +12,17 @@ from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, has_focus
 from prompt_toolkit.formatted_text.utils import fragment_list_to_text
 from prompt_toolkit.key_binding import KeyBindings
-from prompt_toolkit.layout.containers import HSplit, VSplit, Window, FloatContainer, Float, ConditionalContainer, Container, ScrollOffsets, WindowAlign
+from prompt_toolkit.layout.containers import (
+    HSplit,
+    VSplit,
+    Window,
+    FloatContainer,
+    Float,
+    ConditionalContainer,
+    Container,
+    ScrollOffsets,
+    WindowAlign,
+)
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension as D
 from prompt_toolkit.layout.layout import Layout
@@ -33,9 +43,7 @@ from pygments.lexers import Python3Lexer as PythonLexer
 
 HISTORY_COUNT = 2000
 
-__all__ = (
-    'HistoryLayout',
-)
+__all__ = ("HistoryLayout",)
 
 HELP_TEXT = """
 This interface is meant to select multiple lines from the
@@ -79,13 +87,13 @@ Further, remember that searching works like in Emacs
 
 class BORDER:
     " Box drawing characters. "
-    HORIZONTAL = '\u2501'
-    VERTICAL = '\u2503'
-    TOP_LEFT = '\u250f'
-    TOP_RIGHT = '\u2513'
-    BOTTOM_LEFT = '\u2517'
-    BOTTOM_RIGHT = '\u251b'
-    LIGHT_VERTICAL = '\u2502'
+    HORIZONTAL = "\u2501"
+    VERTICAL = "\u2503"
+    TOP_LEFT = "\u250f"
+    TOP_RIGHT = "\u2513"
+    BOTTOM_LEFT = "\u2517"
+    BOTTOM_RIGHT = "\u251b"
+    LIGHT_VERTICAL = "\u2502"
 
 
 def _create_popup_window(title: str, body: Container) -> Frame:
@@ -101,83 +109,106 @@ class HistoryLayout:
     Create and return a `Container` instance for the history
     application.
     """
+
     def __init__(self, history):
         search_toolbar = SearchToolbar()
 
         self.help_buffer_control = BufferControl(
-            buffer=history.help_buffer,
-            lexer=PygmentsLexer(RstLexer))
+            buffer=history.help_buffer, lexer=PygmentsLexer(RstLexer)
+        )
 
         help_window = _create_popup_window(
-            title='History Help',
+            title="History Help",
             body=Window(
                 content=self.help_buffer_control,
                 right_margins=[ScrollbarMargin(display_arrows=True)],
-                scroll_offsets=ScrollOffsets(top=2, bottom=2)))
+                scroll_offsets=ScrollOffsets(top=2, bottom=2),
+            ),
+        )
 
         self.default_buffer_control = BufferControl(
             buffer=history.default_buffer,
             input_processors=[GrayExistingText(history.history_mapping)],
-            lexer=PygmentsLexer(PythonLexer))
+            lexer=PygmentsLexer(PythonLexer),
+        )
 
         self.history_buffer_control = BufferControl(
             buffer=history.history_buffer,
             lexer=PygmentsLexer(PythonLexer),
             search_buffer_control=search_toolbar.control,
-            preview_search=True)
+            preview_search=True,
+        )
 
         history_window = Window(
             content=self.history_buffer_control,
             wrap_lines=False,
             left_margins=[HistoryMargin(history)],
-            scroll_offsets=ScrollOffsets(top=2, bottom=2))
+            scroll_offsets=ScrollOffsets(top=2, bottom=2),
+        )
 
-        self.root_container = HSplit([
-            #  Top title bar.
-            Window(
-                content=FormattedTextControl(_get_top_toolbar_fragments),
-                align=WindowAlign.CENTER,
-                style='class:status-toolbar'),
-            FloatContainer(
-                content=VSplit([
-                    # Left side: history.
-                    history_window,
-                    # Separator.
-                    Window(width=D.exact(1),
-                           char=BORDER.LIGHT_VERTICAL,
-                           style='class:separator'),
-                    # Right side: result.
-                    Window(
-                        content=self.default_buffer_control,
-                        wrap_lines=False,
-                        left_margins=[ResultMargin(history)],
-                        scroll_offsets=ScrollOffsets(top=2, bottom=2)),
-                ]),
-                floats=[
-                    # Help text as a float.
-                    Float(width=60, top=3, bottom=2,
-                          content=ConditionalContainer(
-                              content=help_window, filter=has_focus(history.help_buffer))),
-                ]
-            ),
-            # Bottom toolbars.
-            ArgToolbar(),
-            search_toolbar,
-            Window(
-                content=FormattedTextControl(
-                    partial(_get_bottom_toolbar_fragments, history=history)),
-                style='class:status-toolbar'),
-        ])
+        self.root_container = HSplit(
+            [
+                #  Top title bar.
+                Window(
+                    content=FormattedTextControl(_get_top_toolbar_fragments),
+                    align=WindowAlign.CENTER,
+                    style="class:status-toolbar",
+                ),
+                FloatContainer(
+                    content=VSplit(
+                        [
+                            # Left side: history.
+                            history_window,
+                            # Separator.
+                            Window(
+                                width=D.exact(1),
+                                char=BORDER.LIGHT_VERTICAL,
+                                style="class:separator",
+                            ),
+                            # Right side: result.
+                            Window(
+                                content=self.default_buffer_control,
+                                wrap_lines=False,
+                                left_margins=[ResultMargin(history)],
+                                scroll_offsets=ScrollOffsets(top=2, bottom=2),
+                            ),
+                        ]
+                    ),
+                    floats=[
+                        # Help text as a float.
+                        Float(
+                            width=60,
+                            top=3,
+                            bottom=2,
+                            content=ConditionalContainer(
+                                content=help_window,
+                                filter=has_focus(history.help_buffer),
+                            ),
+                        )
+                    ],
+                ),
+                # Bottom toolbars.
+                ArgToolbar(),
+                search_toolbar,
+                Window(
+                    content=FormattedTextControl(
+                        partial(_get_bottom_toolbar_fragments, history=history)
+                    ),
+                    style="class:status-toolbar",
+                ),
+            ]
+        )
 
         self.layout = Layout(self.root_container, history_window)
 
 
 def _get_top_toolbar_fragments():
-    return [('class:status-bar.title', 'History browser - Insert from history')]
+    return [("class:status-bar.title", "History browser - Insert from history")]
 
 
 def _get_bottom_toolbar_fragments(history):
     python_input = history.python_input
+
     @if_mousedown
     def f1(mouse_event):
         _toggle_help(history)
@@ -186,18 +217,21 @@ def _get_bottom_toolbar_fragments(history):
     def tab(mouse_event):
         _select_other_window(history)
 
-    return [
-           ('class:status-toolbar', ' ') ] + get_inputmode_fragments(python_input) + [
-           ('class:status-toolbar', ' '),
-           ('class:status-toolbar.key', '[Space]'),
-           ('class:status-toolbar', ' Toggle '),
-           ('class:status-toolbar.key', '[Tab]', tab),
-           ('class:status-toolbar', ' Focus ', tab),
-           ('class:status-toolbar.key', '[Enter]'),
-           ('class:status-toolbar', ' Accept '),
-           ('class:status-toolbar.key', '[F1]', f1),
-           ('class:status-toolbar', ' Help ', f1),
-    ]
+    return (
+        [("class:status-toolbar", " ")]
+        + get_inputmode_fragments(python_input)
+        + [
+            ("class:status-toolbar", " "),
+            ("class:status-toolbar.key", "[Space]"),
+            ("class:status-toolbar", " Toggle "),
+            ("class:status-toolbar.key", "[Tab]", tab),
+            ("class:status-toolbar", " Focus ", tab),
+            ("class:status-toolbar.key", "[Enter]"),
+            ("class:status-toolbar", " Accept "),
+            ("class:status-toolbar.key", "[F1]", f1),
+            ("class:status-toolbar", " Help ", f1),
+        ]
+    )
 
 
 class HistoryMargin(Margin):
@@ -205,6 +239,7 @@ class HistoryMargin(Margin):
     Margin for the history buffer.
     This displays a green bar for the selected entries.
     """
+
     def __init__(self, history):
         self.history_buffer = history.history_buffer
         self.history_mapping = history.history_mapping
@@ -229,20 +264,20 @@ class HistoryMargin(Margin):
             # Show stars at the start of each entry.
             # (Visualises multiline entries.)
             if line_number in lines_starting_new_entries:
-                char = '*'
+                char = "*"
             else:
-                char = ' '
+                char = " "
 
             if line_number in selected_lines:
-                t = 'class:history-line,selected'
+                t = "class:history-line,selected"
             else:
-                t = 'class:history-line'
+                t = "class:history-line"
 
             if line_number == current_lineno:
-                t = t + ',current'
+                t = t + ",current"
 
             result.append((t, char))
-            result.append(('', '\n'))
+            result.append(("", "\n"))
 
         return result
 
@@ -251,6 +286,7 @@ class ResultMargin(Margin):
     """
     The margin to be shown in the result pane.
     """
+
     def __init__(self, history):
         self.history_mapping = history.history_mapping
         self.history_buffer = history.history_buffer
@@ -262,7 +298,9 @@ class ResultMargin(Margin):
         document = self.history_buffer.document
 
         current_lineno = document.cursor_position_row
-        offset = self.history_mapping.result_line_offset #original_document.cursor_position_row
+        offset = (
+            self.history_mapping.result_line_offset
+        )  # original_document.cursor_position_row
 
         visible_line_to_input_line = window_render_info.visible_line_to_input_line
 
@@ -271,16 +309,19 @@ class ResultMargin(Margin):
         for y in range(height):
             line_number = visible_line_to_input_line.get(y)
 
-            if (line_number is None or line_number < offset or
-                    line_number >= offset + len(self.history_mapping.selected_lines)):
-                t = ''
+            if (
+                line_number is None
+                or line_number < offset
+                or line_number >= offset + len(self.history_mapping.selected_lines)
+            ):
+                t = ""
             elif line_number == current_lineno:
-                t = 'class:history-line,selected,current'
+                t = "class:history-line,selected,current"
             else:
-                t = 'class:history-line,selected'
+                t = "class:history-line,selected"
 
-            result.append((t, ' '))
-            result.append(('', '\n'))
+            result.append((t, " "))
+            result.append(("", "\n"))
 
         return result
 
@@ -292,18 +333,22 @@ class GrayExistingText(Processor):
     """
     Turn the existing input, before and after the inserted code gray.
     """
+
     def __init__(self, history_mapping):
         self.history_mapping = history_mapping
-        self._lines_before = len(history_mapping.original_document.text_before_cursor.splitlines())
+        self._lines_before = len(
+            history_mapping.original_document.text_before_cursor.splitlines()
+        )
 
     def apply_transformation(self, transformation_input):
         lineno = transformation_input.lineno
         fragments = transformation_input.fragments
 
-        if (lineno < self._lines_before or
-                lineno >= self._lines_before + len(self.history_mapping.selected_lines)):
+        if lineno < self._lines_before or lineno >= self._lines_before + len(
+            self.history_mapping.selected_lines
+        ):
             text = fragment_list_to_text(fragments)
-            return Transformation(fragments=[('class:history.existing-input', text)])
+            return Transformation(fragments=[("class:history.existing-input", text)])
         else:
             return Transformation(fragments=fragments)
 
@@ -312,6 +357,7 @@ class HistoryMapping:
     """
     Keep a list of all the lines from the history and the selected lines.
     """
+
     def __init__(self, history, python_history, original_document):
         self.history = history
         self.python_history = python_history
@@ -331,10 +377,12 @@ class HistoryMapping:
                 history_lines.append(line)
 
         if len(history_strings) > HISTORY_COUNT:
-            history_lines[0] = '# *** History has been truncated to %s lines ***' % HISTORY_COUNT
+            history_lines[0] = (
+                "# *** History has been truncated to %s lines ***" % HISTORY_COUNT
+            )
 
         self.history_lines = history_lines
-        self.concatenated_history = '\n'.join(history_lines)
+        self.concatenated_history = "\n".join(history_lines)
 
         # Line offset.
         if self.original_document.text_before_cursor:
@@ -361,7 +409,7 @@ class HistoryMapping:
             lines.append(self.original_document.text_after_cursor)
 
         # Create `Document` with cursor at the right position.
-        text = '\n'.join(lines)
+        text = "\n".join(lines)
         if cursor_pos is not None and cursor_pos > len(text):
             cursor_pos = len(text)
         return Document(text, cursor_pos)
@@ -369,8 +417,7 @@ class HistoryMapping:
     def update_default_buffer(self):
         b = self.history.default_buffer
 
-        b.set_document(
-            self.get_new_document(b.cursor_position), bypass_readonly=True)
+        b.set_document(self.get_new_document(b.cursor_position), bypass_readonly=True)
 
 
 def _toggle_help(history):
@@ -402,7 +449,7 @@ def create_key_bindings(history, python_input, history_mapping):
     bindings = KeyBindings()
     handle = bindings.add
 
-    @handle(' ', filter=has_focus(history.history_buffer))
+    @handle(" ", filter=has_focus(history.history_buffer))
     def _(event):
         """
         Space: select/deselect line from history pane.
@@ -425,18 +472,21 @@ def create_key_bindings(history, python_input, history_mapping):
 
             # Update cursor position
             default_buffer = history.default_buffer
-            default_lineno = sorted(history_mapping.selected_lines).index(line_no) + \
-                history_mapping.result_line_offset
-            default_buffer.cursor_position = \
-                default_buffer.document.translate_row_col_to_index(default_lineno, 0)
+            default_lineno = (
+                sorted(history_mapping.selected_lines).index(line_no)
+                + history_mapping.result_line_offset
+            )
+            default_buffer.cursor_position = default_buffer.document.translate_row_col_to_index(
+                default_lineno, 0
+            )
 
         # Also move the cursor to the next line. (This way they can hold
         # space to select a region.)
         b.cursor_position = b.document.translate_row_col_to_index(line_no + 1, 0)
 
-    @handle(' ', filter=has_focus(DEFAULT_BUFFER))
-    @handle('delete', filter=has_focus(DEFAULT_BUFFER))
-    @handle('c-h', filter=has_focus(DEFAULT_BUFFER))
+    @handle(" ", filter=has_focus(DEFAULT_BUFFER))
+    @handle("delete", filter=has_focus(DEFAULT_BUFFER))
+    @handle("c-h", filter=has_focus(DEFAULT_BUFFER))
     def _(event):
         """
         Space: remove line from default pane.
@@ -455,50 +505,52 @@ def create_key_bindings(history, python_input, history_mapping):
             history_mapping.update_default_buffer()
 
     help_focussed = has_focus(history.help_buffer)
-    main_buffer_focussed = has_focus(history.history_buffer) | has_focus(history.default_buffer)
+    main_buffer_focussed = has_focus(history.history_buffer) | has_focus(
+        history.default_buffer
+    )
 
-    @handle('tab', filter=main_buffer_focussed)
-    @handle('c-x', filter=main_buffer_focussed, eager=True)
-        # Eager: ignore the Emacs [Ctrl-X Ctrl-X] binding.
-    @handle('c-w', filter=main_buffer_focussed)
+    @handle("tab", filter=main_buffer_focussed)
+    @handle("c-x", filter=main_buffer_focussed, eager=True)
+    # Eager: ignore the Emacs [Ctrl-X Ctrl-X] binding.
+    @handle("c-w", filter=main_buffer_focussed)
     def _(event):
         " Select other window. "
         _select_other_window(history)
 
-    @handle('f4')
+    @handle("f4")
     def _(event):
         " Switch between Emacs/Vi mode. "
         python_input.vi_mode = not python_input.vi_mode
 
-    @handle('f1')
+    @handle("f1")
     def _(event):
         " Display/hide help. "
         _toggle_help(history)
 
-    @handle('enter', filter=help_focussed)
-    @handle('c-c', filter=help_focussed)
-    @handle('c-g', filter=help_focussed)
-    @handle('escape', filter=help_focussed)
+    @handle("enter", filter=help_focussed)
+    @handle("c-c", filter=help_focussed)
+    @handle("c-g", filter=help_focussed)
+    @handle("escape", filter=help_focussed)
     def _(event):
         " Leave help. "
         event.app.layout.focus_previous()
 
-    @handle('q', filter=main_buffer_focussed)
-    @handle('f3', filter=main_buffer_focussed)
-    @handle('c-c', filter=main_buffer_focussed)
-    @handle('c-g', filter=main_buffer_focussed)
+    @handle("q", filter=main_buffer_focussed)
+    @handle("f3", filter=main_buffer_focussed)
+    @handle("c-c", filter=main_buffer_focussed)
+    @handle("c-g", filter=main_buffer_focussed)
     def _(event):
         " Cancel and go back. "
         event.app.exit(result=None)
 
-    @handle('enter', filter=main_buffer_focussed)
+    @handle("enter", filter=main_buffer_focussed)
     def _(event):
         " Accept input. "
         event.app.exit(result=history.default_buffer.text)
 
     enable_system_bindings = Condition(lambda: python_input.enable_system_bindings)
 
-    @handle('c-z', filter=enable_system_bindings)
+    @handle("c-z", filter=enable_system_bindings)
     def _(event):
         " Suspend to background. "
         event.app.suspend_to_background()
@@ -522,25 +574,27 @@ class History:
         document = Document(history_mapping.concatenated_history)
         document = Document(
             document.text,
-            cursor_position=document.cursor_position + document.get_start_of_line_position())
+            cursor_position=document.cursor_position
+            + document.get_start_of_line_position(),
+        )
 
         self.history_buffer = Buffer(
             document=document,
             on_cursor_position_changed=self._history_buffer_pos_changed,
             accept_handler=(
-                lambda buff: get_app().exit(result=self.default_buffer.text)),
-            read_only=True)
+                lambda buff: get_app().exit(result=self.default_buffer.text)
+            ),
+            read_only=True,
+        )
 
         self.default_buffer = Buffer(
             name=DEFAULT_BUFFER,
             document=history_mapping.get_new_document(),
             on_cursor_position_changed=self._default_buffer_pos_changed,
-            read_only=True)
-
-        self.help_buffer = Buffer(
-            document=Document(HELP_TEXT, 0),
-            read_only=True
+            read_only=True,
         )
+
+        self.help_buffer = Buffer(document=Document(HELP_TEXT, 0), read_only=True)
 
         self.history_layout = HistoryLayout(self)
 
@@ -549,7 +603,7 @@ class History:
             full_screen=True,
             style=python_input._current_style,
             mouse_support=Condition(lambda: python_input.enable_mouse_support),
-            key_bindings=create_key_bindings(self, python_input, history_mapping)
+            key_bindings=create_key_bindings(self, python_input, history_mapping),
         )
 
     def _default_buffer_pos_changed(self, _):
@@ -558,8 +612,10 @@ class History:
         # Only when this buffer has the focus.
         if self.app.current_buffer == self.default_buffer:
             try:
-                line_no = self.default_buffer.document.cursor_position_row - \
-                    self.history_mapping.result_line_offset
+                line_no = (
+                    self.default_buffer.document.cursor_position_row
+                    - self.history_mapping.result_line_offset
+                )
 
                 if line_no < 0:  # When the cursor is above the inserted region.
                     raise IndexError
@@ -568,8 +624,9 @@ class History:
             except IndexError:
                 pass
             else:
-                self.history_buffer.cursor_position = \
-                    self.history_buffer.document.translate_row_col_to_index(history_lineno, 0)
+                self.history_buffer.cursor_position = self.history_buffer.document.translate_row_col_to_index(
+                    history_lineno, 0
+                )
 
     def _history_buffer_pos_changed(self, _):
         """ When the cursor changes in the history buffer. Synchronize. """
@@ -578,9 +635,11 @@ class History:
             line_no = self.history_buffer.document.cursor_position_row
 
             if line_no in self.history_mapping.selected_lines:
-                default_lineno = sorted(self.history_mapping.selected_lines).index(line_no) + \
-                    self.history_mapping.result_line_offset
+                default_lineno = (
+                    sorted(self.history_mapping.selected_lines).index(line_no)
+                    + self.history_mapping.result_line_offset
+                )
 
-                self.default_buffer.cursor_position = \
-                    self.default_buffer.document.translate_row_col_to_index(default_lineno, 0)
-
+                self.default_buffer.cursor_position = self.default_buffer.document.translate_row_col_to_index(
+                    default_lineno, 0
+                )

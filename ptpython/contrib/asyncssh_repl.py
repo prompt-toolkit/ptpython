@@ -17,9 +17,7 @@ from prompt_toolkit.terminal.vt100_output import Vt100_Output
 
 from ptpython.repl import PythonRepl
 
-__all__ = (
-    'ReplSSHServerSession',
-)
+__all__ = ("ReplSSHServerSession",)
 
 
 class ReplSSHServerSession(asyncssh.SSHServerSession):
@@ -29,6 +27,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
     :param get_globals: callable that returns the current globals.
     :param get_locals: (optional) callable that returns the current locals.
     """
+
     def __init__(self, get_globals, get_locals=None):
         assert callable(get_globals)
         assert get_locals is None or callable(get_locals)
@@ -37,11 +36,10 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
 
         def _globals():
             data = get_globals()
-            data.setdefault('print', self._print)
+            data.setdefault("print", self._print)
             return data
 
-        repl = PythonRepl(get_globals=_globals,
-                          get_locals=get_locals or _globals)
+        repl = PythonRepl(get_globals=_globals, get_locals=get_locals or _globals)
 
         # Disable open-in-editor and system prompt. Because it would run and
         # display these commands on the server side, rather than in the SSH
@@ -59,7 +57,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         class Stdout:
             def write(s, data):
                 if self._chan is not None:
-                    self._chan.write(data.replace('\n', '\r\n'))
+                    self._chan.write(data.replace("\n", "\r\n"))
 
             def flush(s):
                 pass
@@ -69,7 +67,8 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
             application=repl.create_application(),
             eventloop=create_asyncio_eventloop(),
             input=self._input_pipe,
-            output=Vt100_Output(Stdout(), self._get_size))
+            output=Vt100_Output(Stdout(), self._get_size),
+        )
 
         self._callbacks = self.cli.create_eventloop_callbacks()
 
@@ -96,6 +95,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         def done(_):
             chan.close()
             self._chan = None
+
         f.add_done_callback(done)
 
     def shell_requested(self):
@@ -122,10 +122,10 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         # Pop keyword-only arguments. (We cannot use the syntax from the
         # signature. Otherwise, Python2 will give a syntax error message when
         # installing.)
-        sep = kw.pop('sep', ' ')
-        end = kw.pop('end', '\n')
-        _ = kw.pop('file', None)
-        assert not kw, 'Too many keyword-only arguments'
+        sep = kw.pop("sep", " ")
+        end = kw.pop("end", "\n")
+        _ = kw.pop("file", None)
+        assert not kw, "Too many keyword-only arguments"
 
         data = sep.join(map(str, data))
         self._chan.write(data + end)

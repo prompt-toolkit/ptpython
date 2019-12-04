@@ -1,11 +1,6 @@
 from prompt_toolkit.filters import Filter
 
-__all__ = (
-    'HasSignature',
-    'ShowSidebar',
-    'ShowSignature',
-    'ShowDocstring',
-)
+__all__ = ("HasSignature", "ShowSidebar", "ShowSignature", "ShowDocstring")
 
 
 class PythonInputFilter(Filter):

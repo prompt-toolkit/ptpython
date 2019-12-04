@@ -1,16 +1,13 @@
 from abc import ABCMeta, abstractmethod
 
-__all__ = (
-    'PromptStyle',
-    'IPythonPrompt',
-    'ClassicPrompt',
-)
+__all__ = ("PromptStyle", "IPythonPrompt", "ClassicPrompt")
 
 
 class PromptStyle(metaclass=ABCMeta):
     """
     Base class for all prompts.
     """
+
     @abstractmethod
     def in_prompt(self):
         " Return the input tokens. "
@@ -36,27 +33,26 @@ class IPythonPrompt(PromptStyle):
     """
     A prompt resembling the IPython prompt.
     """
+
     def __init__(self, python_input):
         self.python_input = python_input
 
     def in_prompt(self):
         return [
-            ('class:in', 'In ['),
-            ('class:in.number', '%s' % self.python_input.current_statement_index),
-            ('class:in', ']: '),
+            ("class:in", "In ["),
+            ("class:in.number", "%s" % self.python_input.current_statement_index),
+            ("class:in", "]: "),
         ]
 
     def in2_prompt(self, width):
-        return [
-            ('class:in', '...: '.rjust(width)),
-        ]
+        return [("class:in", "...: ".rjust(width))]
 
     def out_prompt(self):
         return [
-            ('class:out', 'Out['),
-            ('class:out.number', '%s' % self.python_input.current_statement_index),
-            ('class:out', ']:'),
-            ('', ' '),
+            ("class:out", "Out["),
+            ("class:out.number", "%s" % self.python_input.current_statement_index),
+            ("class:out", "]:"),
+            ("", " "),
         ]
 
 
@@ -64,11 +60,12 @@ class ClassicPrompt(PromptStyle):
     """
     The classic Python prompt.
     """
+
     def in_prompt(self):
-        return [('class:prompt', '>>> ')]
+        return [("class:prompt", ">>> ")]
 
     def in2_prompt(self, width):
-        return [('class:prompt.dots', '...')]
+        return [("class:prompt.dots", "...")]
 
     def out_prompt(self):
         return []

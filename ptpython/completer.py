@@ -8,15 +8,14 @@ import keyword
 import ast
 import re
 
-__all__ = (
-    'PythonCompleter',
-)
+__all__ = ("PythonCompleter",)
 
 
 class PythonCompleter(Completer):
     """
     Completer for Python code.
     """
+
     def __init__(self, get_globals, get_locals, get_enable_dictionary_completion):
         super().__init__()
 
@@ -33,10 +32,12 @@ class PythonCompleter(Completer):
     def _path_completer(self):
         if self._path_completer_cache is None:
             self._path_completer_cache = GrammarCompleter(
-                self._path_completer_grammar, {
-                    'var1': PathCompleter(expanduser=True),
-                    'var2': PathCompleter(expanduser=True),
-                })
+                self._path_completer_grammar,
+                {
+                    "var1": PathCompleter(expanduser=True),
+                    "var2": PathCompleter(expanduser=True),
+                },
+            )
         return self._path_completer_cache
 
     @property
@@ -53,13 +54,13 @@ class PythonCompleter(Completer):
 
     def _create_path_completer_grammar(self):
         def unwrapper(text):
-            return re.sub(r'\\(.)', r'\1', text)
+            return re.sub(r"\\(.)", r"\1", text)
 
         def single_quoted_wrapper(text):
-            return text.replace('\\', '\\\\').replace("'", "\\'")
+            return text.replace("\\", "\\\\").replace("'", "\\'")
 
         def double_quoted_wrapper(text):
-            return text.replace('\\', '\\\\').replace('"', '\\"')
+            return text.replace("\\", "\\\\").replace('"', '\\"')
 
         grammar = r"""
                 # Text before the current string.
@@ -88,24 +89,21 @@ class PythonCompleter(Completer):
 
         return compile_grammar(
             grammar,
-            escape_funcs={
-                'var1': single_quoted_wrapper,
-                'var2': double_quoted_wrapper,
-            },
-            unescape_funcs={
-                'var1': unwrapper,
-                'var2': unwrapper,
-            })
+            escape_funcs={"var1": single_quoted_wrapper, "var2": double_quoted_wrapper},
+            unescape_funcs={"var1": unwrapper, "var2": unwrapper},
+        )
 
     def _complete_path_while_typing(self, document):
         char_before_cursor = document.char_before_cursor
         return document.text and (
-            char_before_cursor.isalnum() or char_before_cursor in '/.~')
+            char_before_cursor.isalnum() or char_before_cursor in "/.~"
+        )
 
     def _complete_python_while_typing(self, document):
         char_before_cursor = document.char_before_cursor
         return document.text and (
-            char_before_cursor.isalnum() or char_before_cursor in '_.')
+            char_before_cursor.isalnum() or char_before_cursor in "_."
+        )
 
     def get_completions(self, document, complete_event):
         """
@@ -114,14 +112,18 @@ class PythonCompleter(Completer):
         # Do dictionary key completions.
         if self.get_enable_dictionary_completion():
             has_dict_completions = False
-            for c in self.dictionary_completer.get_completions(document, complete_event):
+            for c in self.dictionary_completer.get_completions(
+                document, complete_event
+            ):
                 has_dict_completions = True
                 yield c
             if has_dict_completions:
                 return
 
         # Do Path completions (if there were no dictionary completions).
-        if complete_event.completion_requested or self._complete_path_while_typing(document):
+        if complete_event.completion_requested or self._complete_path_while_typing(
+            document
+        ):
             for c in self._path_completer.get_completions(document, complete_event):
                 yield c
 
@@ -130,8 +132,12 @@ class PythonCompleter(Completer):
             return
 
         # Do Jedi Python completions.
-        if complete_event.completion_requested or self._complete_python_while_typing(document):
-            script = get_jedi_script_from_document(document, self.get_locals(), self.get_globals())
+        if complete_event.completion_requested or self._complete_python_while_typing(
+            document
+        ):
+            script = get_jedi_script_from_document(
+                document, self.get_locals(), self.get_globals()
+            )
 
             if script:
                 try:
@@ -175,9 +181,11 @@ class PythonCompleter(Completer):
                 else:
                     for c in completions:
                         yield Completion(
-                            c.name_with_symbols, len(c.complete) - len(c.name_with_symbols),
+                            c.name_with_symbols,
+                            len(c.complete) - len(c.name_with_symbols),
                             display=c.name_with_symbols,
-                            style=_get_style_for_name(c.name_with_symbols))
+                            style=_get_style_for_name(c.name_with_symbols),
+                        )
 
 
 class DictionaryCompleter(Completer):
@@ -188,6 +196,7 @@ class DictionaryCompleter(Completer):
              bracket, which is potentially dangerous. It doesn't match on
              function calls, so it only triggers attribute access.
     """
+
     def __init__(self, get_globals, get_locals):
         super().__init__()
 
@@ -195,7 +204,7 @@ class DictionaryCompleter(Completer):
         self.get_locals = get_locals
 
         self.pattern = re.compile(
-            r'''
+            r"""
                 # Any expression safe enough to eval while typing.
                 # No operators, except dot, and only other dict lookups.
                 # Technically, this can be unsafe of course, if bad code runs
@@ -224,8 +233,8 @@ class DictionaryCompleter(Completer):
                 # string).
                 \[
                 \s* ([a-zA-Z0-9_'"]*)$
-            ''',
-            re.VERBOSE
+            """,
+            re.VERBOSE,
         )
 
     def get_completions(self, document, complete_event):
@@ -254,14 +263,12 @@ class DictionaryCompleter(Completer):
 
                 for k in result:
                     if str(k).startswith(key_obj):
-                        yield Completion(
-                            str(repr(k)),
-                            - len(key),
-                            display=str(repr(k))
-                        )
+                        yield Completion(str(repr(k)), -len(key), display=str(repr(k)))
+
 
 try:
     import builtins
+
     _builtin_names = dir(builtins)
 except ImportError:  # Python 2.
     _builtin_names = []
@@ -272,9 +279,9 @@ def _get_style_for_name(name):
     Return completion style to use for this name.
     """
     if name in _builtin_names:
-        return 'class:completion.builtin'
+        return "class:completion.builtin"
 
     if keyword.iskeyword(name):
-        return 'class:completion.keyword'
+        return "class:completion.keyword"
 
-    return ''
+    return ""
