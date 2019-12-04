@@ -1,4 +1,4 @@
-from prompt_toolkit.validation import Validator, ValidationError
+from prompt_toolkit.validation import ValidationError, Validator
 
 __all__ = ("PythonValidator",)
 

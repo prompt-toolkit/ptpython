@@ -4,6 +4,8 @@ Utility to easily select lines from the history and execute them again.
 `create_history_application` creates an `Application` instance that runs will
 run as a sub application of the Repl/PythonInput.
 """
+from functools import partial
+
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
 from prompt_toolkit.buffer import Buffer
@@ -13,14 +15,14 @@ from prompt_toolkit.filters import Condition, has_focus
 from prompt_toolkit.formatted_text.utils import fragment_list_to_text
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.layout.containers import (
-    HSplit,
-    VSplit,
-    Window,
-    FloatContainer,
-    Float,
     ConditionalContainer,
     Container,
+    Float,
+    FloatContainer,
+    HSplit,
     ScrollOffsets,
+    VSplit,
+    Window,
     WindowAlign,
 )
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
@@ -31,15 +33,12 @@ from prompt_toolkit.layout.processors import Processor, Transformation
 from prompt_toolkit.lexers import PygmentsLexer
 from prompt_toolkit.widgets import Frame
 from prompt_toolkit.widgets.toolbars import ArgToolbar, SearchToolbar
+from pygments.lexers import Python3Lexer as PythonLexer
 from pygments.lexers import RstLexer
 
-from .utils import if_mousedown
-
 from ptpython.layout import get_inputmode_fragments
-from functools import partial
 
-from pygments.lexers import Python3Lexer as PythonLexer
-
+from .utils import if_mousedown
 
 HISTORY_COUNT = 2000
 

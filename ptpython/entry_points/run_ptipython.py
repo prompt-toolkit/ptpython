@@ -12,10 +12,12 @@ Options:
     --config-dir=<directory> : Pass config directory. By default '$XDG_CONFIG_HOME/ptpython'.
     -i, --interactive=<filename> : Start interactive shell after executing this file.
 """
-import appdirs
-import docopt
 import os
 import sys
+
+import appdirs
+
+import docopt
 
 
 def run(user_ns=None):

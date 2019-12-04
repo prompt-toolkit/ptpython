@@ -2,6 +2,14 @@
 Application for reading Python input.
 This can be used for creation of Python REPLs.
 """
+import __future__
+
+import sys
+from asyncio import get_event_loop
+from functools import partial
+from typing import Callable
+
+from prompt_toolkit import __version__ as ptk_version
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import (
     AutoSuggestFromHistory,
@@ -9,59 +17,48 @@ from prompt_toolkit.auto_suggest import (
     ThreadedAutoSuggest,
 )
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.key_binding.bindings.auto_suggest import load_auto_suggest_bindings
-from prompt_toolkit.key_binding.bindings.open_in_editor import (
-    load_open_in_editor_bindings,
-)
-from prompt_toolkit.completion import ThreadedCompleter
+from prompt_toolkit.completion import FuzzyCompleter, ThreadedCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition
 from prompt_toolkit.history import FileHistory, InMemoryHistory, ThreadedHistory
 from prompt_toolkit.input.defaults import create_input
 from prompt_toolkit.key_binding import (
-    merge_key_bindings,
     ConditionalKeyBindings,
     KeyBindings,
+    merge_key_bindings,
+)
+from prompt_toolkit.key_binding.bindings.auto_suggest import load_auto_suggest_bindings
+from prompt_toolkit.key_binding.bindings.open_in_editor import (
+    load_open_in_editor_bindings,
 )
 from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.lexers import PygmentsLexer, DynamicLexer, SimpleLexer
+from prompt_toolkit.lexers import DynamicLexer, PygmentsLexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth
 from prompt_toolkit.output.defaults import create_output
 from prompt_toolkit.styles import (
+    AdjustBrightnessStyleTransformation,
+    ConditionalStyleTransformation,
     DynamicStyle,
     SwapLightAndDarkStyleTransformation,
-    ConditionalStyleTransformation,
-    AdjustBrightnessStyleTransformation,
     merge_style_transformations,
 )
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator
-from prompt_toolkit.completion import FuzzyCompleter
-from prompt_toolkit import __version__ as ptk_version
+from pygments.lexers import Python3Lexer as PythonLexer
 
 from .completer import PythonCompleter
 from .history_browser import History
 from .key_bindings import (
+    load_confirm_exit_bindings,
     load_python_bindings,
     load_sidebar_bindings,
-    load_confirm_exit_bindings,
 )
-from .layout import PtPythonLayout, CompletionVisualisation
-from .prompt_style import IPythonPrompt, ClassicPrompt
-from .style import get_all_code_styles, get_all_ui_styles, generate_style
+from .layout import CompletionVisualisation, PtPythonLayout
+from .prompt_style import ClassicPrompt, IPythonPrompt
+from .style import generate_style, get_all_code_styles, get_all_ui_styles
 from .utils import get_jedi_script_from_document
 from .validator import PythonValidator
-
-from typing import Callable
-from functools import partial
-
-import sys
-import __future__
-
-from asyncio import get_event_loop
-
-from pygments.lexers import Python3Lexer as PythonLexer
 
 __all__ = ("PythonInput",)
 

@@ -1,25 +1,28 @@
 """
 Creation of the `Layout` instance for the Python input/REPL.
 """
+import platform
+import sys
+
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import (
-    is_done,
-    has_completions,
-    renderer_height_is_known,
-    has_focus,
     Condition,
+    has_completions,
+    has_focus,
+    is_done,
+    renderer_height_is_known,
 )
 from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import (
-    Window,
-    HSplit,
-    VSplit,
-    FloatContainer,
-    Float,
     ConditionalContainer,
+    Float,
+    FloatContainer,
+    HSplit,
     ScrollOffsets,
+    VSplit,
+    Window,
 )
 from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
 from prompt_toolkit.layout.dimension import Dimension
@@ -27,31 +30,27 @@ from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.margins import PromptMargin
 from prompt_toolkit.layout.menus import CompletionsMenu, MultiColumnCompletionsMenu
 from prompt_toolkit.layout.processors import (
-    ConditionalProcessor,
     AppendAutoSuggestion,
+    ConditionalProcessor,
     HighlightIncrementalSearchProcessor,
-    HighlightSelectionProcessor,
     HighlightMatchingBracketProcessor,
+    HighlightSelectionProcessor,
     Processor,
     Transformation,
 )
 from prompt_toolkit.lexers import SimpleLexer
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.widgets.toolbars import (
-    CompletionsToolbar,
     ArgToolbar,
+    CompletionsToolbar,
     SearchToolbar,
-    ValidationToolbar,
     SystemToolbar,
+    ValidationToolbar,
 )
-
-from .filters import HasSignature, ShowSidebar, ShowSignature, ShowDocstring
-from .utils import if_mousedown
-
 from pygments.lexers import PythonLexer
 
-import platform
-import sys
+from .filters import HasSignature, ShowDocstring, ShowSidebar, ShowSignature
+from .utils import if_mousedown
 
 __all__ = ("PtPythonLayout", "CompletionVisualisation")
 

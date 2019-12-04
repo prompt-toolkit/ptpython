@@ -1,16 +1,17 @@
+from prompt_toolkit.application import get_app
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import (
-    has_selection,
-    has_focus,
     Condition,
-    vi_insert_mode,
     emacs_insert_mode,
     emacs_mode,
+    has_focus,
+    has_selection,
+    vi_insert_mode,
 )
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
-from prompt_toolkit.application import get_app
+
 from .utils import document_is_multiline_python
 
 __all__ = (

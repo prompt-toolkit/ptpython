@@ -7,8 +7,8 @@ should make sure not to use Python 3-only syntax, because this
 package should be installable in Python 2 as well!
 """
 import asyncio
-import asyncssh
 
+import asyncssh
 from prompt_toolkit.input import PipeInput
 from prompt_toolkit.interface import CommandLineInterface
 from prompt_toolkit.layout.screen import Size

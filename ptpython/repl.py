@@ -7,27 +7,28 @@ Utility for creating a Python repl.
     embed(globals(), locals(), vi_mode=False)
 
 """
-from pygments.lexers import PythonTracebackLexer, PythonLexer
-from pygments.token import Token
-
-from prompt_toolkit.document import Document
-from prompt_toolkit.formatted_text import merge_formatted_text, FormattedText
-from prompt_toolkit.formatted_text.utils import fragment_list_width
-from prompt_toolkit.utils import DummyContext
-from prompt_toolkit.shortcuts import set_title, clear_title
-from prompt_toolkit.shortcuts import print_formatted_text
-from prompt_toolkit.formatted_text import PygmentsTokens
-from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
-from prompt_toolkit import __version__ as ptk_version
-
-from .python_input import PythonInput
-from .eventloop import inputhook
-
 import builtins
 import os
 import sys
 import traceback
 import warnings
+
+from prompt_toolkit import __version__ as ptk_version
+from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import (
+    FormattedText,
+    PygmentsTokens,
+    merge_formatted_text,
+)
+from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
+from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
+from prompt_toolkit.utils import DummyContext
+from pygments.lexers import PythonLexer, PythonTracebackLexer
+from pygments.token import Token
+
+from .eventloop import inputhook
+from .python_input import PythonInput
 
 __all__ = ("PythonRepl", "enable_deprecation_warnings", "run_config", "embed")
 

@@ -8,8 +8,12 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
-from prompt_toolkit.completion import Completion, Completer
-from prompt_toolkit.completion import PathCompleter, WordCompleter
+from prompt_toolkit.completion import (
+    Completer,
+    Completion,
+    PathCompleter,
+    WordCompleter,
+)
 from prompt_toolkit.contrib.completers import SystemCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
@@ -18,17 +22,16 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import PygmentsTokens
 from prompt_toolkit.lexers import PygmentsLexer, SimpleLexer
 from prompt_toolkit.styles import Style
+from pygments.lexers import BashLexer, PythonLexer
 
-from .python_input import PythonInput, PythonValidator, PythonCompleter
-from .style import default_ui_style
-
-from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
-from IPython.terminal.ipapp import load_default_config
 from IPython import utils as ipy_utils
 from IPython.core.inputsplitter import IPythonInputSplitter
-
-from pygments.lexers import PythonLexer, BashLexer
+from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
+from IPython.terminal.ipapp import load_default_config
 from ptpython.prompt_style import PromptStyle
+
+from .python_input import PythonCompleter, PythonInput, PythonValidator
+from .style import default_ui_style
 
 __all__ = ("embed",)
 

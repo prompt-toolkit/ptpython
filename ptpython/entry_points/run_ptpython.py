@@ -15,11 +15,12 @@ Options:
 Other environment variables:
 PYTHONSTARTUP: file executed on interactive startup (no default)
 """
-import appdirs
-import docopt
 import os
 import sys
 
+import appdirs
+
+import docopt
 from ptpython.repl import embed, enable_deprecation_warnings, run_config
 
 

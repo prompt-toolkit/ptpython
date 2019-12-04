@@ -1,8 +1,9 @@
 """
 For internal use only.
 """
-from prompt_toolkit.mouse_events import MouseEventType
 import re
+
+from prompt_toolkit.mouse_events import MouseEventType
 
 __all__ = (
     "has_unclosed_brackets",

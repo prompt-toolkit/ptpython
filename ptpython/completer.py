@@ -1,12 +1,12 @@
+import ast
+import keyword
+import re
+
 from prompt_toolkit.completion import Completer, Completion, PathCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile as compile_grammar
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 
 from ptpython.utils import get_jedi_script_from_document
-
-import keyword
-import ast
-import re
 
 __all__ = ("PythonCompleter",)
 

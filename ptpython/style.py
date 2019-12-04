@@ -1,7 +1,7 @@
 from prompt_toolkit.styles import Style, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls
-from prompt_toolkit.utils import is_windows, is_conemu_ansi, is_windows_vt100_supported
-from pygments.styles import get_style_by_name, get_all_styles
+from prompt_toolkit.utils import is_conemu_ansi, is_windows, is_windows_vt100_supported
+from pygments.styles import get_all_styles, get_style_by_name
 
 __all__ = ("get_all_code_styles", "get_all_ui_styles", "generate_style")
 
