@@ -1,3 +1,6 @@
 pytest
 isort
 black
+
+asyncssh
+IPython

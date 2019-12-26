@@ -8,6 +8,10 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
+from IPython import utils as ipy_utils
+from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
+from IPython.terminal.ipapp import load_default_config
 from prompt_toolkit.completion import (
     Completer,
     Completion,
@@ -24,10 +28,6 @@ from prompt_toolkit.lexers import PygmentsLexer, SimpleLexer
 from prompt_toolkit.styles import Style
 from pygments.lexers import BashLexer, PythonLexer
 
-from IPython import utils as ipy_utils
-from IPython.core.inputsplitter import IPythonInputSplitter
-from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
-from IPython.terminal.ipapp import load_default_config
 from ptpython.prompt_style import PromptStyle
 
 from .python_input import PythonCompleter, PythonInput, PythonValidator
