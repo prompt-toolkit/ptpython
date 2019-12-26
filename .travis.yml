@@ -9,7 +9,8 @@ matrix:
       - python: pypy3
 
 install:
-  - travis_retry pip install . -r requirements-ci.txt
+  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy3" ]; then travis_retry pip install . -r requirements-ci.txt ; fi
+  - if [ "$TRAVIS_PYTHON_VERSION" = "pypy3" ]; then travis_retry pip install . pytest ; fi
   - pip list
 
 script:
@@ -17,6 +18,6 @@ script:
   - ./tests/run_tests.py
 
   # Check wheather the imports were sorted correctly.
-  - isort -c -rc ptpython tests setup.py examples
+  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy3" ]; then isort -c -rc ptpython tests setup.py examples ; fi
 
-  - black --check ptpython setup.py examples
+  - if [ "$TRAVIS_PYTHON_VERSION" != "pypy3" ]; then black --check ptpython setup.py examples ; fi
