@@ -9,11 +9,11 @@ package should be installable in Python 2 as well!
 import asyncio
 from typing import Callable, Optional, TextIO, cast
 
-import asyncssh
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.output.vt100 import Vt100_Output
 
+import asyncssh
 from ptpython.python_input import _GetNamespace
 from ptpython.repl import PythonRepl
 

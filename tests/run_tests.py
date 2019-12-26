@@ -4,7 +4,6 @@ from __future__ import unicode_literals
 import unittest
 
 import ptpython.completer
-
 # import ptpython.ipython
 import ptpython.eventloop
 import ptpython.filters
