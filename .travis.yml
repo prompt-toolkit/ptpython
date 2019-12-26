@@ -13,7 +13,7 @@ matrix:
       - python: pypy3
 
 install:
-  - travis_retry pip install . pytest
+  - travis_retry pip install . -r requirements-ci.txt
   - pip list
 
 script:
