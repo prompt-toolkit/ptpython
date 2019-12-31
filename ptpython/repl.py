@@ -130,17 +130,17 @@ class PythonRepl(PythonInput):
                     out_prompt = self.get_output_prompt()
 
                     try:
-                        result_str = '%r\n' % (result, )
+                        result_str = '%r' % (result, )
                     except UnicodeDecodeError:
                         # In Python 2: `__repr__` should return a bytestring,
                         # so to put it in a unicode context could raise an
                         # exception that the 'ascii' codec can't decode certain
                         # characters. Decode as utf-8 in that case.
-                        result_str = '%s\n' % repr(result).decode('utf-8')
+                        result_str = '%s' % repr(result).decode('utf-8')
 
                     # Align every line to the first one.
                     line_sep = '\n' + ' ' * fragment_list_width(out_prompt)
-                    result_str = line_sep.join(result_str.splitlines()) + '\n'
+                    result_str = line_sep.join(result_str.splitlines())
 
                     # Write output tokens.
                     if self.enable_syntax_highlighting:
@@ -155,7 +155,7 @@ class PythonRepl(PythonInput):
                     print_formatted_text(
                         formatted_output, style=self._current_style,
                         style_transformation=self.style_transformation,
-                        include_default_pygments_style=False)
+                        include_default_pygments_style=False, end='')
 
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
@@ -212,7 +212,7 @@ class PythonRepl(PythonInput):
     def _handle_keyboard_interrupt(self, e):
         output = self.app.output
 
-        output.write('\rKeyboardInterrupt\n\n')
+        output.write('\rKeyboardInterrupt\n')
         output.flush()
 
 
