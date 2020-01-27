@@ -17,6 +17,7 @@ PYTHONSTARTUP: file executed on interactive startup (no default)
 """
 import argparse
 import os
+import pathlib
 import sys
 from typing import Tuple
 
@@ -66,8 +67,7 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> Tuple[str, str
 
     # Create directories.
     for d in (config_dir, data_dir):
-        if not os.path.isdir(d) and not os.path.islink(d):
-            os.mkdir(d)
+        pathlib.Path(d).mkdir(parents=True, exist_ok=True)
 
     # Determine config file to be used.
     config_file = os.path.join(config_dir, "config.py")
