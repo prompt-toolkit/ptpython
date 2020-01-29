@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+3.0.0: 2020-01-29
+-----------------
+
+Upgrade to prompt_toolkit 3.0.
+Requires at least Python 3.6.
+
+New features:
+- Uses XDG base directory specification.
+
 
 2.0.5: 2019-10-09
 -----------------
