@@ -91,7 +91,7 @@ def configure(repl):
     # based on the history.)
     repl.enable_auto_suggest = False
 
-    # Enable open-in-editor. Pressing C-X C-E in emacs mode or 'v' in
+    # Enable open-in-editor. Pressing C-x C-e in emacs mode or 'v' in
     # Vi navigation mode will open the input in the current editor.
     repl.enable_open_in_editor = True
 
