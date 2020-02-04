@@ -23,6 +23,8 @@ from prompt_toolkit.formatted_text import (
     merge_formatted_text,
     to_formatted_text,
 )
+from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
 from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
 from prompt_toolkit.utils import DummyContext
@@ -79,9 +81,21 @@ class PythonRepl(PythonInput):
             set_title(self.terminal_title)
 
         while True:
+            # Capture the current input_mode in order to restore it after reset,
+            # for ViState.reset() sets it to InputMode.INSERT unconditionally and
+            # doesn't accept any arguments.
+            def pre_run(
+                last_input_mode: InputMode = self.app.vi_state.input_mode,
+            ) -> None:
+                if self.vi_keep_last_used_mode:
+                    self.app.vi_state.input_mode = last_input_mode
+
+                if not self.vi_keep_last_used_mode and self.vi_start_in_nav_mode:
+                    self.app.vi_state.input_mode = InputMode.NAVIGATION
+
             # Run the UI.
             try:
-                text = await self.app.run_async()
+                text = await self.app.run_async(pre_run=pre_run)
             except EOFError:
                 return
             except KeyboardInterrupt:
@@ -362,6 +376,10 @@ def embed(
 
     if configure:
         configure(repl)
+
+    # Set Vi input mode
+    if repl.vi_start_in_nav_mode:
+        repl.app.vi_state.input_mode = InputMode.NAVIGATION
 
     # Start repl.
     patch_context: ContextManager = patch_stdout_context() if patch_stdout else DummyContext()
