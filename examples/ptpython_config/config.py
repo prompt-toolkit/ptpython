@@ -119,6 +119,12 @@ def configure(repl):
     # Syntax.
     repl.enable_syntax_highlighting = True
 
+    # Get into Vi navigation mode at startup
+    repl.vi_start_in_nav_mode = False
+
+    # Preserve last used Vi input mode between main loop iterations
+    repl.vi_keep_last_used_mode = False
+
     # Install custom colorscheme named 'my-colorscheme' and use it.
     """
     repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
