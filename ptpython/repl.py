@@ -268,7 +268,7 @@ def enable_deprecation_warnings() -> None:
     warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
 
 
-def run_config(repl: PythonInput, config_file: str) -> None:
+def run_config(repl: PythonInput, config_file: str="~/.ptpython/config.py") -> None:
     """
     Execute REPL config file.
 
