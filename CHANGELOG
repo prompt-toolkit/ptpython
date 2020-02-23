@@ -1,6 +1,14 @@
 CHANGELOG
 =========
 
+3.0.1: 2020-02-24
+-----------------
+
+- Fix backwards-compatibility of the `run_config` function. (used by
+  django-extensions).
+- Fix input mode in status bar for block selection.
+
+
 3.0.0: 2020-01-29
 -----------------
 
