@@ -429,7 +429,7 @@ def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
             elif app.current_buffer.selection_state.type == SelectionType.CHARACTERS:
                 append((input_mode_t, "Vi (VISUAL)", toggle_vi_mode))
                 append((token, " "))
-            elif app.current_buffer.selection_state.type == "BLOCK":
+            elif app.current_buffer.selection_state.type == SelectionType.BLOCK:
                 append((input_mode_t, "Vi (VISUAL BLOCK)", toggle_vi_mode))
                 append((token, " "))
         elif mode in (InputMode.INSERT, "vi-insert-multiple"):
