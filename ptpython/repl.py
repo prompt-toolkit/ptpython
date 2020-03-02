@@ -22,6 +22,7 @@ from prompt_toolkit.formatted_text import (
     merge_formatted_text,
 )
 from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
 from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
 from prompt_toolkit.utils import DummyContext
@@ -70,9 +71,19 @@ class PythonRepl(PythonInput):
                 # This happens when the user used `asyncio.run()`.
                 old_loop = None
 
+            # Capture the current input_mode in order to restore it after reset,
+            # for ViState.reset() sets it to InputMode.INSERT unconditionally and
+            # doesn't accept any arguments despite the docstring says otherwise.
+            def pre_run(last_input_mode=self.app.vi_state.input_mode):
+                if self.vi_keep_last_used_mode:
+                    self.app.vi_state.input_mode = last_input_mode
+
+                if not self.vi_keep_last_used_mode and self.vi_start_in_nav_mode:
+                    self.app.vi_state.input_mode = InputMode.NAVIGATION
+
             asyncio.set_event_loop(self.pt_loop)
             try:
-                return self.app.run()  # inputhook=inputhook)
+                return self.app.run(pre_run)  # inputhook=inputhook)
             finally:
                 # Restore the original event loop.
                 asyncio.set_event_loop(old_loop)
@@ -359,6 +370,10 @@ def embed(
 
     if configure:
         configure(repl)
+
+    # Set Vi input mode
+    if repl.vi_start_in_nav_mode:
+        repl.app.vi_state.input_mode = InputMode.NAVIGATION
 
     # Start repl.
     patch_context: ContextManager = patch_stdout_context() if patch_stdout else DummyContext()
