@@ -187,6 +187,7 @@ class PythonRepl(PythonInput):
                         style=self._current_style,
                         style_transformation=self.style_transformation,
                         include_default_pygments_style=False,
+                        output=output,
                     )
 
             # If not a valid `eval` expression, run using `exec` instead.
@@ -233,6 +234,7 @@ class PythonRepl(PythonInput):
             style=self._current_style,
             style_transformation=self.style_transformation,
             include_default_pygments_style=False,
+            output=output,
         )
 
         output.write("%s\n" % e)
