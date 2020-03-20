@@ -324,7 +324,7 @@ class PythonInput:
             extra_toolbars=self._extra_toolbars,
         )
 
-        self.app = self._create_application()
+        self.app = self._create_application(input, output)
 
         if vi_mode:
             self.app.editing_mode = EditingMode.VI
@@ -728,7 +728,11 @@ class PythonInput:
             ),
         ]
 
-    def _create_application(self) -> Application:
+    def _create_application(
+        self,
+        input: Optional[Input],
+        output: Optional[Output]
+    ) -> Application:
         """
         Create an `Application` instance.
         """
@@ -758,6 +762,8 @@ class PythonInput:
             style_transformation=self.style_transformation,
             include_default_pygments_style=False,
             reverse_vi_search_direction=True,
+            input=input,
+            output=output,
         )
 
     def _create_buffer(self) -> Buffer:
