@@ -518,7 +518,7 @@ class PythonInput:
                     ),
                     Option(
                         title="Dictionary completion",
-                        description="Enable experimental dictionary completion.\n"
+                        description="Enable experimental dictionary/list completion.\n"
                         'WARNING: this does "eval" on fragments of\n'
                         "         your Python input and is\n"
                         "         potentially unsafe.",
