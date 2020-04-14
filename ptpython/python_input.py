@@ -205,7 +205,7 @@ class PythonInput:
         self.extra_key_bindings = extra_key_bindings or KeyBindings()
 
         # Settings.
-        self.title: AnyFormattedText = ''
+        self.title: AnyFormattedText = ""
         self.show_signature: bool = False
         self.show_docstring: bool = False
         self.show_meta_enter_message: bool = True

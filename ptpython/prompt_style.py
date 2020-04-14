@@ -1,7 +1,7 @@
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING
 
-from prompt_toolkit.formatted_text import StyleAndTextTuples
+from prompt_toolkit.formatted_text import AnyFormattedText
 
 if TYPE_CHECKING:
     from .python_input import PythonInput
@@ -15,12 +15,12 @@ class PromptStyle(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def in_prompt(self) -> StyleAndTextTuples:
+    def in_prompt(self) -> AnyFormattedText:
         " Return the input tokens. "
         return []
 
     @abstractmethod
-    def in2_prompt(self, width: int) -> StyleAndTextTuples:
+    def in2_prompt(self, width: int) -> AnyFormattedText:
         """
         Tokens for every following input line.
 
@@ -30,7 +30,7 @@ class PromptStyle(metaclass=ABCMeta):
         return []
 
     @abstractmethod
-    def out_prompt(self) -> StyleAndTextTuples:
+    def out_prompt(self) -> AnyFormattedText:
         " Return the output tokens. "
         return []
 
@@ -43,17 +43,17 @@ class IPythonPrompt(PromptStyle):
     def __init__(self, python_input: "PythonInput") -> None:
         self.python_input = python_input
 
-    def in_prompt(self) -> StyleAndTextTuples:
+    def in_prompt(self) -> AnyFormattedText:
         return [
             ("class:in", "In ["),
             ("class:in.number", "%s" % self.python_input.current_statement_index),
             ("class:in", "]: "),
         ]
 
-    def in2_prompt(self, width: int) -> StyleAndTextTuples:
+    def in2_prompt(self, width: int) -> AnyFormattedText:
         return [("class:in", "...: ".rjust(width))]
 
-    def out_prompt(self) -> StyleAndTextTuples:
+    def out_prompt(self) -> AnyFormattedText:
         return [
             ("class:out", "Out["),
             ("class:out.number", "%s" % self.python_input.current_statement_index),
@@ -67,11 +67,11 @@ class ClassicPrompt(PromptStyle):
     The classic Python prompt.
     """
 
-    def in_prompt(self) -> StyleAndTextTuples:
+    def in_prompt(self) -> AnyFormattedText:
         return [("class:prompt", ">>> ")]
 
-    def in2_prompt(self, width: int) -> StyleAndTextTuples:
+    def in2_prompt(self, width: int) -> AnyFormattedText:
         return [("class:prompt.dots", "...")]
 
-    def out_prompt(self) -> StyleAndTextTuples:
+    def out_prompt(self) -> AnyFormattedText:
         return []

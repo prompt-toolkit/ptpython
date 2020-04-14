@@ -129,7 +129,7 @@ class PythonCompleter(Completer):
             for c in self.dictionary_completer.get_completions(
                 document, complete_event
             ):
-                if c.text not in '[.':
+                if c.text not in "[.":
                     # If we get the [ or . completion, still include the other
                     # completions.
                     has_dict_completions = True
