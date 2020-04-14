@@ -7,7 +7,7 @@ should make sure not to use Python 3-only syntax, because this
 package should be installable in Python 2 as well!
 """
 import asyncio
-from typing import Optional, TextIO, cast
+from typing import Any, Optional, TextIO, cast
 
 import asyncssh
 from prompt_toolkit.data_structures import Size
@@ -31,7 +31,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
     def __init__(
         self, get_globals: _GetNamespace, get_locals: Optional[_GetNamespace] = None
     ) -> None:
-        self._chan = None
+        self._chan: Any = None
 
         def _globals() -> dict:
             data = get_globals()
