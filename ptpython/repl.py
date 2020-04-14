@@ -19,9 +19,10 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import (
     FormattedText,
     PygmentsTokens,
+    fragment_list_width,
     merge_formatted_text,
+    to_formatted_text,
 )
-from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
 from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
 from prompt_toolkit.utils import DummyContext
