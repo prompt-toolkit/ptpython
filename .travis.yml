@@ -7,7 +7,7 @@ matrix:
       - python: 3.7
 
 install:
-  - travis_retry pip install . pytest isort black
+  - travis_retry pip install . pytest isort black mypy
   - pip list
 
 script:
