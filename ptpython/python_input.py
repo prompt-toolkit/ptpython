@@ -15,11 +15,11 @@ from prompt_toolkit.auto_suggest import (
     ThreadedAutoSuggest,
 )
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.completion import Completer, FuzzyCompleter, ThreadedCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition
+from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.history import (
     FileHistory,
     History,
