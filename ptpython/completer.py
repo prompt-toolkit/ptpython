@@ -301,7 +301,7 @@ class DictionaryCompleter(Completer):
         try:
             return eval(expression.strip(), self.get_globals(), temp_locals)
         except BaseException:
-            return  # Many exception, like NameError can be thrown here.
+            return None  # Many exception, like NameError can be thrown here.
 
     def get_completions(
         self, document: Document, complete_event: CompleteEvent

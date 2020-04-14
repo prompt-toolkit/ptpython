@@ -303,13 +303,13 @@ class PythonPromptMargin(PromptMargin):
     It shows something like "In [1]:".
     """
 
-    def __init__(self, python_input):
+    def __init__(self, python_input) -> None:
         self.python_input = python_input
 
         def get_prompt_style():
             return python_input.all_prompt_styles[python_input.prompt_style]
 
-        def get_prompt():
+        def get_prompt() -> StyleAndTextTuples:
             return to_formatted_text(get_prompt_style().in_prompt())
 
         def get_continuation(width, line_number, is_soft_wrap):
@@ -508,7 +508,7 @@ def exit_confirmation(
     Create `Layout` for the exit message.
     """
 
-    def get_text_fragments():
+    def get_text_fragments() -> StyleAndTextTuples:
         # Show "Do you really want to exit?"
         return [
             (style, "\n %s ([y]/n)" % python_input.exit_message),
@@ -564,7 +564,7 @@ class PtPythonLayout:
         extra_toolbars=None,
         extra_buffer_processors=None,
         input_buffer_height: Optional[AnyDimension] = None,
-    ):
+    ) -> None:
         D = Dimension
         extra_body = [extra_body] if extra_body else []
         extra_toolbars = extra_toolbars or []
