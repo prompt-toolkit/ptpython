@@ -729,9 +729,7 @@ class PythonInput:
         ]
 
     def _create_application(
-        self,
-        input: Optional[Input],
-        output: Optional[Output]
+        self, input: Optional[Input], output: Optional[Output]
     ) -> Application:
         """
         Create an `Application` instance.
