@@ -15,6 +15,7 @@ from prompt_toolkit.auto_suggest import (
     ThreadedAutoSuggest,
 )
 from prompt_toolkit.buffer import Buffer
+from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.completion import Completer, FuzzyCompleter, ThreadedCompleter
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -204,6 +205,7 @@ class PythonInput:
         self.extra_key_bindings = extra_key_bindings or KeyBindings()
 
         # Settings.
+        self.title: AnyFormattedText = ''
         self.show_signature: bool = False
         self.show_docstring: bool = False
         self.show_meta_enter_message: bool = True

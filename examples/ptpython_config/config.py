@@ -171,6 +171,12 @@ def configure(repl):
         b.insert_text(' ')
     """
 
+    # Add a custom title to the status bar. This is useful when ptpython is
+    # embedded in other applications.
+    """
+    repl.title = "My custom prompt."
+    """
+
 
 # Custom colorscheme for the UI. See `ptpython/layout.py` and
 # `ptpython/style.py` for all possible tokens.

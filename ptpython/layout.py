@@ -413,6 +413,9 @@ def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
     result: StyleAndTextTuples = []
     append = result.append
 
+    if python_input.title:
+        result.extend(to_formatted_text(python_input.title))
+
     append((input_mode_t, "[F4] ", toggle_vi_mode))
 
     # InputMode
