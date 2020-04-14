@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+3.0.2: 2020-04-14
+-----------------
+
+New features:
+- Improved custom dictionary completion:
+    * Also complete list indexes.
+    * Also complete attributes after doing a dictionary lookup.
+    * Also complete iterators in a for-loop.
+- Added a 'title' option, so that applications embedding ptpython can set a
+  title in the status bar.
+
+
 3.0.1: 2020-02-24
 -----------------
 
