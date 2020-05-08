@@ -21,6 +21,11 @@ import pathlib
 import sys
 from typing import Tuple
 
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata
+
 import appdirs
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import print_formatted_text
@@ -51,7 +56,10 @@ def create_parser() -> _Parser:
     )
     parser.add_argument("--history-file", type=str, help="Location of history file.")
     parser.add_argument(
-        "-V", "--version", action="store_true", help="Print version and exit."
+        "-V",
+        "--version",
+        action="version",
+        version=metadata.version("ptpython"),
     )
     parser.add_argument("args", nargs="*", help="Script and arguments")
     return parser

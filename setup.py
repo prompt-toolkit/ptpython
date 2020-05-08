@@ -18,6 +18,7 @@ setup(
     packages=find_packages("."),
     install_requires=[
         "appdirs",
+        "importlib_metadata;python_version<'3.8'",
         "jedi>=0.9.0",
         "prompt_toolkit>=3.0.0,<3.1.0",
         "pygments",
