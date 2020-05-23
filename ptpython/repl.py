@@ -55,43 +55,24 @@ class PythonRepl(PythonInput):
                     output.write("WARNING | File not found: {}\n\n".format(path))
 
     def run(self) -> None:
-        if self.terminal_title:
-            set_title(self.terminal_title)
+        # In order to make sure that asyncio code written in the
+        # interactive shell doesn't interfere with the prompt, we run the
+        # prompt in a different event loop.
+        # If we don't do this, people could spawn coroutine with a
+        # while/true inside which will freeze the prompt.
 
-        def prompt() -> str:
-            # In order to make sure that asyncio code written in the
-            # interactive shell doesn't interfere with the prompt, we run the
-            # prompt in a different event loop.
-            # If we don't do this, people could spawn coroutine with a
-            # while/true inside which will freeze the prompt.
+        try:
+            old_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop()
+        except RuntimeError:
+            # This happens when the user used `asyncio.run()`.
+            old_loop = None
 
-            try:
-                old_loop: Optional[asyncio.AbstractEventLoop] = asyncio.get_event_loop()
-            except RuntimeError:
-                # This happens when the user used `asyncio.run()`.
-                old_loop = None
-
-            asyncio.set_event_loop(self.pt_loop)
-            try:
-                return self.app.run()  # inputhook=inputhook)
-            finally:
-                # Restore the original event loop.
-                asyncio.set_event_loop(old_loop)
-
-        while True:
-            # Run the UI.
-            try:
-                text = prompt()
-            except EOFError:
-                return
-            except KeyboardInterrupt:
-                # Abort - try again.
-                self.default_buffer.document = Document()
-            else:
-                self._process_text(text)
-
-        if self.terminal_title:
-            clear_title()
+        asyncio.set_event_loop(self.pt_loop)
+        try:
+            return self.pt_loop.run_until_complete(self.run_async())
+        finally:
+            # Restore the original event loop.
+            asyncio.set_event_loop(old_loop)
 
     async def run_async(self) -> None:
         if self.terminal_title:
