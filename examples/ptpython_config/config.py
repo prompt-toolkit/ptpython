@@ -145,7 +145,7 @@ def configure(repl):
         event.cli.key_processor.feed(KeyPress(Keys.Escape))
     """
     
-        @repl.add_key_binding('(')
+    @repl.add_key_binding('(')
     def _(event):
         event.cli.current_buffer.insert_text("(")
         event.cli.current_buffer.insert_text(")" ,  move_cursor=False)
