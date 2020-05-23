@@ -94,9 +94,23 @@ class PythonRepl(PythonInput):
             clear_title()
 
     async def run_async(self) -> None:
+        if self.terminal_title:
+            set_title(self.terminal_title)
+
         while True:
-            text = await self.app.run_async()
-            self._process_text(text)
+            # Run the UI.
+            try:
+                text = await self.app.run_async()
+            except EOFError:
+                return
+            except KeyboardInterrupt:
+                # Abort - try again.
+                self.default_buffer.document = Document()
+            else:
+                self._process_text(text)
+
+        if self.terminal_title:
+            clear_title()
 
     def _process_text(self, line: str) -> None:
 
