@@ -361,8 +361,14 @@ class PythonInput:
         flags = 0
 
         for value in self.get_globals().values():
-            if isinstance(value, __future__._Feature):
-                flags |= value.compiler_flag
+            try:
+                if isinstance(value, __future__._Feature):
+                    f = value.compiler_flag
+                    flags |= f
+            except BaseException:
+                # get_compiler_flags should never raise to not run into an
+                # `Unhandled exception in event loop`
+                pass
 
         return flags
 
