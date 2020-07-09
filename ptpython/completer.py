@@ -1,7 +1,7 @@
 import ast
 import keyword
 import re
-from typing import TYPE_CHECKING, Any, Dict, Iterable
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List
 
 from prompt_toolkit.completion import (
     CompleteEvent,
@@ -430,11 +430,28 @@ class DictionaryCompleter(Completer):
             # Do lookup of `object_var` in the context.
             result = self._lookup(object_var, temp_locals)
 
-            for name in dir(result):
+            names = self._sort_attribute_names(dir(result))
+
+            for name in names:
                 if name.startswith(attr_name):
                     yield Completion(
                         name, -len(attr_name),
                     )
+
+    def _sort_attribute_names(self, names: List[str]) -> List[str]:
+        """
+        Sort attribute names alphabetically, but move the double underscore and
+        underscore names to the end.
+        """
+
+        def sort_key(name: str):
+            if name.startswith("__"):
+                return (2, name)  # Double underscore comes latest.
+            if name.startswith("_"):
+                return (1, name)  # Single underscore before that.
+            return (0, name)  # Other names first.
+
+        return sorted(names, key=sort_key)
 
 
 class ReprFailedError(Exception):
