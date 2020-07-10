@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+3.0.3: 2020-07-10
+-----------------
+
+Fixes:
+- Sort attribute names for `DictionaryCompleter` and move underscored
+  attributes to the end.
+- Handle unhandled exceptions in `get_compiler_flags`.
+- Improved `run_async` code.
+- Fix --version parameter.
+
+
 3.0.2: 2020-04-14
 -----------------
 
