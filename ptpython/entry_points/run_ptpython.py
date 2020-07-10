@@ -24,7 +24,7 @@ from typing import Tuple
 try:
     from importlib import metadata
 except ImportError:
-    import importlib_metadata as metadata
+    import importlib_metadata as metadata  # type: ignore
 
 import appdirs
 from prompt_toolkit.formatted_text import HTML
@@ -59,7 +59,7 @@ def create_parser() -> _Parser:
         "-V",
         "--version",
         action="version",
-        version=metadata.version("ptpython"),
+        version=metadata.version("ptpython"),  # type: ignore
     )
     parser.add_argument("args", nargs="*", help="Script and arguments")
     return parser
