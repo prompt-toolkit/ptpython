@@ -368,6 +368,10 @@ class PythonInput:
             except BaseException:
                 # get_compiler_flags should never raise to not run into an
                 # `Unhandled exception in event loop`
+
+                # See: https://github.com/prompt-toolkit/ptpython/issues/351
+                # An exception can be raised when some objects in the globals
+                # raise an exception in a custom `__getattribute__`.
                 pass
 
         return flags
