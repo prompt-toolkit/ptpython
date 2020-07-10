@@ -8,7 +8,7 @@ from __future__ import unicode_literals
 from prompt_toolkit.filters import ViInsertMode
 from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
-from pygments.token import Token
+from prompt_toolkit.styles import Style
 
 from ptpython.layout import CompletionVisualisation
 
@@ -121,7 +121,7 @@ def configure(repl):
 
     # Install custom colorscheme named 'my-colorscheme' and use it.
     """
-    repl.install_ui_colorscheme('my-colorscheme', _custom_ui_colorscheme)
+    repl.install_ui_colorscheme('my-colorscheme', Style.from_dict(_custom_ui_colorscheme))
     repl.use_ui_colorscheme('my-colorscheme')
     """
 
@@ -182,7 +182,7 @@ def configure(repl):
 # `ptpython/style.py` for all possible tokens.
 _custom_ui_colorscheme = {
     # Blue prompt.
-    Token.Layout.Prompt: "bg:#eeeeff #000000 bold",
+    "prompt": "bg:#eeeeff #000000 bold",
     # Make the status toolbar red.
-    Token.Toolbar.Status: "bg:#ff0000 #000000",
+    "status-toolbar": "bg:#ff0000 #000000",
 }
