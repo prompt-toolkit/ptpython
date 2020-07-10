@@ -57,7 +57,7 @@ from .filters import HasSignature, ShowDocstring, ShowSidebar, ShowSignature
 from .utils import if_mousedown
 
 if TYPE_CHECKING:
-    from .python_input import PythonInput, OptionCategory
+    from .python_input import OptionCategory, PythonInput
 
 __all__ = ["PtPythonLayout", "CompletionVisualisation"]
 

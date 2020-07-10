@@ -19,7 +19,7 @@ def run(user_ns=None):
         sys.exit(1)
     else:
         from ptpython.ipython import embed
-        from ptpython.repl import run_config, enable_deprecation_warnings
+        from ptpython.repl import enable_deprecation_warnings, run_config
 
     # Add the current directory to `sys.path`.
     if sys.path[0] != "":

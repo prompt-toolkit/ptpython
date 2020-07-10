@@ -891,8 +891,9 @@ class PythonInput:
 
         history = PythonHistory(self, self.default_buffer.document)
 
-        from prompt_toolkit.application import in_terminal
         import asyncio
+
+        from prompt_toolkit.application import in_terminal
 
         async def do_in_terminal() -> None:
             async with in_terminal():
