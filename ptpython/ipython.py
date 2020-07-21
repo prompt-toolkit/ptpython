@@ -30,6 +30,8 @@ from pygments.lexers import BashLexer, PythonLexer
 
 from ptpython.prompt_style import PromptStyle
 
+from warnings import warn
+
 from .python_input import PythonCompleter, PythonInput, PythonValidator
 from .style import default_ui_style
 
@@ -259,7 +261,7 @@ def initialize_extensions(shell, extensions):
             try:
                 shell.extension_manager.load_extension(ext)
             except:
-                ipy_utils.warn.warn(
+                warn(
                     "Error in loading extension: %s" % ext
                     + "\nCheck your config files in %s"
                     % ipy_utils.path.get_ipython_dir()
