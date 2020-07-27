@@ -8,6 +8,8 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
+from warnings import warn
+
 from IPython import utils as ipy_utils
 from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
@@ -259,7 +261,7 @@ def initialize_extensions(shell, extensions):
             try:
                 shell.extension_manager.load_extension(ext)
             except:
-                ipy_utils.warn.warn(
+                warn(
                     "Error in loading extension: %s" % ext
                     + "\nCheck your config files in %s"
                     % ipy_utils.path.get_ipython_dir()
