@@ -222,20 +222,22 @@ class DictionaryCompleter(Completer):
 
         # Pattern for expressions that are "safe" to eval for auto-completion.
         # These are expressions that contain only attribute and index lookups.
-        expression = r"""
+        varname = r"[a-zA-Z_][a-zA-Z0-9_]*"
+
+        expression = rf"""
             # Any expression safe enough to eval while typing.
             # No operators, except dot, and only other dict lookups.
             # Technically, this can be unsafe of course, if bad code runs
             # in `__getattr__` or ``__getitem__``.
             (
                 # Variable name
-                [a-zA-Z0-9_]+
+                {varname}
 
                 \s*
 
                 (?:
                     # Attribute access.
-                    \s* \. \s* [a-zA-Z0-9_]+ \s*
+                    \s* \. \s* {varname} \s*
 
                     |
 
