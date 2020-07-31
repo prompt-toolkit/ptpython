@@ -311,7 +311,7 @@ def run_config(repl: PythonInput, config_file: str = "~/.ptpython/config.py") ->
 def embed(
     globals=None,
     locals=None,
-    configure: Optional[Callable] = None,
+    configure: Optional[Callable[[PythonRepl], None]] = None,
     vi_mode: bool = False,
     history_filename: Optional[str] = None,
     title: Optional[str] = None,
