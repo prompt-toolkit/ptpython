@@ -37,7 +37,7 @@ class PythonValidator(Validator):
             index = document.translate_row_col_to_index(
                 e.lineno - 1, (e.offset or 1) - 1
             )
-            raise ValidationError(index, "Syntax Error")
+            raise ValidationError(index, f"Syntax Error: {e}")
         except TypeError as e:
             # e.g. "compile() expected string without null bytes"
             raise ValidationError(0, str(e))
