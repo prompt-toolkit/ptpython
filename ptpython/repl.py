@@ -131,6 +131,11 @@ class PythonRepl(PythonInput):
                 dont_inherit=True,
             )
 
+        # If the input is single line, remove leading whitespace.
+        # (This doesn't have to be a syntax error.)
+        if len(line.splitlines()) == 1:
+            line = line.strip()
+
         if line.lstrip().startswith("\x1a"):
             # When the input starts with Ctrl-Z, quit the REPL.
             self.app.exit()
