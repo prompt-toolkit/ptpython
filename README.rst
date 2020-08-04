@@ -147,6 +147,13 @@ ipython``)
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ipython.png
 
+This is also available for embedding:
+
+.. code:: python
+
+    from ptpython.ipython.repl import embed
+    embed(globals(), locals())
+
 
 Django support
 **************
