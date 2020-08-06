@@ -242,10 +242,10 @@ class DictionaryCompleter(Completer):
                     |
 
                     # Item lookup.
-                    # (We match the square brackets. We don't care about
-                    # matching quotes here in the regex. Nested square brackets
-                    # are not supported.)
-                    \s* \[ [a-zA-Z0-9_'"\s]+ \] \s*
+                    # (We match the square brackets. The key can be anything.
+                    # We don't care about matching quotes here in the regex.
+                    # Nested square brackets are not supported.)
+                    \s* \[ [^\[\]]+ \] \s*
                 )*
             )
         """
@@ -278,7 +278,7 @@ class DictionaryCompleter(Completer):
                 # Dict loopup to complete (square bracket open + start of
                 # string).
                 \[
-                \s* ([a-zA-Z0-9_'"]*)$
+                \s* ([^\[\]]*)$
             """,
             re.VERBOSE,
         )
