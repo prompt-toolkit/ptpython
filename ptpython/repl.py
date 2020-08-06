@@ -90,7 +90,7 @@ class PythonRepl(PythonInput):
                 if self.vi_keep_last_used_mode:
                     self.app.vi_state.input_mode = last_input_mode
 
-                if not self.vi_keep_last_used_mode and self.vi_start_in_nav_mode:
+                if not self.vi_keep_last_used_mode and self.vi_start_in_navigation_mode:
                     self.app.vi_state.input_mode = InputMode.NAVIGATION
 
             # Run the UI.
@@ -378,7 +378,7 @@ def embed(
         configure(repl)
 
     # Set Vi input mode
-    if repl.vi_start_in_nav_mode:
+    if repl.vi_start_in_navigation_mode:
         repl.app.vi_state.input_mode = InputMode.NAVIGATION
 
     # Start repl.

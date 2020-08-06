@@ -301,7 +301,7 @@ class PythonInput:
         self._get_signatures_thread_running: bool = False
 
         # Get into Vi navigation mode at startup
-        self.vi_start_in_nav_mode: bool = False
+        self.vi_start_in_navigation_mode: bool = False
 
         # Preserve last used Vi input mode between main loop iterations
         self.vi_keep_last_used_mode: bool = False
