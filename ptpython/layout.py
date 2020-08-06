@@ -501,7 +501,7 @@ def show_sidebar_button_info(python_input: "PythonInput") -> Container:
     )
 
 
-def exit_confirmation(
+def create_exit_confirmation(
     python_input: "PythonInput", style="class:exit-confirmation"
 ) -> Container:
     """
@@ -511,7 +511,7 @@ def exit_confirmation(
     def get_text_fragments() -> StyleAndTextTuples:
         # Show "Do you really want to exit?"
         return [
-            (style, "\n %s ([y]/n)" % python_input.exit_message),
+            (style, "\n %s ([y]/n) " % python_input.exit_message),
             ("[SetCursorPosition]", ""),
             (style, "  \n"),
         ]
@@ -520,8 +520,8 @@ def exit_confirmation(
 
     return ConditionalContainer(
         content=Window(
-            FormattedTextControl(get_text_fragments), style=style
-        ),  # , has_focus=visible)),
+            FormattedTextControl(get_text_fragments, focusable=True), style=style
+        ),
         filter=visible,
     )
 
@@ -635,6 +635,7 @@ class PtPythonLayout:
             )
 
         sidebar = python_sidebar(python_input)
+        self.exit_confirmation = create_exit_confirmation(python_input)
 
         root_container = HSplit(
             [
@@ -680,7 +681,7 @@ class PtPythonLayout:
                                         Float(
                                             left=2,
                                             bottom=1,
-                                            content=exit_confirmation(python_input),
+                                            content=self.exit_confirmation,
                                         ),
                                         Float(
                                             bottom=0,
