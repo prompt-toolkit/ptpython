@@ -377,10 +377,6 @@ def embed(
     if configure:
         configure(repl)
 
-    # Set Vi input mode
-    if repl.vi_start_in_navigation_mode:
-        repl.app.vi_state.input_mode = InputMode.NAVIGATION
-
     # Start repl.
     patch_context: ContextManager = patch_stdout_context() if patch_stdout else DummyContext()
 
