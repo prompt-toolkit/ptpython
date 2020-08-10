@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 """
 """
-from __future__ import unicode_literals
-
 from ptpython.python_input import PythonInput
 
 
