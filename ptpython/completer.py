@@ -388,7 +388,7 @@ class DictionaryCompleter(Completer):
                         break
 
                 for k in result:
-                    if str(k).startswith(key_obj):
+                    if str(k).startswith(str(key_obj)):
                         try:
                             k_repr = self._do_repr(k)
                             yield Completion(
