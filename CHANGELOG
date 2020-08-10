@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+3.0.4: 2020-08-10
+-----------------
+
+New features:
+- Allow leading whitespace before single line expressions.
+- Show full syntax error in validator.
+- Added `vi_start_in_navigation_mode` and `vi_keep_last_used_mode` options.
+
+Fixes:
+- Improved dictionary completion: handle keys that contain spaces and don't
+  recognize numbers as variable names.
+- Fix in exit confirmation.
+
+
 3.0.3: 2020-07-10
 -----------------
 
