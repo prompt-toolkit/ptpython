@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+3.0.6: 2020-09-23
+-----------------
+
+New features:
+- (Experimental) support for `__pt_repr__` methods. If objects implement this
+  method, this will be used to print the result in the REPL instead of the
+  normal `__repr__`.
+- Added py.typed file, to enable type checking for applications that are
+  embedding ptpython.
+
+
 3.0.5: 2020-08-10
 -----------------
 
