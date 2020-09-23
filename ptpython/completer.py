@@ -436,9 +436,7 @@ class DictionaryCompleter(Completer):
 
             for name in names:
                 if name.startswith(attr_name):
-                    yield Completion(
-                        name, -len(attr_name),
-                    )
+                    yield Completion(name, -len(attr_name))
 
     def _sort_attribute_names(self, names: List[str]) -> List[str]:
         """

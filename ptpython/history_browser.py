@@ -475,8 +475,8 @@ def create_key_bindings(history, python_input, history_mapping):
                 sorted(history_mapping.selected_lines).index(line_no)
                 + history_mapping.result_line_offset
             )
-            default_buffer.cursor_position = default_buffer.document.translate_row_col_to_index(
-                default_lineno, 0
+            default_buffer.cursor_position = (
+                default_buffer.document.translate_row_col_to_index(default_lineno, 0)
             )
 
         # Also move the cursor to the next line. (This way they can hold
@@ -606,8 +606,8 @@ class PythonHistory:
         )
 
     def _default_buffer_pos_changed(self, _):
-        """ When the cursor changes in the default buffer. Synchronize with
-        history buffer. """
+        """When the cursor changes in the default buffer. Synchronize with
+        history buffer."""
         # Only when this buffer has the focus.
         if self.app.current_buffer == self.default_buffer:
             try:
@@ -623,8 +623,10 @@ class PythonHistory:
             except IndexError:
                 pass
             else:
-                self.history_buffer.cursor_position = self.history_buffer.document.translate_row_col_to_index(
-                    history_lineno, 0
+                self.history_buffer.cursor_position = (
+                    self.history_buffer.document.translate_row_col_to_index(
+                        history_lineno, 0
+                    )
                 )
 
     def _history_buffer_pos_changed(self, _):
@@ -639,6 +641,8 @@ class PythonHistory:
                     + self.history_mapping.result_line_offset
                 )
 
-                self.default_buffer.cursor_position = self.default_buffer.document.translate_row_col_to_index(
-                    default_lineno, 0
+                self.default_buffer.cursor_position = (
+                    self.default_buffer.document.translate_row_col_to_index(
+                        default_lineno, 0
+                    )
                 )

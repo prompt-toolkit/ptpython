@@ -397,7 +397,9 @@ def embed(
         configure(repl)
 
     # Start repl.
-    patch_context: ContextManager = patch_stdout_context() if patch_stdout else DummyContext()
+    patch_context: ContextManager = (
+        patch_stdout_context() if patch_stdout else DummyContext()
+    )
 
     if return_asyncio_coroutine:
 

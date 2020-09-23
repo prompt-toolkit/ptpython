@@ -6,16 +6,15 @@ Thanks to Vincent Michel for this!
 https://gist.github.com/vxgmichel/7685685b3e5ead04ada4a3ba75a48eef
 """
 
-import pathlib
 import asyncio
+import pathlib
 
 import asyncssh
+from prompt_toolkit import print_formatted_text
+from prompt_toolkit.contrib.ssh.server import PromptToolkitSSHServer
+from prompt_toolkit.contrib.telnet.server import TelnetServer
 
 from ptpython.repl import embed
-
-from prompt_toolkit import print_formatted_text
-from prompt_toolkit.contrib.telnet.server import TelnetServer
-from prompt_toolkit.contrib.ssh.server import PromptToolkitSSHServer
 
 
 def ensure_key(filename="ssh_host_key"):
