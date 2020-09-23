@@ -209,15 +209,21 @@ class PythonInput:
         self.show_signature: bool = False
         self.show_docstring: bool = False
         self.show_meta_enter_message: bool = True
-        self.completion_visualisation: CompletionVisualisation = CompletionVisualisation.MULTI_COLUMN
+        self.completion_visualisation: CompletionVisualisation = (
+            CompletionVisualisation.MULTI_COLUMN
+        )
         self.completion_menu_scroll_offset: int = 1
 
         self.show_line_numbers: bool = False
         self.show_status_bar: bool = True
         self.wrap_lines: bool = True
         self.complete_while_typing: bool = True
-        self.paste_mode: bool = False  # When True, don't insert whitespace after newline.
-        self.confirm_exit: bool = True  # Ask for confirmation when Control-D is pressed.
+        self.paste_mode: bool = (
+            False  # When True, don't insert whitespace after newline.
+        )
+        self.confirm_exit: bool = (
+            True  # Ask for confirmation when Control-D is pressed.
+        )
         self.accept_input_on_enter: int = 2  # Accept when pressing Enter 'n' times.
         # 'None' means that meta-enter is always required.
         self.enable_open_in_editor: bool = True

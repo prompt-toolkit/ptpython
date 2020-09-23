@@ -149,8 +149,8 @@ def load_python_bindings(python_input):
         empty_lines_required = python_input.accept_input_on_enter or 10000
 
         def at_the_end(b):
-            """ we consider the cursor at the end when there is no text after
-            the cursor, or only whitespace. """
+            """we consider the cursor at the end when there is no text after
+            the cursor, or only whitespace."""
             text = b.document.text_after_cursor
             return text == "" or (text.isspace() and not "\n" in text)
 
