@@ -50,6 +50,24 @@ Features
 [2] If the terminal supports it (most terminals do), this allows pasting
 without going into paste mode. It will keep the indentation.
 
+__pt_repr__: A nicer repr with colors
+*************************************
+
+When classes implement a ``__pt_repr__`` method, this will be used instead of
+``__repr__`` for printing. Any `prompt_toolkit "formatted text"
+<https://python-prompt-toolkit.readthedocs.io/en/master/pages/printing_text.html`_
+can be returned from here. In order to avoid writing a ``__repr__`` as well,
+the ``ptpython.utils.ptrepr_to_repr`` decorator can be applied. For instance:
+
+.. code:: python
+
+    from ptpython.utils import ptrepr_to_repr
+    from prompt_toolkit.formatted_text import HTML
+
+    @ptrepr_to_repr
+    class MyClass:
+        def __pt_repr__(self):
+            return HTML('<yellow>Hello world!</yellow>')
 
 More screenshots
 ****************

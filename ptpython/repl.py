@@ -19,11 +19,16 @@ from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import (
     FormattedText,
     PygmentsTokens,
+    StyleAndTextTuples,
     fragment_list_width,
     merge_formatted_text,
     to_formatted_text,
 )
-from prompt_toolkit.formatted_text.utils import fragment_list_width
+from prompt_toolkit.formatted_text.utils import (
+    fragment_list_to_text,
+    fragment_list_width,
+    split_lines,
+)
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
 from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
@@ -128,8 +133,6 @@ class PythonRepl(PythonInput):
         """
         Evaluate the line and print the result.
         """
-        output = self.app.output
-
         # WORKAROUND: Due to a bug in Jedi, the current directory is removed
         # from sys.path. See: https://github.com/davidhalter/jedi/issues/1148
         if "" not in sys.path:
@@ -167,50 +170,66 @@ class PythonRepl(PythonInput):
                 locals["_"] = locals["_%i" % self.current_statement_index] = result
 
                 if result is not None:
-                    out_prompt = to_formatted_text(self.get_output_prompt())
-
-                    try:
-                        result_str = "%r\n" % (result,)
-                    except UnicodeDecodeError:
-                        # In Python 2: `__repr__` should return a bytestring,
-                        # so to put it in a unicode context could raise an
-                        # exception that the 'ascii' codec can't decode certain
-                        # characters. Decode as utf-8 in that case.
-                        result_str = "%s\n" % repr(result).decode(  # type: ignore
-                            "utf-8"
-                        )
-
-                    # Align every line to the first one.
-                    line_sep = "\n" + " " * fragment_list_width(out_prompt)
-                    result_str = line_sep.join(result_str.splitlines()) + "\n"
-
-                    # Write output tokens.
-                    if self.enable_syntax_highlighting:
-                        formatted_output = merge_formatted_text(
-                            [
-                                out_prompt,
-                                PygmentsTokens(list(_lex_python_result(result_str))),
-                            ]
-                        )
-                    else:
-                        formatted_output = FormattedText(
-                            out_prompt + [("", result_str)]
-                        )
-
-                    print_formatted_text(
-                        formatted_output,
-                        style=self._current_style,
-                        style_transformation=self.style_transformation,
-                        include_default_pygments_style=False,
-                        output=output,
-                    )
-
+                    self.show_result(result)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, "exec")
                 exec(code, self.get_globals(), self.get_locals())
 
-            output.flush()
+    def show_result(self, result: object) -> None:
+        """
+        Show __repr__ for an `eval` result.
+        """
+        out_prompt = to_formatted_text(self.get_output_prompt())
+        result_repr = to_formatted_text("%r\n" % (result,))
+
+        # If __pt_repr__ is present, take this. This can return
+        # prompt_toolkit formatted text.
+        if hasattr(result, "__pt_repr__"):
+            try:
+                result_repr = to_formatted_text(getattr(result, "__pt_repr__")())
+                if isinstance(result_repr, list):
+                    result_repr = FormattedText(result_repr)
+            except:
+                pass
+
+        # If we have a string so far, and it's valid Python code,
+        # use the Pygments lexer.
+        if isinstance(result, str):
+            try:
+                compile(result, "", "eval")
+            except SyntaxError:
+                pass
+            else:
+                result = PygmentsTokens(list(_lex_python_result(result)))
+
+        # Align every line to the prompt.
+        line_sep = "\n" + " " * fragment_list_width(out_prompt)
+        indented_repr: StyleAndTextTuples = []
+
+        for fragment in split_lines(result_repr):
+            indented_repr.extend(fragment)
+            indented_repr.append(("", line_sep))
+        if indented_repr:
+            indented_repr.pop()
+        indented_repr.append(("", "\n"))
+
+        # Write output tokens.
+        if self.enable_syntax_highlighting:
+            formatted_output = merge_formatted_text([out_prompt, indented_repr])
+        else:
+            formatted_output = FormattedText(
+                out_prompt + [("", fragment_list_to_text(result_repr))]
+            )
+
+        print_formatted_text(
+            formatted_output,
+            style=self._current_style,
+            style_transformation=self.style_transformation,
+            include_default_pygments_style=False,
+            output=self.app.output,
+        )
+        self.app.output.flush()
 
     def _handle_exception(self, e: Exception) -> None:
         output = self.app.output

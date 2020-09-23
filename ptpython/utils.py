@@ -2,8 +2,10 @@
 For internal use only.
 """
 import re
-from typing import Callable, TypeVar, cast
+from typing import Callable, Type, TypeVar, cast
 
+from prompt_toolkit.formatted_text import to_formatted_text
+from prompt_toolkit.formatted_text.utils import fragment_list_to_text
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
 
 __all__ = [
@@ -139,3 +141,22 @@ def if_mousedown(handler: _T) -> _T:
             return NotImplemented
 
     return cast(_T, handle_if_mouse_down)
+
+
+_T_type = TypeVar("_T_type", bound=Type)
+
+
+def ptrepr_to_repr(cls: _T_type) -> _T_type:
+    """
+    Generate a normal `__repr__` method for classes that have a `__pt_repr__`.
+    """
+    if not hasattr(cls, "__pt_repr__"):
+        raise TypeError(
+            "@ptrepr_to_repr can only be applied to classes that have a `__pt_repr__` method."
+        )
+
+    def __repr__(self) -> str:
+        return fragment_list_to_text(to_formatted_text(cls.__pt_repr__(self)))
+
+    cls.__repr__ = __repr__  # type:ignore
+    return cls
