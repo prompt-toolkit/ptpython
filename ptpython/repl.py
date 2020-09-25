@@ -115,6 +115,9 @@ class PythonRepl(PythonInput):
     def _process_text(self, line: str) -> None:
 
         if line and not line.isspace():
+            if self.insert_blank_line_after_input:
+                self.app.output.write("\n")
+
             try:
                 # Eval and print.
                 self._execute(line)
@@ -181,45 +184,49 @@ class PythonRepl(PythonInput):
         Show __repr__ for an `eval` result.
         """
         out_prompt = to_formatted_text(self.get_output_prompt())
-        result_repr = to_formatted_text("%r\n" % (result,))
+
+        # If the repr is valid Python code, use the Pygments lexer.
+        result_repr = repr(result)
+        try:
+            compile(result_repr, "", "eval")
+        except SyntaxError:
+            formatted_result_repr = to_formatted_text(result_repr)
+        else:
+            formatted_result_repr = to_formatted_text(
+                PygmentsTokens(list(_lex_python_result(result_repr)))
+            )
 
         # If __pt_repr__ is present, take this. This can return
         # prompt_toolkit formatted text.
         if hasattr(result, "__pt_repr__"):
             try:
-                result_repr = to_formatted_text(getattr(result, "__pt_repr__")())
-                if isinstance(result_repr, list):
-                    result_repr = FormattedText(result_repr)
+                formatted_result_repr = to_formatted_text(
+                    getattr(result, "__pt_repr__")()
+                )
+                if isinstance(formatted_result_repr, list):
+                    formatted_result_repr = FormattedText(formatted_result_repr)
             except:
                 pass
-
-        # If we have a string so far, and it's valid Python code,
-        # use the Pygments lexer.
-        if isinstance(result, str):
-            try:
-                compile(result, "", "eval")
-            except SyntaxError:
-                pass
-            else:
-                result = PygmentsTokens(list(_lex_python_result(result)))
 
         # Align every line to the prompt.
         line_sep = "\n" + " " * fragment_list_width(out_prompt)
         indented_repr: StyleAndTextTuples = []
 
-        for fragment in split_lines(result_repr):
+        lines = list(split_lines(formatted_result_repr))
+
+        for i, fragment in enumerate(lines):
             indented_repr.extend(fragment)
-            indented_repr.append(("", line_sep))
-        if indented_repr:
-            indented_repr.pop()
-        indented_repr.append(("", "\n"))
+
+            # Add indentation separator between lines, not after the last line.
+            if i != len(lines) - 1:
+                indented_repr.append(("", line_sep))
 
         # Write output tokens.
         if self.enable_syntax_highlighting:
             formatted_output = merge_formatted_text([out_prompt, indented_repr])
         else:
             formatted_output = FormattedText(
-                out_prompt + [("", fragment_list_to_text(result_repr))]
+                out_prompt + [("", fragment_list_to_text(formatted_result_repr))]
             )
 
         print_formatted_text(
