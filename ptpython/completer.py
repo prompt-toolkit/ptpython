@@ -1,7 +1,8 @@
 import ast
 import keyword
 import re
-from typing import TYPE_CHECKING, Any, Dict, Iterable, List
+from enum import Enum
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
 
 from prompt_toolkit.completion import (
     CompleteEvent,
@@ -12,13 +13,24 @@ from prompt_toolkit.completion import (
 from prompt_toolkit.contrib.regular_languages.compiler import compile as compile_grammar
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.document import Document
+from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_text
 
 from ptpython.utils import get_jedi_script_from_document
 
 if TYPE_CHECKING:
     from prompt_toolkit.contrib.regular_languages.compiler import _CompiledGrammar
 
-__all__ = ["PythonCompleter"]
+__all__ = ["PythonCompleter", "CompletePrivateAttributes", "HidePrivateCompleter"]
+
+
+class CompletePrivateAttributes(Enum):
+    """
+    Should we display private attributes in the completion pop-up?
+    """
+
+    NEVER = "NEVER"
+    IF_NO_PUBLIC = "IF_NO_PUBLIC"
+    ALWAYS = "ALWAYS"
 
 
 class PythonCompleter(Completer):
@@ -26,7 +38,9 @@ class PythonCompleter(Completer):
     Completer for Python code.
     """
 
-    def __init__(self, get_globals, get_locals, get_enable_dictionary_completion):
+    def __init__(
+        self, get_globals, get_locals, get_enable_dictionary_completion
+    ) -> None:
         super().__init__()
 
         self.get_globals = get_globals
@@ -35,8 +49,8 @@ class PythonCompleter(Completer):
 
         self.dictionary_completer = DictionaryCompleter(get_globals, get_locals)
 
-        self._path_completer_cache = None
-        self._path_completer_grammar_cache = None
+        self._path_completer_cache: Optional[GrammarCompleter] = None
+        self._path_completer_grammar_cache: Optional["_CompiledGrammar"] = None
 
     @property
     def _path_completer(self) -> GrammarCompleter:
@@ -158,7 +172,7 @@ class PythonCompleter(Completer):
 
             if script:
                 try:
-                    completions = script.completions()
+                    jedi_completions = script.completions()
                 except TypeError:
                     # Issue #9: bad syntax causes completions() to fail in jedi.
                     # https://github.com/jonathanslenders/python-prompt-toolkit/issues/9
@@ -196,12 +210,12 @@ class PythonCompleter(Completer):
                     # Supress all other Jedi exceptions.
                     pass
                 else:
-                    for c in completions:
+                    for jc in jedi_completions:
                         yield Completion(
-                            c.name_with_symbols,
-                            len(c.complete) - len(c.name_with_symbols),
-                            display=c.name_with_symbols,
-                            style=_get_style_for_name(c.name_with_symbols),
+                            jc.name_with_symbols,
+                            len(jc.complete) - len(jc.name_with_symbols),
+                            display=jc.name_with_symbols,
+                            style=_get_style_for_name(jc.name_with_symbols),
                         )
 
 
@@ -452,6 +466,49 @@ class DictionaryCompleter(Completer):
             return (0, name)  # Other names first.
 
         return sorted(names, key=sort_key)
+
+
+class HidePrivateCompleter(Completer):
+    """
+    Wrapper around completer that hides private fields, deponding on whether or
+    not public fields are shown.
+
+    (The reason this is implemented as a `Completer` wrapper is because this
+    way it works also with `FuzzyCompleter`.)
+    """
+
+    def __init__(
+        self,
+        completer: Completer,
+        complete_private_attributes: Callable[[], CompletePrivateAttributes],
+    ) -> None:
+        self.completer = completer
+        self.complete_private_attributes = complete_private_attributes
+
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
+
+        completions = list(self.completer.get_completions(document, complete_event))
+        complete_private_attributes = self.complete_private_attributes()
+        hide_private = False
+
+        def is_private(completion: Completion) -> bool:
+            text = fragment_list_to_text(to_formatted_text(completion.display))
+            return text.startswith("_")
+
+        if complete_private_attributes == CompletePrivateAttributes.NEVER:
+            hide_private = True
+
+        elif complete_private_attributes == CompletePrivateAttributes.IF_NO_PUBLIC:
+            hide_private = any(not is_private(completion) for completion in completions)
+
+        if hide_private:
+            completions = [
+                completion for completion in completions if not is_private(completion)
+            ]
+
+        return completions
 
 
 class ReprFailedError(Exception):
