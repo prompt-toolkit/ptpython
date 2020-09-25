@@ -254,6 +254,7 @@ class PythonInput:
 
         self.exit_message: str = "Do you really want to exit?"
         self.insert_blank_line_after_output: bool = True  # (For the REPL.)
+        self.insert_blank_line_after_input: bool = False  # (For the REPL.)
 
         # The buffers.
         self.default_buffer = self._create_buffer()
@@ -639,6 +640,11 @@ class PythonInput:
                             (s, partial(enable, "prompt_style", s))
                             for s in self.all_prompt_styles
                         ),
+                    ),
+                    simple_option(
+                        title="Blank line after input",
+                        description="Insert a blank line after the input.",
+                        field_name="insert_blank_line_after_input",
                     ),
                     simple_option(
                         title="Blank line after output",
