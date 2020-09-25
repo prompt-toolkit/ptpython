@@ -213,7 +213,10 @@ def python_sidebar_help(python_input):
 
     return ConditionalContainer(
         content=Window(
-            FormattedTextControl(get_help_text), style=token, height=Dimension(min=3)
+            FormattedTextControl(get_help_text),
+            style=token,
+            height=Dimension(min=3),
+            wrap_lines=True,
         ),
         filter=ShowSidebar(python_input)
         & Condition(lambda: python_input.show_sidebar_help)

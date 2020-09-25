@@ -51,7 +51,7 @@ from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator, Validator
 from pygments.lexers import Python3Lexer as PythonLexer
 
-from .completer import PythonCompleter
+from .completer import CompletePrivateAttributes, HidePrivateCompleter, PythonCompleter
 from .history_browser import PythonHistory
 from .key_bindings import (
     load_confirm_exit_bindings,
@@ -180,13 +180,17 @@ class PythonInput:
         self.get_globals: _GetNamespace = get_globals or (lambda: {})
         self.get_locals: _GetNamespace = get_locals or self.get_globals
 
-        self._completer = _completer or FuzzyCompleter(
-            PythonCompleter(
-                self.get_globals,
-                self.get_locals,
-                lambda: self.enable_dictionary_completion,
+        self._completer = HidePrivateCompleter(
+            _completer
+            or FuzzyCompleter(
+                PythonCompleter(
+                    self.get_globals,
+                    self.get_locals,
+                    lambda: self.enable_dictionary_completion,
+                ),
+                enable_fuzzy=Condition(lambda: self.enable_fuzzy_completion),
             ),
-            enable_fuzzy=Condition(lambda: self.enable_fuzzy_completion),
+            lambda: self.complete_private_attributes,
         )
         self._validator = _validator or PythonValidator(self.get_compiler_flags)
         self._lexer = _lexer or PygmentsLexer(PythonLexer)
@@ -239,6 +243,9 @@ class PythonInput:
         self.enable_syntax_highlighting: bool = True
         self.enable_fuzzy_completion: bool = False
         self.enable_dictionary_completion: bool = False
+        self.complete_private_attributes: CompletePrivateAttributes = (
+            CompletePrivateAttributes.ALWAYS
+        )
         self.swap_light_and_dark: bool = False
         self.highlight_matching_parenthesis: bool = False
         self.show_sidebar: bool = False  # Currently show the sidebar.
@@ -528,6 +535,31 @@ class PythonInput:
                             "on": lambda: enable("complete_while_typing")
                             and disable("enable_history_search"),
                             "off": lambda: disable("complete_while_typing"),
+                        },
+                    ),
+                    Option(
+                        title="Complete private attrs",
+                        description="Show or hide private attributes in the completions. "
+                        "'If no public' means: show private attributes only if no public "
+                        "matches are found or if an underscore was typed.",
+                        get_current_value=lambda: {
+                            CompletePrivateAttributes.NEVER: "Never",
+                            CompletePrivateAttributes.ALWAYS: "Always",
+                            CompletePrivateAttributes.IF_NO_PUBLIC: "If no public",
+                        }[self.complete_private_attributes],
+                        get_values=lambda: {
+                            "Never": lambda: enable(
+                                "complete_private_attributes",
+                                CompletePrivateAttributes.NEVER,
+                            ),
+                            "Always": lambda: enable(
+                                "complete_private_attributes",
+                                CompletePrivateAttributes.ALWAYS,
+                            ),
+                            "If no public": lambda: enable(
+                                "complete_private_attributes",
+                                CompletePrivateAttributes.IF_NO_PUBLIC,
+                            ),
                         },
                     ),
                     Option(
