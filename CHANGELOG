@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+3.0.7: 2020-09-25
+-----------------
+
+New features:
+- Option to show/hide private attributes during a completion
+- Added `insert_blank_line_after_input` option similar to
+  `insert_blank_line_after_output`.
+
+Fixes:
+- Fixed some formatting issues of `__pt_repr__`.
+- Abbreviate completion meta information for dictionary completer if needed.
+
+
 3.0.6: 2020-09-23
 -----------------
 
