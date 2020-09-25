@@ -368,6 +368,16 @@ class DictionaryCompleter(Completer):
         """
         Complete dictionary keys.
         """
+
+        def abbr_meta(text: str) -> str:
+            " Abbreviate meta text, make sure it fits on one line. "
+            # Take first line, if multiple lines.
+            if len(text) > 20:
+                text = text[:20] + "..."
+            if "\n" in text:
+                text = text.split("\n", 1)[0] + "..."
+            return text
+
         match = self.item_lookup_pattern.search(document.text_before_cursor)
         if match is not None:
             object_var, key = match.groups()
@@ -395,7 +405,7 @@ class DictionaryCompleter(Completer):
                                 k_repr + "]",
                                 -len(key),
                                 display=f"[{k_repr}]",
-                                display_meta=self._do_repr(result[k]),
+                                display_meta=abbr_meta(self._do_repr(result[k])),
                             )
                         except ReprFailedError:
                             pass
@@ -411,7 +421,7 @@ class DictionaryCompleter(Completer):
                                     k_repr + "]",
                                     -len(key),
                                     display=f"[{k_repr}]",
-                                    display_meta=self._do_repr(result[k]),
+                                    display_meta=abbr_meta(self._do_repr(result[k])),
                                 )
                             except ReprFailedError:
                                 pass
