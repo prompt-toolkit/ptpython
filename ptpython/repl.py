@@ -13,6 +13,7 @@ import os
 import sys
 import traceback
 import warnings
+import inspect
 from typing import Any, Callable, ContextManager, Dict, Optional
 
 from prompt_toolkit.document import Document
@@ -107,12 +108,12 @@ class PythonRepl(PythonInput):
                 # Abort - try again.
                 self.default_buffer.document = Document()
             else:
-                self._process_text(text)
+                await self._process_text(text)
 
         if self.terminal_title:
             clear_title()
 
-    def _process_text(self, line: str) -> None:
+    async def _process_text(self, line: str) -> None:
 
         if line and not line.isspace():
             if self.insert_blank_line_after_input:
@@ -120,7 +121,7 @@ class PythonRepl(PythonInput):
 
             try:
                 # Eval and print.
-                self._execute(line)
+                await self._execute(line)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
                 self._handle_keyboard_interrupt(e)
             except Exception as e:
@@ -132,7 +133,7 @@ class PythonRepl(PythonInput):
             self.current_statement_index += 1
             self.signatures = []
 
-    def _execute(self, line: str) -> None:
+    async def _execute(self, line: str) -> None:
         """
         Evaluate the line and print the result.
         """
@@ -165,19 +166,27 @@ class PythonRepl(PythonInput):
             os.system(line[1:])
         else:
             # Try eval first
+            result = None
             try:
                 code = compile_with_flags(line, "eval")
                 result = eval(code, self.get_globals(), self.get_locals())
+
+                if code.co_flags & inspect.CO_COROUTINE:
+                    result = await result
 
                 locals: Dict[str, Any] = self.get_locals()
                 locals["_"] = locals["_%i" % self.current_statement_index] = result
 
                 if result is not None:
                     self.show_result(result)
+
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
-                code = compile_with_flags(line, "exec")
-                exec(code, self.get_globals(), self.get_locals())
+                code = compile_with_flags(line, "single")
+                result = eval(code, self.get_globals(), self.get_locals())
+
+                if code.co_flags & inspect.CO_COROUTINE:
+                    result = await result
 
     def show_result(self, result: object) -> None:
         """
