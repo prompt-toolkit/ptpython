@@ -9,11 +9,11 @@ Utility for creating a Python repl.
 """
 import asyncio
 import builtins
+import inspect
 import os
 import sys
 import traceback
 import warnings
-import inspect
 from typing import Any, Callable, ContextManager, Dict, Optional
 
 from prompt_toolkit.document import Document

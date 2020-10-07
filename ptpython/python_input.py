@@ -4,9 +4,9 @@ This can be used for creation of Python REPLs.
 """
 import __future__
 
+from ast import PyCF_ALLOW_TOP_LEVEL_AWAIT
 from asyncio import get_event_loop
 from functools import partial
-import ast
 from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 from prompt_toolkit.application import Application, get_app
@@ -379,7 +379,7 @@ class PythonInput:
         Give the current compiler flags by looking for _Feature instances
         in the globals.
         """
-        flags = ast.PyCF_ALLOW_TOP_LEVEL_AWAIT
+        flags = PyCF_ALLOW_TOP_LEVEL_AWAIT
 
         for value in self.get_globals().values():
             try:
