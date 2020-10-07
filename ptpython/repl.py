@@ -11,6 +11,7 @@ import asyncio
 import builtins
 import inspect
 import os
+import signal
 import sys
 import traceback
 import warnings
@@ -39,6 +40,36 @@ from pygments.token import Token
 
 from .eventloop import inputhook
 from .python_input import PythonInput
+
+
+async def interruptable(co):
+    loop = asyncio.get_running_loop()
+    interrupted = loop.create_future()
+
+    def signal_handler(signal, frame):
+        loop = interrupted.get_loop()
+        async def _finish():
+            interrupted.set_result(True)
+        asyncio.run_coroutine_threadsafe(_finish(), loop=loop)
+
+    orig_handler = signal.getsignal(signal.SIGINT)
+    signal.signal(signal.SIGINT, signal_handler)
+
+    task = asyncio.create_task(co)
+    done, pending = await asyncio.wait([task, interrupted], return_when=asyncio.FIRST_COMPLETED)
+    signal.signal(signal.SIGINT, orig_handler)
+
+    if interrupted in done:
+        task.cancel()
+        try:
+            await task
+        except asyncio.CancelledError as e:
+            # TODO figure out a way to get the original traceback
+            return e
+    elif task in done:
+        interrupted.cancel()
+        return task.result()
+
 
 __all__ = ["PythonRepl", "enable_deprecation_warnings", "run_config", "embed"]
 
@@ -172,7 +203,7 @@ class PythonRepl(PythonInput):
                 result = eval(code, self.get_globals(), self.get_locals())
 
                 if code.co_flags & inspect.CO_COROUTINE:
-                    result = await result
+                    result = await interruptable(result)
 
                 locals: Dict[str, Any] = self.get_locals()
                 locals["_"] = locals["_%i" % self.current_statement_index] = result
@@ -186,7 +217,7 @@ class PythonRepl(PythonInput):
                 result = eval(code, self.get_globals(), self.get_locals())
 
                 if code.co_flags & inspect.CO_COROUTINE:
-                    result = await result
+                    result = await interruptable(result)
 
     def show_result(self, result: object) -> None:
         """
