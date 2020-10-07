@@ -234,6 +234,7 @@ class PythonInput:
         self.enable_system_bindings: bool = True
         self.enable_input_validation: bool = True
         self.enable_auto_suggest: bool = False
+        self.emacs_bindings_in_vi_insert_mode: bool = True
         self.enable_mouse_support: bool = False
         self.enable_history_search: bool = False  # When True, like readline, going
         # back in history will filter the
