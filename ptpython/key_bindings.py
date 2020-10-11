@@ -1,3 +1,5 @@
+import sys
+
 from prompt_toolkit.application import get_app
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
@@ -11,6 +13,7 @@ from prompt_toolkit.filters import (
 )
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.keys import Keys
+from prompt_toolkit.key_binding.vi_state import InputMode, ViState
 
 from .utils import document_is_multiline_python
 
@@ -200,6 +203,35 @@ def load_python_bindings(python_input):
     def _(event):
         " Abort when Control-C has been pressed. "
         event.app.exit(exception=KeyboardInterrupt, style="class:aborting")
+
+
+
+    def get_input_mode(self):
+        if sys.version_info[0] == 3:
+            app = get_app()
+            app.ttimeoutlen = python_input.ttimeoutlen
+            app.timeoutlen = python_input.timeoutlen
+
+        return self._input_mode
+
+
+    def set_input_mode(self, mode):
+        shape = {InputMode.NAVIGATION: 2, InputMode.REPLACE: 4}.get(mode, 6)
+        cursor = "\x1b[{} q".format(shape)
+
+        if hasattr(sys.stdout, "_cli"):
+            write = sys.stdout._cli.output.write_raw
+        else:
+            write = sys.stdout.write
+
+        write(cursor)
+        sys.stdout.flush()
+
+        self._input_mode = mode
+
+    if python_input.enable_modal_cursor:
+        ViState._input_mode = InputMode.INSERT
+        ViState.input_mode = property(get_input_mode, set_input_mode)
 
     return bindings
 
