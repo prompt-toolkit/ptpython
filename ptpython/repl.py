@@ -48,15 +48,19 @@ async def interruptable(co):
 
     def signal_handler(signal, frame):
         loop = interrupted.get_loop()
+
         async def _finish():
             interrupted.set_result(True)
+
         asyncio.run_coroutine_threadsafe(_finish(), loop=loop)
 
     orig_handler = signal.getsignal(signal.SIGINT)
     signal.signal(signal.SIGINT, signal_handler)
 
     task = asyncio.create_task(co)
-    done, pending = await asyncio.wait([task, interrupted], return_when=asyncio.FIRST_COMPLETED)
+    done, pending = await asyncio.wait(
+        [task, interrupted], return_when=asyncio.FIRST_COMPLETED
+    )
     signal.signal(signal.SIGINT, orig_handler)
 
     if interrupted in done:
@@ -213,7 +217,7 @@ class PythonRepl(PythonInput):
 
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
-                code = compile_with_flags(line, "single")
+                code = compile_with_flags(line, "exec")
                 result = eval(code, self.get_globals(), self.get_locals())
 
                 if code.co_flags & inspect.CO_COROUTINE:
