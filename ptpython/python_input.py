@@ -891,7 +891,7 @@ class PythonInput:
             # Show signatures in help text.
             if script:
                 try:
-                    signatures = script.call_signatures()
+                    signatures = script.get_signatures()
                 except ValueError:
                     # e.g. in case of an invalid \\x escape.
                     signatures = []
