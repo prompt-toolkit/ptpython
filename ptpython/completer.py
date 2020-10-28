@@ -172,7 +172,10 @@ class PythonCompleter(Completer):
 
             if script:
                 try:
-                    jedi_completions = script.completions()
+                    jedi_completions = script.complete(
+                        column=document.cursor_position_col,
+                        line=document.cursor_position_row + 1,
+                    )
                 except TypeError:
                     # Issue #9: bad syntax causes completions() to fail in jedi.
                     # https://github.com/jonathanslenders/python-prompt-toolkit/issues/9

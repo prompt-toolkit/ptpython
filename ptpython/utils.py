@@ -52,8 +52,6 @@ def get_jedi_script_from_document(document, locals, globals):
     try:
         return jedi.Interpreter(
             document.text,
-            column=document.cursor_position_col,
-            line=document.cursor_position_row + 1,
             path="input-text",
             namespaces=[locals, globals],
         )
