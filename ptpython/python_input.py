@@ -6,7 +6,7 @@ import __future__
 
 from asyncio import get_event_loop
 from functools import partial
-from typing import Any, Callable, Dict, Generic, List, Optional, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, List, Optional, TypeVar
 
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import (
@@ -66,7 +66,18 @@ from .validator import PythonValidator
 
 __all__ = ["PythonInput"]
 
-_T = TypeVar("_T")
+
+if TYPE_CHECKING:
+    from typing_extensions import Protocol
+
+    class _SupportsLessThan(Protocol):
+        # Taken from typeshed. _T is used by "sorted", which needs anything
+        # sortable.
+        def __lt__(self, __other: Any) -> bool:
+            ...
+
+
+_T = TypeVar("_T", bound="_SupportsLessThan")
 
 
 class OptionCategory:
