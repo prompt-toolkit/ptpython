@@ -1,4 +1,5 @@
 import ast
+import inspect
 import keyword
 import re
 from enum import Enum
@@ -214,10 +215,16 @@ class PythonCompleter(Completer):
                     pass
                 else:
                     for jc in jedi_completions:
+                        if jc.type == "function":
+                            suffix = "()"
+                        else:
+                            suffix = ""
+
                         yield Completion(
                             jc.name_with_symbols,
                             len(jc.complete) - len(jc.name_with_symbols),
-                            display=jc.name_with_symbols,
+                            display=jc.name_with_symbols + suffix,
+                            display_meta=jc.type,
                             style=_get_style_for_name(jc.name_with_symbols),
                         )
 
@@ -461,9 +468,24 @@ class DictionaryCompleter(Completer):
 
             names = self._sort_attribute_names(dir(result))
 
+            def get_suffix(name: str) -> str:
+                try:
+                    obj = getattr(result, name, None)
+                    if inspect.isfunction(obj):
+                        return "()"
+
+                    if isinstance(obj, dict):
+                        return "{}"
+                    if isinstance(obj, (list, tuple)):
+                        return "[]"
+                except:
+                    pass
+                return ""
+
             for name in names:
                 if name.startswith(attr_name):
-                    yield Completion(name, -len(attr_name))
+                    suffix = get_suffix(name)
+                    yield Completion(name, -len(attr_name), display=name + suffix)
 
     def _sort_attribute_names(self, names: List[str]) -> List[str]:
         """
