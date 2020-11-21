@@ -149,7 +149,12 @@ navigation mode.
 Configuration
 *************
 
-It is possible to create a ``$XDG_CONFIG_HOME/ptpython/config.py`` file to customize the configuration.
+It is possible to create a ``config.py`` file to customize configuration.
+ptpython will look in an appropriate platform-specific directory via `appdirs
+<https://pypi.org/project/appdirs/>`. See the ``appdirs`` documentation for the
+precise location for your platform. A ``PTPYTHON_CONFIG_HOME`` environment
+variable, if set, can also be used to explicitly override where configuration
+is looked for.
 
 Have a look at this example to see what is possible:
 `config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_
