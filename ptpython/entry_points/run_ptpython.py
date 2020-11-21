@@ -1,17 +1,19 @@
 #!/usr/bin/env python
 """
 ptpython: Interactive Python shell.
-Usage:
-    ptpython [ --vi ]
-             [ --config-dir=<directory> ] [ --interactive=<filename> ]
-             [--] [ <arg>... ]
-    ptpython -h | --help
 
-Options:
-    --vi                         : Use Vi keybindings instead of Emacs bindings.
-    --config-dir=<directory>     : Pass config directory. By default '$XDG_CONFIG_HOME/ptpython'.
-    -i, --interactive=<filename> : Start interactive shell after executing this file.
+positional arguments:
+  args                  Script and arguments
 
+optional arguments:
+  -h, --help            show this help message and exit
+  --vi                  Enable Vi key bindings
+  -i, --interactive     Start interactive shell after executing this file.
+  --config-file CONFIG_FILE
+                        Location of configuration file.
+  --history-file HISTORY_FILE
+                        Location of history file.
+  -V, --version         show program's version number and exit
 Other environment variables:
 PYTHONSTARTUP: file executed on interactive startup (no default)
 """
