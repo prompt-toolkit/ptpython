@@ -14,13 +14,16 @@ optional arguments:
   --history-file HISTORY_FILE
                         Location of history file.
   -V, --version         show program's version number and exit
-Other environment variables:
-PYTHONSTARTUP: file executed on interactive startup (no default)
+
+environment variables:
+  PTPYTHON_CONFIG_HOME: a configuration directory to use
+  PYTHONSTARTUP: file executed on interactive startup (no default)
 """
 import argparse
 import os
 import pathlib
 import sys
+from textwrap import dedent
 from typing import Tuple
 
 try:
@@ -40,8 +43,15 @@ __all__ = ["create_parser", "get_config_and_history_file", "run"]
 class _Parser(argparse.ArgumentParser):
     def print_help(self):
         super().print_help()
-        print("Other environment variables:")
-        print("PYTHONSTARTUP: file executed on interactive startup (no default)")
+        print(
+            dedent(
+                """
+                environment variables:
+                  PTPYTHON_CONFIG_HOME: a configuration directory to use
+                  PYTHONSTARTUP: file executed on interactive startup (no default)
+                """,
+            ).rstrip(),
+        )
 
 
 def create_parser() -> _Parser:
@@ -72,7 +82,10 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> Tuple[str, str
     Check which config/history files to use, ensure that the directories for
     these files exist, and return the config and history path.
     """
-    config_dir = appdirs.user_config_dir("ptpython", "prompt_toolkit")
+    config_dir = os.environ.get(
+        "PTPYTHON_CONFIG_HOME",
+        appdirs.user_config_dir("ptpython", "prompt_toolkit"),
+    )
     data_dir = appdirs.user_data_dir("ptpython", "prompt_toolkit")
 
     # Create directories.
