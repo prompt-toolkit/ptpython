@@ -11,6 +11,7 @@ Options:
     --vi                         : Use Vi keybindings instead of Emacs bindings.
     --config-dir=<directory>     : Pass config directory. By default '$XDG_CONFIG_HOME/ptpython'.
     -i, --interactive=<filename> : Start interactive shell after executing this file.
+    --async-repl                 : Allow top level await, async with, async for in repl.
 
 Other environment variables:
 PYTHONSTARTUP: file executed on interactive startup (no default)
@@ -50,6 +51,11 @@ def create_parser() -> _Parser:
         "--interactive",
         action="store_true",
         help="Start interactive shell after executing this file.",
+    )
+    parser.add_argument(
+        "--async-repl",
+        action="store_true",
+        help="Allow top level await, async with, async for in repl."
     )
     parser.add_argument(
         "--config-file", type=str, help="Location of configuration file."
@@ -165,15 +171,28 @@ def run() -> None:
 
         import __main__
 
-        embed(
-            vi_mode=a.vi,
-            history_filename=history_file,
-            configure=configure,
-            locals=__main__.__dict__,
-            globals=__main__.__dict__,
-            startup_paths=startup_paths,
-            title="Python REPL (ptpython)",
-        )
+        if not a.async_repl:
+            embed(
+                vi_mode=a.vi,
+                history_filename=history_file,
+                configure=configure,
+                locals=__main__.__dict__,
+                globals=__main__.__dict__,
+                startup_paths=startup_paths,
+                title="Python REPL (ptpython)",
+            )
+        else:
+            import asyncio
+            import ptpython.arepl
+            asyncio.run(ptpython.arepl.embed(
+                vi_mode=a.vi,
+                history_filename=history_file,
+                configure=configure,
+                locals=__main__.__dict__,
+                globals=__main__.__dict__,
+                startup_paths=startup_paths,
+                title="Python REPL (ptpython)",
+            ))
 
 
 if __name__ == "__main__":
