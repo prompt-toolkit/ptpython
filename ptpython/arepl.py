@@ -11,12 +11,13 @@ Utility for creating a Python async repl based on PythonRepl.
 import asyncio
 import builtins
 import sys
+import os
 from ast import PyCF_ALLOW_TOP_LEVEL_AWAIT
 from dis import COMPILER_FLAG_NAMES
 import types
 import signal
 import contextlib
-from typing import Callable, Optional, Any
+from typing import Any, Callable, ContextManager, Dict, Optional
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.key_binding.vi_state import InputMode
@@ -69,19 +70,19 @@ class PythonARepl(PythonRepl):
                 # Abort - try again.
                 self.default_buffer.document = Document()
             else:
-                await self._process_text(text)
+                await self._process_text_async(text)
 
         if self.terminal_title:
             clear_title()
 
-    async def _process_text(self, line: str) -> None:
+    async def _process_text_async(self, line: str) -> None:
         if line and not line.isspace():
             if self.insert_blank_line_after_input:
                 self.app.output.write("\n")
 
             try:
                 # Eval and print.
-                await self._execute(line)
+                await self._execute_async(line)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
                 self._handle_keyboard_interrupt(e)
             except asyncio.CancelledError as e: # CancelledError doesn't inherit from Exception.
@@ -95,7 +96,7 @@ class PythonARepl(PythonRepl):
             self.current_statement_index += 1
             self.signatures = []
 
-    async def _execute(self, line: str) -> None:
+    async def _execute_async(self, line: str) -> None:
         """
         Evaluate the line and print the result.
         """
