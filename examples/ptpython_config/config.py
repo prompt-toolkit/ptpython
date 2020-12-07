@@ -2,9 +2,8 @@
 Configuration example for ``ptpython``.
 
 Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
+On Linux, this is: ~/.config/ptpython/config.py
 """
-from __future__ import unicode_literals
-
 from prompt_toolkit.filters import ViInsertMode
 from prompt_toolkit.key_binding.key_processor import KeyPress
 from prompt_toolkit.keys import Keys
@@ -12,7 +11,7 @@ from prompt_toolkit.styles import Style
 
 from ptpython.layout import CompletionVisualisation
 
-__all__ = ("configure",)
+__all__ = ["configure"]
 
 
 def configure(repl):
@@ -107,14 +106,19 @@ def configure(repl):
     repl.enable_input_validation = True
 
     # Use this colorscheme for the code.
-    repl.use_code_colorscheme("pastie")
+    repl.use_code_colorscheme("default")
+    # repl.use_code_colorscheme("pastie")
 
     # Set color depth (keep in mind that not all terminals support true color).
 
-    # repl.color_depth = 'DEPTH_1_BIT'  # Monochrome.
-    # repl.color_depth = 'DEPTH_4_BIT'  # ANSI colors only.
+    # repl.color_depth = "DEPTH_1_BIT"  # Monochrome.
+    # repl.color_depth = "DEPTH_4_BIT"  # ANSI colors only.
     repl.color_depth = "DEPTH_8_BIT"  # The default, 256 colors.
-    # repl.color_depth = 'DEPTH_24_BIT'  # True color.
+    # repl.color_depth = "DEPTH_24_BIT"  # True color.
+
+    # Min/max brightness
+    repl.min_brightness = 0.0  # Increase for dark terminal backgrounds.
+    repl.max_brightness = 1.0  # Decrease for light terminal backgrounds.
 
     # Syntax.
     repl.enable_syntax_highlighting = True
@@ -127,22 +131,22 @@ def configure(repl):
 
     # Install custom colorscheme named 'my-colorscheme' and use it.
     """
-    repl.install_ui_colorscheme('my-colorscheme', Style.from_dict(_custom_ui_colorscheme))
-    repl.use_ui_colorscheme('my-colorscheme')
+    repl.install_ui_colorscheme("my-colorscheme", Style.from_dict(_custom_ui_colorscheme))
+    repl.use_ui_colorscheme("my-colorscheme")
     """
 
     # Add custom key binding for PDB.
     """
-    @repl.add_key_binding(Keys.ControlB)
+    @repl.add_key_binding("c-b")
     def _(event):
-        ' Pressing Control-B will insert "pdb.set_trace()" '
-        event.cli.current_buffer.insert_text('\nimport pdb; pdb.set_trace()\n')
+        " Pressing Control-B will insert "pdb.set_trace()" "
+        event.cli.current_buffer.insert_text("\nimport pdb; pdb.set_trace()\n")
     """
 
     # Typing ControlE twice should also execute the current command.
     # (Alternative for Meta-Enter.)
     """
-    @repl.add_key_binding(Keys.ControlE, Keys.ControlE)
+    @repl.add_key_binding("c-e", "c-e")
     def _(event):
         event.current_buffer.validate_and_handle()
     """
@@ -150,22 +154,22 @@ def configure(repl):
     # Typing 'jj' in Vi Insert mode, should send escape. (Go back to navigation
     # mode.)
     """
-    @repl.add_key_binding('j', 'j', filter=ViInsertMode())
+    @repl.add_key_binding("j", "j", filter=ViInsertMode())
     def _(event):
         " Map 'jj' to Escape. "
-        event.cli.key_processor.feed(KeyPress(Keys.Escape))
+        event.cli.key_processor.feed(KeyPress("escape"))
     """
 
     # Custom key binding for some simple autocorrection while typing.
     """
     corrections = {
-        'impotr': 'import',
-        'pritn': 'print',
+        "impotr": "import",
+        "pritn": "print",
     }
 
-    @repl.add_key_binding(' ')
+    @repl.add_key_binding(" ")
     def _(event):
-        ' When a space is pressed. Check & correct word before cursor. '
+        " When a space is pressed. Check & correct word before cursor. "
         b = event.cli.current_buffer
         w = b.document.get_word_before_cursor()
 
@@ -174,7 +178,7 @@ def configure(repl):
                 b.delete_before_cursor(count=len(w))
                 b.insert_text(corrections[w])
 
-        b.insert_text(' ')
+        b.insert_text(" ")
     """
 
     # Add a custom title to the status bar. This is useful when ptpython is
