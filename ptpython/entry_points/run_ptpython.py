@@ -9,6 +9,8 @@ optional arguments:
   -h, --help            show this help message and exit
   --vi                  Enable Vi key bindings
   -i, --interactive     Start interactive shell after executing this file.
+  --light-bg            Run on a light background (use dark colors for text).
+  --dark-bg             Run on a dark background (use light colors for text).
   --config-file CONFIG_FILE
                         Location of configuration file.
   --history-file HISTORY_FILE
@@ -64,6 +66,16 @@ def create_parser() -> _Parser:
         help="Start interactive shell after executing this file.",
     )
     parser.add_argument(
+        "--light-bg",
+        action="store_true",
+        help="Run on a light background (use dark colors for text).",
+    ),
+    parser.add_argument(
+        "--dark-bg",
+        action="store_true",
+        help="Run on a dark background (use light colors for text).",
+    ),
+    parser.add_argument(
         "--config-file", type=str, help="Location of configuration file."
     )
     parser.add_argument("--history-file", type=str, help="Location of history file.")
@@ -83,8 +95,7 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> Tuple[str, str
     these files exist, and return the config and history path.
     """
     config_dir = os.environ.get(
-        "PTPYTHON_CONFIG_HOME",
-        appdirs.user_config_dir("ptpython", "prompt_toolkit"),
+        "PTPYTHON_CONFIG_HOME", appdirs.user_config_dir("ptpython", "prompt_toolkit"),
     )
     data_dir = appdirs.user_data_dir("ptpython", "prompt_toolkit")
 
@@ -177,6 +188,14 @@ def run() -> None:
         def configure(repl) -> None:
             if os.path.exists(config_file):
                 run_config(repl, config_file)
+
+            # Adjust colors if dark/light background flag has been given.
+            if a.light_bg:
+                repl.min_brightness = 0.0
+                repl.max_brightness = 0.60
+            elif a.dark_bg:
+                repl.min_brightness = 0.60
+                repl.max_brightness = 1.0
 
         import __main__
 
