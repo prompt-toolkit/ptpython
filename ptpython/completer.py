@@ -380,7 +380,9 @@ class DictionaryCompleter(Completer):
 
             if isinstance(result, (list, tuple, dict)):
                 yield Completion("[", 0)
-            elif result:
+            elif result is not None:
+                # Note: Don't call `if result` here. That can fail for types
+                #       that have custom truthness checks.
                 yield Completion(".", 0)
 
     def _get_item_lookup_completions(
