@@ -38,9 +38,7 @@ async def interactive_shell():
         'You should be able to read and update the "counter[0]" variable from this shell.'
     )
     try:
-        await embed(
-            globals=globals(), return_asyncio_coroutine=True, patch_stdout=True
-        )
+        await embed(globals=globals(), return_asyncio_coroutine=True, patch_stdout=True)
     except EOFError:
         # Stop the loop when quitting the repl. (Ctrl-D press.)
         loop.stop()

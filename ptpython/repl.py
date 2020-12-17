@@ -15,8 +15,10 @@ import traceback
 import warnings
 from typing import Any, Callable, ContextManager, Dict, Optional
 
+import black
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import (
+    HTML,
     FormattedText,
     PygmentsTokens,
     StyleAndTextTuples,
@@ -24,19 +26,20 @@ from prompt_toolkit.formatted_text import (
     merge_formatted_text,
     to_formatted_text,
 )
-from prompt_toolkit.formatted_text.utils import (
-    fragment_list_to_text,
-    fragment_list_width,
-    split_lines,
-)
+from prompt_toolkit.formatted_text.utils import fragment_list_to_text, split_lines
+from prompt_toolkit.key_binding import KeyBindings, KeyPressEvent
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
-from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
-from prompt_toolkit.utils import DummyContext
+from prompt_toolkit.shortcuts import (
+    PromptSession,
+    clear_title,
+    print_formatted_text,
+    set_title,
+)
+from prompt_toolkit.utils import DummyContext, get_cwidth
 from pygments.lexers import PythonLexer, PythonTracebackLexer
 from pygments.token import Token
 
-from .eventloop import inputhook
 from .python_input import PythonInput
 
 __all__ = ["PythonRepl", "enable_deprecation_warnings", "run_config", "embed"]
@@ -107,12 +110,12 @@ class PythonRepl(PythonInput):
                 # Abort - try again.
                 self.default_buffer.document = Document()
             else:
-                self._process_text(text)
+                await self._process_text(text)
 
         if self.terminal_title:
             clear_title()
 
-    def _process_text(self, line: str) -> None:
+    async def _process_text(self, line: str) -> None:
 
         if line and not line.isspace():
             if self.insert_blank_line_after_input:
@@ -120,7 +123,7 @@ class PythonRepl(PythonInput):
 
             try:
                 # Eval and print.
-                self._execute(line)
+                await self._execute(line)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
                 self._handle_keyboard_interrupt(e)
             except Exception as e:
@@ -132,7 +135,7 @@ class PythonRepl(PythonInput):
             self.current_statement_index += 1
             self.signatures = []
 
-    def _execute(self, line: str) -> None:
+    async def _execute(self, line: str) -> None:
         """
         Evaluate the line and print the result.
         """
@@ -173,13 +176,13 @@ class PythonRepl(PythonInput):
                 locals["_"] = locals["_%i" % self.current_statement_index] = result
 
                 if result is not None:
-                    self.show_result(result)
+                    await self.show_result(result)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, "exec")
                 exec(code, self.get_globals(), self.get_locals())
 
-    def show_result(self, result: object) -> None:
+    async def show_result(self, result: object) -> None:
         """
         Show __repr__ for an `eval` result.
         """
@@ -192,12 +195,19 @@ class PythonRepl(PythonInput):
         except SyntaxError:
             formatted_result_repr = to_formatted_text(result_repr)
         else:
+            # Syntactically correct. Format with black and syntax highlight.
+            if self.enable_output_formatting:
+                result_repr = black.format_str(
+                    result_repr,
+                    mode=black.FileMode(line_length=self.app.output.get_size().columns),
+                )
+
             formatted_result_repr = to_formatted_text(
                 PygmentsTokens(list(_lex_python_result(result_repr)))
             )
 
-        # If __pt_repr__ is present, take this. This can return
-        # prompt_toolkit formatted text.
+        # If __pt_repr__ is present, take this. This can return prompt_toolkit
+        # formatted text.
         if hasattr(result, "__pt_repr__"):
             try:
                 formatted_result_repr = to_formatted_text(
@@ -229,14 +239,81 @@ class PythonRepl(PythonInput):
                 out_prompt + [("", fragment_list_to_text(formatted_result_repr))]
             )
 
+        if self.use_pager_for_big_outputs:
+            await self._print_paginated_formatted_text(
+                to_formatted_text(formatted_output)
+            )
+        else:
+            self.print_formatted_text(to_formatted_text(formatted_output))
+
+        self.app.output.flush()
+
+    def print_formatted_text(self, formatted_text: StyleAndTextTuples) -> None:
         print_formatted_text(
-            formatted_output,
+            FormattedText(formatted_text),
             style=self._current_style,
             style_transformation=self.style_transformation,
             include_default_pygments_style=False,
             output=self.app.output,
         )
-        self.app.output.flush()
+
+    async def _print_paginated_formatted_text(
+        self, formatted_text: StyleAndTextTuples
+    ) -> None:
+        """
+        Print formatted text, using --MORE-- style pagination.
+        (Avoid filling up the terminal's scrollback buffer.)
+        """
+        continue_prompt = create_continue_prompt()
+        size = self.app.output.get_size()
+
+        # Page buffer.
+        rows_in_buffer = 0
+        columns_in_buffer = 0
+        page: StyleAndTextTuples = []
+
+        def flush_page() -> None:
+            nonlocal page, columns_in_buffer, rows_in_buffer
+            self.print_formatted_text(page)
+            page = []
+            columns_in_buffer = 0
+            rows_in_buffer = 0
+
+        # Loop over lines. Show --MORE-- prompt when page is filled.
+        for line in split_lines(formatted_text):
+            for style, text, *_ in line:
+                for c in text:
+                    width = get_cwidth(c)
+
+                    # (Soft) wrap line if it doesn't fit.
+                    if columns_in_buffer + width > size.columns:
+                        # Show pager first if we get too many lines after
+                        # wrapping.
+                        if rows_in_buffer + 1 >= size.rows - 1:
+                            flush_page()
+                            do_continue = await continue_prompt.prompt_async()
+                            if not do_continue:
+                                print("...")
+                                return
+
+                        rows_in_buffer += 1
+                        columns_in_buffer = 0
+
+                    columns_in_buffer += width
+                    page.append((style, c))
+
+            if rows_in_buffer + 1 >= size.rows - 1:
+                flush_page()
+                do_continue = await continue_prompt.prompt_async()
+                if not do_continue:
+                    print("...")
+                    return
+            else:
+                page.append(("", "\n"))
+                rows_in_buffer += 1
+                columns_in_buffer = 0
+
+        flush_page()
 
     def _handle_exception(self, e: Exception) -> None:
         output = self.app.output
@@ -418,3 +495,37 @@ def embed(
     else:
         with patch_context:
             repl.run()
+
+
+def create_continue_prompt() -> PromptSession[bool]:
+    """
+    Create a "continue" prompt for paginated output.
+    """
+    bindings = KeyBindings()
+
+    @bindings.add("y")
+    @bindings.add("Y")
+    @bindings.add("enter")
+    @bindings.add("space")
+    def yes(event: KeyPressEvent) -> None:
+        event.app.exit(result=True)
+
+    @bindings.add("n")
+    @bindings.add("N")
+    @bindings.add("q")
+    @bindings.add("c-c")
+    @bindings.add("escape", eager=True)
+    def no(event: KeyPressEvent) -> None:
+        event.app.exit(result=False)
+
+    @bindings.add("<any>")
+    def _(event: KeyPressEvent) -> None:
+        " Disallow inserting other text. "
+        pass
+
+    session: PromptSession[bool] = PromptSession(
+        HTML("<b> -- MORE --</b>"),
+        key_bindings=bindings,
+        erase_when_done=True,
+    )
+    return session
