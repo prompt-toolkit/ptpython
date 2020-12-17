@@ -9,14 +9,18 @@ Utility for creating a Python repl.
 """
 import asyncio
 import builtins
+import math
 import os
 import sys
 import traceback
 import warnings
-from typing import Any, Callable, ContextManager, Dict, Optional
+from typing import Any, Callable, ContextManager, Dict, List, Optional
 
+import black
+import pypager
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import (
+    HTML,
     FormattedText,
     PygmentsTokens,
     StyleAndTextTuples,
@@ -24,11 +28,7 @@ from prompt_toolkit.formatted_text import (
     merge_formatted_text,
     to_formatted_text,
 )
-from prompt_toolkit.formatted_text.utils import (
-    fragment_list_to_text,
-    fragment_list_width,
-    split_lines,
-)
+from prompt_toolkit.formatted_text.utils import fragment_list_to_text, split_lines
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
 from prompt_toolkit.shortcuts import clear_title, print_formatted_text, set_title
@@ -36,7 +36,6 @@ from prompt_toolkit.utils import DummyContext
 from pygments.lexers import PythonLexer, PythonTracebackLexer
 from pygments.token import Token
 
-from .eventloop import inputhook
 from .python_input import PythonInput
 
 __all__ = ["PythonRepl", "enable_deprecation_warnings", "run_config", "embed"]
@@ -107,12 +106,12 @@ class PythonRepl(PythonInput):
                 # Abort - try again.
                 self.default_buffer.document = Document()
             else:
-                self._process_text(text)
+                await self._process_text(text)
 
         if self.terminal_title:
             clear_title()
 
-    def _process_text(self, line: str) -> None:
+    async def _process_text(self, line: str) -> None:
 
         if line and not line.isspace():
             if self.insert_blank_line_after_input:
@@ -120,7 +119,7 @@ class PythonRepl(PythonInput):
 
             try:
                 # Eval and print.
-                self._execute(line)
+                await self._execute(line)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
                 self._handle_keyboard_interrupt(e)
             except Exception as e:
@@ -132,7 +131,7 @@ class PythonRepl(PythonInput):
             self.current_statement_index += 1
             self.signatures = []
 
-    def _execute(self, line: str) -> None:
+    async def _execute(self, line: str) -> None:
         """
         Evaluate the line and print the result.
         """
@@ -173,13 +172,13 @@ class PythonRepl(PythonInput):
                 locals["_"] = locals["_%i" % self.current_statement_index] = result
 
                 if result is not None:
-                    self.show_result(result)
+                    await self.show_result(result, self.current_statement_index)
             # If not a valid `eval` expression, run using `exec` instead.
             except SyntaxError:
                 code = compile_with_flags(line, "exec")
                 exec(code, self.get_globals(), self.get_locals())
 
-    def show_result(self, result: object) -> None:
+    async def show_result(self, result: object, statement_index: int) -> None:
         """
         Show __repr__ for an `eval` result.
         """
@@ -192,12 +191,19 @@ class PythonRepl(PythonInput):
         except SyntaxError:
             formatted_result_repr = to_formatted_text(result_repr)
         else:
+            # Syntactically correct. Format with black and syntax highlight.
+            if self.enable_output_formatting:
+                result_repr = black.format_str(
+                    result_repr,
+                    mode=black.FileMode(line_length=self.app.output.get_size().columns),
+                )
+
             formatted_result_repr = to_formatted_text(
                 PygmentsTokens(list(_lex_python_result(result_repr)))
             )
 
-        # If __pt_repr__ is present, take this. This can return
-        # prompt_toolkit formatted text.
+        # If __pt_repr__ is present, take this. This can return prompt_toolkit
+        # formatted text.
         if hasattr(result, "__pt_repr__"):
             try:
                 formatted_result_repr = to_formatted_text(
@@ -213,6 +219,28 @@ class PythonRepl(PythonInput):
         indented_repr: StyleAndTextTuples = []
 
         lines = list(split_lines(formatted_result_repr))
+
+        if self.use_pager_for_big_outputs and not self._fits_on_the_screen(lines):
+            print_formatted_text(
+                HTML(
+                    "Displaying big in pager... "
+                    "Type <reverse>`_{}`</reverse> to show again.\n"
+                ).format(statement_index),
+                output=self.app.output,
+            )
+            pager = pypager.Pager(
+                # We allow embedding ptpython over SSH, so make sure to use
+                # the right input/output. (By default pypager will try to
+                # use stdout for the input otherwise).
+                input=self.app.input,
+                output=self.app.output,
+            )
+
+            pager.add_source(
+                pypager.FormattedTextSource(self._hard_wrap(formatted_result_repr))
+            )
+            await pager.run_async()
+            return
 
         for i, fragment in enumerate(lines):
             indented_repr.extend(fragment)
@@ -237,6 +265,59 @@ class PythonRepl(PythonInput):
             output=self.app.output,
         )
         self.app.output.flush()
+
+    def _fits_on_the_screen(self, lines: List[StyleAndTextTuples]) -> bool:
+        """
+        Tell whether this output fits on the screen or not.
+        (If not we should probably use a pager.)
+        """
+        size = self.app.output.get_size()
+
+        # Too many rows?
+        if len(lines) > size.rows:
+            return False
+
+        # Doesn not fit if we get too many lines after wrapping them.
+        wrapped_line_count = 0
+        for line in lines:
+            wrapped_line_count += math.ceil(fragment_list_width(line) / size.columns)
+            if wrapped_line_count > size.rows:
+                return False
+
+        return True
+
+    def _hard_wrap(self, formatted_text: StyleAndTextTuples) -> StyleAndTextTuples:
+        """
+        Hard-wrap output so that we can decently scroll through it.
+
+        XXX: This is experimental. Wrapping is wrong in case of double width
+             characters. Also slow in case of huge outputs.
+        """
+        result: StyleAndTextTuples = []
+        term_width = self.app.output.get_size().columns
+        current_line_width = 0
+
+        for style, text in formatted_text:
+            for piece in text.splitlines(keepends=True):
+                has_line_ending = piece.endswith("\n")
+                piece = piece.rstrip("\n")
+
+                while piece:
+                    remaining_space = term_width - current_line_width
+                    if len(piece) > remaining_space:
+                        result.append((style, piece[:remaining_space] + "\n"))
+                        piece = piece[:remaining_space]
+                        current_line_width = 0
+                    else:
+                        result.append((style, piece))
+                        current_line_width += len(piece)
+                        piece = ""
+
+                if has_line_ending:
+                    result.append(("", "\n"))
+                    current_line_width = 0
+
+        return result
 
     def _handle_exception(self, e: Exception) -> None:
         output = self.app.output

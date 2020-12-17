@@ -22,6 +22,8 @@ setup(
         "jedi>=0.16.0",
         "prompt_toolkit>=3.0.0,<3.1.0",
         "pygments",
+        "pypager",
+        "black",
     ],
     python_requires=">=3.6",
     classifiers=[

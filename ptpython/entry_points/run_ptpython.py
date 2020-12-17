@@ -95,7 +95,8 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> Tuple[str, str
     these files exist, and return the config and history path.
     """
     config_dir = os.environ.get(
-        "PTPYTHON_CONFIG_HOME", appdirs.user_config_dir("ptpython", "prompt_toolkit"),
+        "PTPYTHON_CONFIG_HOME",
+        appdirs.user_config_dir("ptpython", "prompt_toolkit"),
     )
     data_dir = appdirs.user_data_dir("ptpython", "prompt_toolkit")
 
