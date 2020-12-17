@@ -28,16 +28,17 @@ import sys
 from textwrap import dedent
 from typing import Tuple
 
-try:
-    from importlib import metadata
-except ImportError:
-    import importlib_metadata as metadata  # type: ignore
-
 import appdirs
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import print_formatted_text
 
 from ptpython.repl import embed, enable_deprecation_warnings, run_config
+
+try:
+    from importlib import metadata
+except ImportError:
+    import importlib_metadata as metadata  # type: ignore
+
 
 __all__ = ["create_parser", "get_config_and_history_file", "run"]
 
@@ -95,7 +96,8 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> Tuple[str, str
     these files exist, and return the config and history path.
     """
     config_dir = os.environ.get(
-        "PTPYTHON_CONFIG_HOME", appdirs.user_config_dir("ptpython", "prompt_toolkit"),
+        "PTPYTHON_CONFIG_HOME",
+        appdirs.user_config_dir("ptpython", "prompt_toolkit"),
     )
     data_dir = appdirs.user_data_dir("ptpython", "prompt_toolkit")
 
