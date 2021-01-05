@@ -13,6 +13,7 @@ import os
 import sys
 import traceback
 import warnings
+from enum import Enum
 from typing import Any, Callable, ContextManager, Dict, Optional
 
 import black
@@ -36,6 +37,7 @@ from prompt_toolkit.shortcuts import (
     print_formatted_text,
     set_title,
 )
+from prompt_toolkit.styles import BaseStyle
 from prompt_toolkit.utils import DummyContext, get_cwidth
 from pygments.lexers import PythonLexer, PythonTracebackLexer
 from pygments.token import Token
@@ -239,7 +241,7 @@ class PythonRepl(PythonInput):
                 out_prompt + [("", fragment_list_to_text(formatted_result_repr))]
             )
 
-        if self.use_pager_for_big_outputs:
+        if self.enable_pager:
             await self._print_paginated_formatted_text(
                 to_formatted_text(formatted_output)
             )
@@ -264,8 +266,13 @@ class PythonRepl(PythonInput):
         Print formatted text, using --MORE-- style pagination.
         (Avoid filling up the terminal's scrollback buffer.)
         """
-        continue_prompt = create_continue_prompt()
+        pager_prompt = self.create_pager_prompt()
         size = self.app.output.get_size()
+
+        abort = False
+
+        # Max number of lines allowed in the buffer before painting.
+        max_rows = size.rows - 1
 
         # Page buffer.
         rows_in_buffer = 0
@@ -279,6 +286,20 @@ class PythonRepl(PythonInput):
             columns_in_buffer = 0
             rows_in_buffer = 0
 
+        async def show_pager() -> None:
+            nonlocal abort, max_rows
+
+            continue_result = await pager_prompt.prompt_async()
+            if continue_result == PagerResult.ABORT:
+                print("...")
+                abort = True
+
+            elif continue_result == PagerResult.NEXT_LINE:
+                max_rows = 1
+
+            elif continue_result == PagerResult.NEXT_PAGE:
+                max_rows = size.rows - 1
+
         # Loop over lines. Show --MORE-- prompt when page is filled.
         for line in split_lines(formatted_text):
             for style, text, *_ in line:
@@ -289,11 +310,10 @@ class PythonRepl(PythonInput):
                     if columns_in_buffer + width > size.columns:
                         # Show pager first if we get too many lines after
                         # wrapping.
-                        if rows_in_buffer + 1 >= size.rows - 1:
+                        if rows_in_buffer + 1 >= max_rows:
                             flush_page()
-                            do_continue = await continue_prompt.prompt_async()
-                            if not do_continue:
-                                print("...")
+                            await show_pager()
+                            if abort:
                                 return
 
                         rows_in_buffer += 1
@@ -302,11 +322,10 @@ class PythonRepl(PythonInput):
                     columns_in_buffer += width
                     page.append((style, c))
 
-            if rows_in_buffer + 1 >= size.rows - 1:
+            if rows_in_buffer + 1 >= max_rows:
                 flush_page()
-                do_continue = await continue_prompt.prompt_async()
-                if not do_continue:
-                    print("...")
+                await show_pager()
+                if abort:
                     return
             else:
                 page.append(("", "\n"))
@@ -314,6 +333,12 @@ class PythonRepl(PythonInput):
                 columns_in_buffer = 0
 
         flush_page()
+
+    def create_pager_prompt(self) -> PromptSession["PagerResult"]:
+        """
+        Create pager --MORE-- prompt.
+        """
+        return create_pager_prompt(self._current_style)
 
     def _handle_exception(self, e: Exception) -> None:
         output = self.app.output
@@ -497,35 +522,52 @@ def embed(
             repl.run()
 
 
-def create_continue_prompt() -> PromptSession[bool]:
+class PagerResult(Enum):
+    ABORT = "ABORT"
+    NEXT_LINE = "NEXT_LINE"
+    NEXT_PAGE = "NEXT_PAGE"
+
+
+def create_pager_prompt(style: BaseStyle) -> PromptSession[PagerResult]:
     """
     Create a "continue" prompt for paginated output.
     """
     bindings = KeyBindings()
 
-    @bindings.add("y")
-    @bindings.add("Y")
     @bindings.add("enter")
-    @bindings.add("space")
-    def yes(event: KeyPressEvent) -> None:
-        event.app.exit(result=True)
+    @bindings.add("down")
+    def next_line(event: KeyPressEvent) -> None:
+        event.app.exit(result=PagerResult.NEXT_LINE)
 
-    @bindings.add("n")
-    @bindings.add("N")
+    @bindings.add("space")
+    def next_page(event: KeyPressEvent) -> None:
+        event.app.exit(result=PagerResult.NEXT_PAGE)
+
     @bindings.add("q")
     @bindings.add("c-c")
+    @bindings.add("c-d")
     @bindings.add("escape", eager=True)
     def no(event: KeyPressEvent) -> None:
-        event.app.exit(result=False)
+        event.app.exit(result=PagerResult.ABORT)
 
     @bindings.add("<any>")
     def _(event: KeyPressEvent) -> None:
         " Disallow inserting other text. "
         pass
 
-    session: PromptSession[bool] = PromptSession(
-        HTML("<b> -- MORE --</b>"),
+    style
+
+    session: PromptSession[PagerResult] = PromptSession(
+        HTML(
+            "<status-toolbar>"
+            "<more> -- MORE -- </more> "
+            "<key>[Enter]</key> Scroll "
+            "<key>[Space]</key> Next page "
+            "<key>[q]</key> Quit "
+            "</status-toolbar>: "
+        ),
         key_bindings=bindings,
         erase_when_done=True,
+        style=style,
     )
     return session

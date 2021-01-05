@@ -97,10 +97,12 @@ default_ui_style = {
     "status-toolbar.title": "underline",
     "status-toolbar.inputmode": "bg:#222222 #ffffaa",
     "status-toolbar.key": "bg:#000000 #888888",
+    "status-toolbar key": "bg:#000000 #888888",
     "status-toolbar.pastemodeon": "bg:#aa4444 #ffffff",
     "status-toolbar.pythonversion": "bg:#222222 #ffffff bold",
     "status-toolbar paste-mode-on": "bg:#aa4444 #ffffff",
     "record": "bg:#884444 white",
+    "status-toolbar more": "#ffff44",
     "status-toolbar.input-mode": "#ffff44",
     # The options sidebar.
     "sidebar": "bg:#bbbbbb #000000",
