@@ -263,7 +263,7 @@ class PythonInput:
 
         # Pager.
         self.enable_output_formatting: bool = False
-        self.use_pager_for_big_outputs: bool = False
+        self.enable_pager: bool = False
 
         # When the sidebar is visible, also show the help text.
         self.show_sidebar_help: bool = True
@@ -745,10 +745,10 @@ class PythonInput:
                         field_name="enable_output_formatting",
                     ),
                     simple_option(
-                        title="Pager for big outputs",
+                        title="Enable pager for output",
                         description="Use a pager for displaying outputs that don't "
                         "fit on the screen.",
-                        field_name="use_pager_for_big_outputs",
+                        field_name="enable_pager",
                     ),
                 ],
             ),
