@@ -15,7 +15,12 @@ from prompt_toolkit.auto_suggest import (
     ThreadedAutoSuggest,
 )
 from prompt_toolkit.buffer import Buffer
-from prompt_toolkit.completion import Completer, FuzzyCompleter, ThreadedCompleter
+from prompt_toolkit.completion import (
+    Completer,
+    DynamicCompleter,
+    FuzzyCompleter,
+    ThreadedCompleter,
+)
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition
@@ -191,14 +196,15 @@ class PythonInput:
         self.get_globals: _GetNamespace = get_globals or (lambda: {})
         self.get_locals: _GetNamespace = get_locals or self.get_globals
 
+        self.completer = _completer or PythonCompleter(
+            self.get_globals,
+            self.get_locals,
+            lambda: self.enable_dictionary_completion,
+        )
+
         self._completer = HidePrivateCompleter(
-            _completer
-            or FuzzyCompleter(
-                PythonCompleter(
-                    self.get_globals,
-                    self.get_locals,
-                    lambda: self.enable_dictionary_completion,
-                ),
+            FuzzyCompleter(
+                DynamicCompleter(lambda: self.completer),
                 enable_fuzzy=Condition(lambda: self.enable_fuzzy_completion),
             ),
             lambda: self.complete_private_attributes,
