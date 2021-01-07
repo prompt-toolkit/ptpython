@@ -20,6 +20,7 @@ import black
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import (
     HTML,
+    AnyFormattedText,
     FormattedText,
     PygmentsTokens,
     StyleAndTextTuples,
@@ -338,7 +339,7 @@ class PythonRepl(PythonInput):
         """
         Create pager --MORE-- prompt.
         """
-        return create_pager_prompt(self._current_style)
+        return create_pager_prompt(self._current_style, self.title)
 
     def _handle_exception(self, e: Exception) -> None:
         output = self.app.output
@@ -528,7 +529,9 @@ class PagerResult(Enum):
     NEXT_PAGE = "NEXT_PAGE"
 
 
-def create_pager_prompt(style: BaseStyle) -> PromptSession[PagerResult]:
+def create_pager_prompt(
+    style: BaseStyle, title: AnyFormattedText = ""
+) -> PromptSession[PagerResult]:
     """
     Create a "continue" prompt for paginated output.
     """
@@ -558,13 +561,18 @@ def create_pager_prompt(style: BaseStyle) -> PromptSession[PagerResult]:
     style
 
     session: PromptSession[PagerResult] = PromptSession(
-        HTML(
-            "<status-toolbar>"
-            "<more> -- MORE -- </more> "
-            "<key>[Enter]</key> Scroll "
-            "<key>[Space]</key> Next page "
-            "<key>[q]</key> Quit "
-            "</status-toolbar>: "
+        merge_formatted_text(
+            [
+                title,
+                HTML(
+                    "<status-toolbar>"
+                    "<more> -- MORE -- </more> "
+                    "<key>[Enter]</key> Scroll "
+                    "<key>[Space]</key> Next page "
+                    "<key>[q]</key> Quit "
+                    "</status-toolbar>: "
+                ),
+            ]
         ),
         key_bindings=bindings,
         erase_when_done=True,
