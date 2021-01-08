@@ -3,7 +3,6 @@
 Example of embedding a Python REPL, and setting a custom prompt.
 """
 from prompt_toolkit.formatted_text import HTML
-from pygments.token import Token
 
 from ptpython.prompt_style import PromptStyle
 from ptpython.repl import embed
