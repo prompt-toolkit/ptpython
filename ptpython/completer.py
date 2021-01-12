@@ -1,4 +1,5 @@
 import ast
+import collections.abc as collections_abc
 import inspect
 import keyword
 import re
@@ -378,7 +379,10 @@ class DictionaryCompleter(Completer):
             object_var = match.groups()[0]
             result = self._lookup(object_var, temp_locals)
 
-            if isinstance(result, (list, tuple, dict)):
+            if isinstance(
+                result,
+                (list, tuple, dict, collections_abc.Mapping, collections_abc.Sequence),
+            ):
                 yield Completion("[", 0)
             elif result is not None:
                 # Note: Don't call `if result` here. That can fail for types
@@ -412,7 +416,7 @@ class DictionaryCompleter(Completer):
             result = self._lookup(object_var, temp_locals)
 
             # If this object is a dictionary, complete the keys.
-            if isinstance(result, dict):
+            if isinstance(result, (dict, collections_abc.Mapping)):
                 # Try to evaluate the key.
                 key_obj = key
                 for k in [key, key + '"', key + "'"]:
@@ -437,7 +441,7 @@ class DictionaryCompleter(Completer):
                             pass
 
             # Complete list/tuple index keys.
-            elif isinstance(result, (list, tuple)):
+            elif isinstance(result, (list, tuple, collections_abc.Sequence)):
                 if not key or key.isdigit():
                     for k in range(min(len(result), 1000)):
                         if str(k).startswith(key):
