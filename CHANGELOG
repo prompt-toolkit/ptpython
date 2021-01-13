@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+3.0.10: 2020-01-13
+------------------
+
+Fixes:
+- Do dictionary completion on Sequence and Mapping objects (from
+  collections.abc). Note that dictionary completion is still turned off by
+  default.
+
+
 3.0.9: 2020-01-10
 -----------------
 
