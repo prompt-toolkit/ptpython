@@ -12,6 +12,7 @@ from prompt_toolkit.completion import (
     Completion,
     PathCompleter,
 )
+from prompt_toolkit.contrib.completers.system import SystemCompleter
 from prompt_toolkit.contrib.regular_languages.compiler import compile as compile_grammar
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.document import Document
@@ -49,7 +50,8 @@ class PythonCompleter(Completer):
         self.get_locals = get_locals
         self.get_enable_dictionary_completion = get_enable_dictionary_completion
 
-        self.dictionary_completer = DictionaryCompleter(get_globals, get_locals)
+        self._system_completer = SystemCompleter()
+        self._dictionary_completer = DictionaryCompleter(get_globals, get_locals)
 
         self._path_completer_cache: Optional[GrammarCompleter] = None
         self._path_completer_grammar_cache: Optional["_CompiledGrammar"] = None
@@ -139,10 +141,20 @@ class PythonCompleter(Completer):
         """
         Get Python completions.
         """
+        # If the input starts with an exclamation mark. Use the system completer.
+        if document.text.lstrip().startswith("!"):
+            yield from self._system_completer.get_completions(
+                Document(
+                    text=document.text[1:], cursor_position=document.cursor_position - 1
+                ),
+                complete_event,
+            )
+            return
+
         # Do dictionary key completions.
         if self.get_enable_dictionary_completion():
             has_dict_completions = False
-            for c in self.dictionary_completer.get_completions(
+            for c in self._dictionary_completer.get_completions(
                 document, complete_event
             ):
                 if c.text not in "[.":
@@ -157,8 +169,7 @@ class PythonCompleter(Completer):
         if complete_event.completion_requested or self._complete_path_while_typing(
             document
         ):
-            for c in self._path_completer.get_completions(document, complete_event):
-                yield c
+            yield from self._path_completer.get_completions(document, complete_event)
 
         # If we are inside a string, Don't do Jedi completion.
         if self._path_completer_grammar.match(document.text_before_cursor):
