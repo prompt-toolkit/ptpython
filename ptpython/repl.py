@@ -400,7 +400,11 @@ def _lex_python_traceback(tb):
 def _lex_python_result(tb):
     " Return token list for Python string. "
     lexer = PythonLexer()
-    return lexer.get_tokens(tb)
+    # Use `get_tokens_unprocessed`, so that we get exactly the same string,
+    # without line endings appended. `print_formatted_text` already appends a
+    # line ending, and otherwise we'll have two line endings.
+    tokens = lexer.get_tokens_unprocessed(tb)
+    return [(tokentype, value) for index, tokentype, value in tokens]
 
 
 def enable_deprecation_warnings() -> None:
