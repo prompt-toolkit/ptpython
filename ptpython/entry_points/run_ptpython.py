@@ -165,7 +165,8 @@ def run() -> None:
 
     # --interactive
     if a.interactive and a.args:
-        startup_paths.append(a.args[0])
+        # Note that we shouldn't run PYTHONSTARTUP when -i is given.
+        startup_paths = [a.args[0]]
         sys.argv = a.args
 
     # Add the current directory to `sys.path`.
