@@ -42,7 +42,7 @@ from prompt_toolkit.key_binding.bindings.open_in_editor import (
     load_open_in_editor_bindings,
 )
 from prompt_toolkit.key_binding.vi_state import InputMode
-from prompt_toolkit.lexers import DynamicLexer, Lexer, PygmentsLexer, SimpleLexer
+from prompt_toolkit.lexers import DynamicLexer, Lexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth, Output
 from prompt_toolkit.styles import (
     AdjustBrightnessStyleTransformation,
@@ -54,7 +54,6 @@ from prompt_toolkit.styles import (
 )
 from prompt_toolkit.utils import is_windows
 from prompt_toolkit.validation import ConditionalValidator, Validator
-from pygments.lexers import Python3Lexer as PythonLexer
 
 from .completer import CompletePrivateAttributes, HidePrivateCompleter, PythonCompleter
 from .history_browser import PythonHistory
@@ -64,6 +63,7 @@ from .key_bindings import (
     load_sidebar_bindings,
 )
 from .layout import CompletionVisualisation, PtPythonLayout
+from .lexer import PtpythonLexer
 from .prompt_style import ClassicPrompt, IPythonPrompt, PromptStyle
 from .style import generate_style, get_all_code_styles, get_all_ui_styles
 from .utils import get_jedi_script_from_document
@@ -210,7 +210,7 @@ class PythonInput:
             lambda: self.complete_private_attributes,
         )
         self._validator = _validator or PythonValidator(self.get_compiler_flags)
-        self._lexer = _lexer or PygmentsLexer(PythonLexer)
+        self._lexer = PtpythonLexer(_lexer)
 
         self.history: History
         if history_filename:

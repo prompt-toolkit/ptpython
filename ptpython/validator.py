@@ -30,6 +30,11 @@ class PythonValidator(Validator):
         if text.startswith("\x1a"):
             return
 
+        # When the input starts with an exclamation mark. Accept as shell
+        # command.
+        if text.lstrip().startswith("!"):
+            return
+
         try:
             if self.get_compiler_flags:
                 flags = self.get_compiler_flags()
