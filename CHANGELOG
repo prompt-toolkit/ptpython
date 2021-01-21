@@ -1,6 +1,29 @@
 CHANGELOG
 =========
 
+3.0.11: 2020-01-20
+------------------
+
+New features:
+- Add support for top-level await.
+- Refactoring of event loop usage:
+
+  * The ptpython input UI will now run in a separate thread. This makes it
+    possible to properly embed ptpython in an asyncio application, without
+    having to deal with nested event loops (which asyncio does not support).
+
+  * The "eval" part doesn't anymore take place within a ptpython coroutine, so
+    it can spawn its own loop if needed. This also fixes `asyncio.run()` usage
+    in the REPL, which was broken before.
+
+- Added syntax highlighting and autocompletion for !-style system commands.
+
+Fixes:
+- Remove unexpected additional line after output.
+- Fix system prompt. Accept !-style inputs again.
+- Don't execute PYTHONSTARTUP when -i flag was given.
+
+
 3.0.10: 2020-01-13
 ------------------
 
