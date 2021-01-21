@@ -19,7 +19,6 @@ from dis import COMPILER_FLAG_NAMES
 from enum import Enum
 from typing import Any, Callable, ContextManager, Dict, Optional
 
-import black
 from prompt_toolkit.formatted_text import (
     HTML,
     AnyFormattedText,
@@ -264,6 +263,9 @@ class PythonRepl(PythonInput):
         else:
             # Syntactically correct. Format with black and syntax highlight.
             if self.enable_output_formatting:
+                # Inline import. Slightly speed up start-up time if black is
+                # not used.
+                import black
                 result_repr = black.format_str(
                     result_repr,
                     mode=black.FileMode(line_length=self.app.output.get_size().columns),
