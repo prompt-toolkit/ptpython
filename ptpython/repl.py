@@ -98,33 +98,38 @@ class PythonRepl(PythonInput):
         if self.terminal_title:
             set_title(self.terminal_title)
 
-        while True:
-            # Read.
-            try:
-                text = self.read()
-            except EOFError:
-                return
+        self._add_to_namespace()
 
-            # Eval.
-            try:
-                result = self.eval(text)
-            except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
-                self._handle_keyboard_interrupt(e)
-            except SystemExit:
-                return
-            except BaseException as e:
-                self._handle_exception(e)
-            else:
-                # Print.
-                if result is not None:
-                    self.show_result(result)
+        try:
+            while True:
+                # Read.
+                try:
+                    text = self.read()
+                except EOFError:
+                    return
 
-                # Loop.
-                self.current_statement_index += 1
-                self.signatures = []
+                # Eval.
+                try:
+                    result = self.eval(text)
+                except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
+                    self._handle_keyboard_interrupt(e)
+                except SystemExit:
+                    return
+                except BaseException as e:
+                    self._handle_exception(e)
+                else:
+                    # Print.
+                    if result is not None:
+                        self.show_result(result)
 
-        if self.terminal_title:
-            clear_title()
+                    # Loop.
+                    self.current_statement_index += 1
+                    self.signatures = []
+
+        finally:
+            if self.terminal_title:
+                clear_title()
+            self._remove_from_namespace()
 
     async def run_async(self) -> None:
         """
@@ -143,33 +148,39 @@ class PythonRepl(PythonInput):
         if self.terminal_title:
             set_title(self.terminal_title)
 
-        while True:
-            # Read.
-            try:
-                text = await loop.run_in_executor(None, self.read)
-            except EOFError:
-                return
+        self._add_to_namespace()
 
-            # Eval.
-            try:
-                result = await self.eval_async(text)
-            except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
-                self._handle_keyboard_interrupt(e)
-            except SystemExit:
-                return
-            except BaseException as e:
-                self._handle_exception(e)
-            else:
-                # Print.
-                if result is not None:
-                    await loop.run_in_executor(None, lambda: self.show_result(result))
+        try:
+            while True:
+                # Read.
+                try:
+                    text = await loop.run_in_executor(None, self.read)
+                except EOFError:
+                    return
 
-                # Loop.
-                self.current_statement_index += 1
-                self.signatures = []
+                # Eval.
+                try:
+                    result = await self.eval_async(text)
+                except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
+                    self._handle_keyboard_interrupt(e)
+                except SystemExit:
+                    return
+                except BaseException as e:
+                    self._handle_exception(e)
+                else:
+                    # Print.
+                    if result is not None:
+                        await loop.run_in_executor(
+                            None, lambda: self.show_result(result)
+                        )
 
-        if self.terminal_title:
-            clear_title()
+                    # Loop.
+                    self.current_statement_index += 1
+                    self.signatures = []
+        finally:
+            if self.terminal_title:
+                clear_title()
+            self._remove_from_namespace()
 
     def eval(self, line: str) -> object:
         """
@@ -475,6 +486,25 @@ class PythonRepl(PythonInput):
 
         output.write("\rKeyboardInterrupt\n\n")
         output.flush()
+
+    def _add_to_namespace(self) -> None:
+        """
+        Add ptpython built-ins to global namespace.
+        """
+        globals = self.get_globals()
+
+        # Add a 'get_ptpython', similar to 'get_ipython'
+        def get_ptpython() -> PythonInput:
+            return self
+
+        globals["get_ptpython"] = get_ptpython
+
+    def _remove_from_namespace(self) -> None:
+        """
+        Remove added symbols from the globals.
+        """
+        globals = self.get_globals()
+        del globals["get_ptpython"]
 
 
 def _lex_python_traceback(tb):
