@@ -270,6 +270,7 @@ class PythonRepl(PythonInput):
                 # Inline import. Slightly speed up start-up time if black is
                 # not used.
                 import black
+
                 result_repr = black.format_str(
                     result_repr,
                     mode=black.FileMode(line_length=self.app.output.get_size().columns),
@@ -562,6 +563,8 @@ def embed(
     :param configure: Callable that will be called with the `PythonRepl` as a first
                       argument, to trigger configuration.
     :param title: Title to be displayed in the terminal titlebar. (None or string.)
+    :param patch_stdout:  When true, patch `sys.stdout` so that background
+        threads that are printing will print nicely above the prompt.
     """
     # Default globals/locals
     if globals is None:
