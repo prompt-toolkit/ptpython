@@ -281,15 +281,17 @@ class PythonRepl(PythonInput):
 
         # If __pt_repr__ is present, take this. This can return prompt_toolkit
         # formatted text.
-        if hasattr(result, "__pt_repr__"):
-            try:
+        try:
+            if hasattr(result, "__pt_repr__"):
                 formatted_result_repr = to_formatted_text(
                     getattr(result, "__pt_repr__")()
                 )
                 if isinstance(formatted_result_repr, list):
                     formatted_result_repr = FormattedText(formatted_result_repr)
-            except:
-                pass
+        except:
+            # For bad code, `__getattr__` can raise something that's not an
+            # `AttributeError`. This happens already when calling `hasattr()`.
+            pass
 
         # Align every line to the prompt.
         line_sep = "\n" + " " * fragment_list_width(out_prompt)
