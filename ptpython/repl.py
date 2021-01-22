@@ -110,6 +110,8 @@ class PythonRepl(PythonInput):
                 result = self.eval(text)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
                 self._handle_keyboard_interrupt(e)
+            except SystemExit:
+                return
             except BaseException as e:
                 self._handle_exception(e)
             else:
@@ -153,6 +155,8 @@ class PythonRepl(PythonInput):
                 result = await self.eval_async(text)
             except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
                 self._handle_keyboard_interrupt(e)
+            except SystemExit:
+                return
             except BaseException as e:
                 self._handle_exception(e)
             else:
