@@ -46,7 +46,7 @@ from pygments.token import Token
 from .python_input import PythonInput
 
 try:
-    from ast import PyCF_ALLOW_TOP_LEVEL_AWAIT
+    from ast import PyCF_ALLOW_TOP_LEVEL_AWAIT  # type: ignore
 except ImportError:
     PyCF_ALLOW_TOP_LEVEL_AWAIT = 0
 
