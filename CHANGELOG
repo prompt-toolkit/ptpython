@@ -1,6 +1,20 @@
 CHANGELOG
 =========
 
+3.0.12: 2020-01-24
+------------------
+
+New features:
+- Expose a `get_ptpython` function in the global namespace, to get programmatic
+  access to the REPL.
+- Expose `embed()` at the top level of the package. Make it possible to do
+  `from ptpython import embed`.
+
+Fixes:
+- Properly handle exceptions when trying to access `__pt_repr__`.
+- Properly handle `SystemExit`.
+
+
 3.0.11: 2020-01-20
 ------------------
 
