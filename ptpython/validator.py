@@ -1,5 +1,7 @@
 from prompt_toolkit.validation import ValidationError, Validator
 
+from .utils import unindent_code
+
 __all__ = ["PythonValidator"]
 
 
@@ -18,12 +20,7 @@ class PythonValidator(Validator):
         """
         Check input for Python syntax errors.
         """
-        text = document.text
-
-        # If the input is single line, remove leading whitespace.
-        # (This doesn't have to be a syntax error.)
-        if len(text.splitlines()) == 1:
-            text = text.strip()
+        text = unindent_code(document.text)
 
         # When the input starts with Ctrl-Z, always accept. This means EOF in a
         # Python REPL.
@@ -46,6 +43,7 @@ class PythonValidator(Validator):
             # Note, the 'or 1' for offset is required because Python 2.7
             # gives `None` as offset in case of '4=4' as input. (Looks like
             # fixed in Python 3.)
+            # TODO: This is not correct if indentation was removed.
             index = document.translate_row_col_to_index(
                 e.lineno - 1, (e.offset or 1) - 1
             )
