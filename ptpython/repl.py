@@ -422,6 +422,7 @@ class PythonRepl(PythonInput):
                         # Show pager first if we get too many lines after
                         # wrapping.
                         if rows_in_buffer + 1 >= max_rows and not print_all:
+                            page.append(("", "\n"))
                             flush_page()
                             show_pager()
                             if abort:
@@ -434,6 +435,7 @@ class PythonRepl(PythonInput):
                     page.append((style, c))
 
             if rows_in_buffer + 1 >= max_rows and not print_all:
+                page.append(("", "\n"))
                 flush_page()
                 show_pager()
                 if abort:
