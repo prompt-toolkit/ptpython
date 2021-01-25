@@ -2,7 +2,7 @@
 For internal use only.
 """
 import re
-from typing import Callable, Type, TypeVar, cast
+from typing import Callable, Iterable, Type, TypeVar, cast
 
 from prompt_toolkit.formatted_text import to_formatted_text
 from prompt_toolkit.formatted_text.utils import fragment_list_to_text
@@ -12,6 +12,7 @@ __all__ = [
     "has_unclosed_brackets",
     "get_jedi_script_from_document",
     "document_is_multiline_python",
+    "unindent_code",
 ]
 
 
@@ -158,3 +159,40 @@ def ptrepr_to_repr(cls: _T_type) -> _T_type:
 
     cls.__repr__ = __repr__  # type:ignore
     return cls
+
+
+def unindent_code(text: str) -> str:
+    """
+    Remove common leading whitespace when all lines are indented.
+    """
+    lines = text.splitlines(keepends=True)
+
+    # Look for common prefix.
+    common_prefix = _common_whitespace_prefix(lines)
+
+    # Remove indentation.
+    lines = [line[len(common_prefix) :] for line in lines]
+
+    return "".join(lines)
+
+
+def _common_whitespace_prefix(strings: Iterable[str]) -> str:
+    """
+    Return common prefix for a list of lines.
+    This will ignore lines that contain whitespace only.
+    """
+    # Ignore empty lines and lines that have whitespace only.
+    strings = [s for s in strings if not s.isspace() and not len(s) == 0]
+
+    if not strings:
+        return ""
+
+    else:
+        s1 = min(strings)
+        s2 = max(strings)
+
+        for i, c in enumerate(s1):
+            if c != s2[i] or c not in " \t":
+                return s1[:i]
+
+        return s1

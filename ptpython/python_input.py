@@ -67,7 +67,7 @@ from .layout import CompletionVisualisation, PtPythonLayout
 from .lexer import PtpythonLexer
 from .prompt_style import ClassicPrompt, IPythonPrompt, PromptStyle
 from .style import generate_style, get_all_code_styles, get_all_ui_styles
-from .utils import get_jedi_script_from_document
+from .utils import get_jedi_script_from_document, unindent_code
 from .validator import PythonValidator
 
 __all__ = ["PythonInput"]
@@ -1036,10 +1036,10 @@ class PythonInput:
                             # (Important for Windows users.)
                             raise EOFError
 
-                        # If the input is single line, remove leading whitespace.
-                        # (This doesn't have to be a syntax error.)
-                        if len(result.splitlines()) == 1:
-                            result = result.strip()
+                        # Remove leading whitespace.
+                        # (Users can add extra indentation, which happens for
+                        # instance because of copy/pasting code.)
+                        result = unindent_code(result)
 
                         if result and not result.isspace():
                             return

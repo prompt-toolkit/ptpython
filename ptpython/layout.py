@@ -40,6 +40,7 @@ from prompt_toolkit.layout.processors import (
     HighlightIncrementalSearchProcessor,
     HighlightMatchingBracketProcessor,
     HighlightSelectionProcessor,
+    TabsProcessor,
 )
 from prompt_toolkit.lexers import SimpleLexer
 from prompt_toolkit.mouse_events import MouseEvent
@@ -603,6 +604,7 @@ class PtPythonLayout:
                         ),
                         HighlightSelectionProcessor(),
                         DisplayMultipleCursors(),
+                        TabsProcessor(),
                         # Show matching parentheses, but only while editing.
                         ConditionalProcessor(
                             processor=HighlightMatchingBracketProcessor(chars="[](){}"),
