@@ -336,17 +336,22 @@ class PythonRepl(PythonInput):
         if self.insert_blank_line_after_output:
             self.app.output.write("\n")
 
-    def print_formatted_text(self, formatted_text: StyleAndTextTuples) -> None:
+    def print_formatted_text(
+        self, formatted_text: StyleAndTextTuples, end: str = "\n"
+    ) -> None:
         print_formatted_text(
             FormattedText(formatted_text),
             style=self._current_style,
             style_transformation=self.style_transformation,
             include_default_pygments_style=False,
             output=self.app.output,
+            end=end,
         )
 
     def print_paginated_formatted_text(
-        self, formatted_text: StyleAndTextTuples
+        self,
+        formatted_text: StyleAndTextTuples,
+        end: str = "\n",
     ) -> None:
         """
         Print formatted text, using --MORE-- style pagination.
@@ -367,7 +372,7 @@ class PythonRepl(PythonInput):
 
         def flush_page() -> None:
             nonlocal page, columns_in_buffer, rows_in_buffer
-            self.print_formatted_text(page)
+            self.print_formatted_text(page, end="")
             page = []
             columns_in_buffer = 0
             rows_in_buffer = 0
@@ -399,7 +404,11 @@ class PythonRepl(PythonInput):
                 max_rows = size.rows - 1
 
         # Loop over lines. Show --MORE-- prompt when page is filled.
-        for line in split_lines(formatted_text):
+
+        formatted_text = formatted_text + [("", end)]
+        lines = list(split_lines(formatted_text))
+
+        for lineno, line in enumerate(lines):
             for style, text, *_ in line:
                 for c in text:
                     width = get_cwidth(c)
@@ -426,9 +435,13 @@ class PythonRepl(PythonInput):
                 if abort:
                     return
             else:
-                page.append(("", "\n"))
-                rows_in_buffer += 1
-                columns_in_buffer = 0
+                # Add line ending between lines (if `end="\n"` was given, one
+                # more empty line is added in `split_lines` automatically to
+                # take care of the final line ending).
+                if lineno != len(lines) - 1:
+                    page.append(("", "\n"))
+                    rows_in_buffer += 1
+                    columns_in_buffer = 0
 
         flush_page()
 
