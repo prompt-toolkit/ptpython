@@ -1,6 +1,21 @@
 CHANGELOG
 =========
 
+3.0.13: 2020-01-26
+------------------
+
+New features:
+- Added 'print all' option to pager.
+- Improve handling of indented code:
+  * Allow multiline input to be indented as a whole (we will unindent before
+    executing).
+  * Correctly visualize tabs (instead of ^I, which happens when pasted in
+    bracketed paste).
+
+Fixes:
+- Fix line ending bug in pager.
+
+
 3.0.12: 2020-01-24
 ------------------
 
