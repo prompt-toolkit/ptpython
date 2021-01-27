@@ -270,7 +270,13 @@ class PythonRepl(PythonInput):
         out_prompt = to_formatted_text(self.get_output_prompt())
 
         # If the repr is valid Python code, use the Pygments lexer.
-        result_repr = repr(result)
+        try:
+            result_repr = repr(result)
+        except BaseException as e:
+            # Calling repr failed.
+            self._handle_exception(e)
+            return
+
         try:
             compile(result_repr, "", "eval")
         except SyntaxError:
