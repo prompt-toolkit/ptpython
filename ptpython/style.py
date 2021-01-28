@@ -75,6 +75,7 @@ default_ui_style = {
     "out.number": "#ff0000",
     # Completions.
     "completion.builtin": "",
+    "completion.param": "#006666 italic",
     "completion.keyword": "fg:#008800",
     "completion.keyword fuzzymatch.inside": "fg:#008800",
     "completion.keyword fuzzymatch.outside": "fg:#44aa44",
