@@ -87,8 +87,8 @@ default_ui_style = {
     "arg-toolbar.text": "noinherit",
     # Signature toolbar.
     "signature-toolbar": "bg:#44bbbb #000000",
-    "signature-toolbar.currentname": "bg:#008888 #ffffff bold",
-    "signature-toolbar.operator": "#000000 bold",
+    "signature-toolbar current-name": "bg:#008888 #ffffff bold",
+    "signature-toolbar operator": "#000000 bold",
     "docstring": "#888888",
     # Validation toolbar.
     "validation-toolbar": "bg:#440000 #aaaaaa",
