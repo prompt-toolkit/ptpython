@@ -230,8 +230,8 @@ def signature_toolbar(python_input):
     Return the `Layout` for the signature.
     """
 
-    def get_text_fragments():
-        result = []
+    def get_text_fragments() -> StyleAndTextTuples:
+        result: StyleAndTextTuples = []
         append = result.append
         Signature = "class:signature-toolbar"
 
@@ -260,7 +260,7 @@ def signature_toolbar(python_input):
                 #                     and sig has no 'index' attribute.
                 # See: https://github.com/jonathanslenders/ptpython/issues/47
                 #      https://github.com/davidhalter/jedi/issues/598
-                description = p.description if p else "*"  # or '*'
+                description = p.description if p else "*"
                 sig_index = getattr(sig, "index", 0)
 
                 if i == sig_index:
@@ -286,16 +286,8 @@ def signature_toolbar(python_input):
         filter=
         # Show only when there is a signature
         HasSignature(python_input) &
-        # And there are no completions to be shown. (would cover signature pop-up.)
-        ~(
-            has_completions
-            & (
-                show_completions_menu(python_input)
-                | show_multi_column_completions_menu(python_input)
-            )
-        )
         # Signature needs to be shown.
-        & ShowSignature(python_input) &
+        ShowSignature(python_input) &
         # Not done yet.
         ~is_done,
     )
@@ -656,32 +648,28 @@ class PtPythonLayout:
                                         Float(
                                             xcursor=True,
                                             ycursor=True,
-                                            content=ConditionalContainer(
-                                                content=CompletionsMenu(
-                                                    scroll_offset=(
-                                                        lambda: python_input.completion_menu_scroll_offset
+                                            content=HSplit(
+                                                [
+                                                    signature_toolbar(python_input),
+                                                    ConditionalContainer(
+                                                        content=CompletionsMenu(
+                                                            scroll_offset=(
+                                                                lambda: python_input.completion_menu_scroll_offset
+                                                            ),
+                                                            max_height=12,
+                                                        ),
+                                                        filter=show_completions_menu(
+                                                            python_input
+                                                        ),
                                                     ),
-                                                    max_height=12,
-                                                ),
-                                                filter=show_completions_menu(
-                                                    python_input
-                                                ),
+                                                    ConditionalContainer(
+                                                        content=MultiColumnCompletionsMenu(),
+                                                        filter=show_multi_column_completions_menu(
+                                                            python_input
+                                                        ),
+                                                    ),
+                                                ]
                                             ),
-                                        ),
-                                        Float(
-                                            xcursor=True,
-                                            ycursor=True,
-                                            content=ConditionalContainer(
-                                                content=MultiColumnCompletionsMenu(),
-                                                filter=show_multi_column_completions_menu(
-                                                    python_input
-                                                ),
-                                            ),
-                                        ),
-                                        Float(
-                                            xcursor=True,
-                                            ycursor=True,
-                                            content=signature_toolbar(python_input),
                                         ),
                                         Float(
                                             left=2,

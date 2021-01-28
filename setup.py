@@ -20,10 +20,9 @@ setup(
         "appdirs",
         "importlib_metadata;python_version<'3.8'",
         "jedi>=0.16.0",
-        # Use prompt_toolkit 3.0.11, because ptpython now runs the UI in the
-        # background thread, and we need the terminal size polling that was
-        # introduced here.
-        "prompt_toolkit>=3.0.11,<3.1.0",
+        # Use prompt_toolkit 3.0.12, because of dont_extend_width bugfix when
+        # signature and completion dropdown are displayed together.
+        "prompt_toolkit>=3.0.12,<3.1.0",
         "pygments",
         "black",
     ],
