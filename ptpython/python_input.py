@@ -66,8 +66,9 @@ from .key_bindings import (
 from .layout import CompletionVisualisation, PtPythonLayout
 from .lexer import PtpythonLexer
 from .prompt_style import ClassicPrompt, IPythonPrompt, PromptStyle
+from .signatures import Signature, get_signatures_using_eval, get_signatures_using_jedi
 from .style import generate_style, get_all_code_styles, get_all_ui_styles
-from .utils import get_jedi_script_from_document, unindent_code
+from .utils import unindent_code
 from .validator import PythonValidator
 
 __all__ = ["PythonInput"]
@@ -260,7 +261,7 @@ class PythonInput:
 
         self.enable_syntax_highlighting: bool = True
         self.enable_fuzzy_completion: bool = False
-        self.enable_dictionary_completion: bool = False
+        self.enable_dictionary_completion: bool = False  # Also eval-based completion.
         self.complete_private_attributes: CompletePrivateAttributes = (
             CompletePrivateAttributes.ALWAYS
         )
@@ -330,7 +331,7 @@ class PythonInput:
         self.current_statement_index: int = 1
 
         # Code signatures. (This is set asynchronously after a timeout.)
-        self.signatures: List[Any] = []
+        self.signatures: List[Signature] = []
 
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
@@ -917,36 +918,16 @@ class PythonInput:
         loop = loop or get_event_loop()
 
         def run():
-            script = get_jedi_script_from_document(
+            # First, get signatures from Jedi. If we didn't found any and if
+            # "dictionary completion" (eval-based completion) is enabled, then
+            # get signatures using eval.
+            signatures = get_signatures_using_jedi(
                 document, self.get_locals(), self.get_globals()
             )
-
-            # Show signatures in help text.
-            if script:
-                try:
-                    signatures = script.get_signatures()
-                except ValueError:
-                    # e.g. in case of an invalid \\x escape.
-                    signatures = []
-                except Exception:
-                    # Sometimes we still get an exception (TypeError), because
-                    # of probably bugs in jedi. We can silence them.
-                    # See: https://github.com/davidhalter/jedi/issues/492
-                    signatures = []
-                else:
-                    # Try to access the params attribute just once. For Jedi
-                    # signatures containing the keyword-only argument star,
-                    # this will crash when retrieving it the first time with
-                    # AttributeError. Every following time it works.
-                    # See: https://github.com/jonathanslenders/ptpython/issues/47
-                    #      https://github.com/davidhalter/jedi/issues/598
-                    try:
-                        if signatures:
-                            signatures[0].params
-                    except AttributeError:
-                        pass
-            else:
-                signatures = []
+            if not signatures and self.enable_dictionary_completion:
+                signatures = get_signatures_using_eval(
+                    document, self.get_locals(), self.get_globals()
+                )
 
             self._get_signatures_thread_running = False
 
@@ -957,11 +938,8 @@ class PythonInput:
 
                 # Set docstring in docstring buffer.
                 if signatures:
-                    string = signatures[0].docstring()
-                    if not isinstance(string, str):
-                        string = string.decode("utf-8")
                     self.docstring_buffer.reset(
-                        document=Document(string, cursor_position=0)
+                        document=Document(signatures[0].docstring, cursor_position=0)
                     )
                 else:
                     self.docstring_buffer.reset()

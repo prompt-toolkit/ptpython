@@ -4,13 +4,13 @@ Creation of the `Layout` instance for the Python input/REPL.
 import platform
 import sys
 from enum import Enum
+from inspect import _ParameterKind as ParameterKind
 from typing import TYPE_CHECKING, Optional
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
 from prompt_toolkit.filters import (
     Condition,
-    has_completions,
     has_focus,
     is_done,
     renderer_height_is_known,
@@ -248,30 +248,41 @@ def signature_toolbar(python_input):
 
             append((Signature + ",operator", "("))
 
-            try:
-                enumerated_params = enumerate(sig.params)
-            except AttributeError:
-                # Workaround for #136: https://github.com/jonathanslenders/ptpython/issues/136
-                # AttributeError: 'Lambda' object has no attribute 'get_subscope_by_name'
-                return []
+            got_positional_only = False
+            got_keyword_only = False
 
-            for i, p in enumerated_params:
-                # Workaround for #47: 'p' is None when we hit the '*' in the signature.
-                #                     and sig has no 'index' attribute.
-                # See: https://github.com/jonathanslenders/ptpython/issues/47
-                #      https://github.com/davidhalter/jedi/issues/598
-                description = p.to_string() if p else "*"
+            for i, p in enumerate(sig.parameters):
+                # Detect transition between positional-only and not positional-only.
+                if p.kind == ParameterKind.POSITIONAL_ONLY:
+                    got_positional_only = True
+                if got_positional_only and p.kind != ParameterKind.POSITIONAL_ONLY:
+                    got_positional_only = False
+                    append((Signature, "/"))
+                    append((Signature + ",operator", ", "))
+
+                if not got_keyword_only and p.kind == ParameterKind.KEYWORD_ONLY:
+                    got_keyword_only = True
+                    append((Signature, "*"))
+                    append((Signature + ",operator", ", "))
+
+                description = p.name
                 sig_index = getattr(sig, "index", 0)
 
                 if i == sig_index:
                     # Note: we use `_Param.description` instead of
                     #       `_Param.name`, that way we also get the '*' before args.
-                    append((Signature + ",current-name", str(description)))
+                    append((Signature + ",current-name", description))
                 else:
                     append((Signature, str(description)))
+
+                if p.default:
+                    # NOTE: For the jedi-based completion, the default is
+                    #       currently still part of the name.
+                    append((Signature, f"={p.default}"))
+
                 append((Signature + ",operator", ", "))
 
-            if sig.params:
+            if sig.parameters:
                 # Pop last comma
                 result.pop()
 
@@ -577,7 +588,7 @@ class PtPythonLayout:
                 """
                 b = python_input.default_buffer
 
-                if b.complete_state is None and python_input.signatures:
+                if python_input.signatures:
                     row, col = python_input.signatures[0].bracket_start
                     index = b.document.translate_row_col_to_index(row - 1, col)
                     return index
