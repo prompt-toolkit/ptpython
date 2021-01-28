@@ -240,7 +240,7 @@ def signature_toolbar(python_input):
 
             append((Signature, " "))
             try:
-                append((Signature, sig.full_name))
+                append((Signature, sig.name))
             except IndexError:
                 # Workaround for #37: https://github.com/jonathanslenders/python-prompt-toolkit/issues/37
                 # See also: https://github.com/davidhalter/jedi/issues/490
@@ -260,7 +260,7 @@ def signature_toolbar(python_input):
                 #                     and sig has no 'index' attribute.
                 # See: https://github.com/jonathanslenders/ptpython/issues/47
                 #      https://github.com/davidhalter/jedi/issues/598
-                description = p.description if p else "*"
+                description = p.to_string() if p else "*"
                 sig_index = getattr(sig, "index", 0)
 
                 if i == sig_index:
