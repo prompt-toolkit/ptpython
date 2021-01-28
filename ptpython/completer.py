@@ -157,6 +157,7 @@ class PythonCompleter(Completer):
             return
 
         # Do Path completions (if there were no dictionary completions).
+        # TODO: not if we have dictionary completions...
         if complete_event.completion_requested or self._complete_path_while_typing(
             document
         ):
@@ -383,7 +384,7 @@ class DictionaryCompleter(Completer):
         self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
 
-        # First, find all for-loops, and assing the first item of the
+        # First, find all for-loops, and assign the first item of the
         # collections they're iterating to the iterator variable, so that we
         # can provide code completion on the iterators.
         temp_locals = self.get_locals().copy()
@@ -414,6 +415,17 @@ class DictionaryCompleter(Completer):
         except BaseException:
             raise ReprFailedError
 
+    def eval_expression(self, document: Document, locals: Dict[str, Any]) -> object:
+        """
+        Evaluate
+        """
+        match = self.expression_pattern.search(document.text_before_cursor)
+        if match is not None:
+            object_var = match.groups()[0]
+            return self._lookup(object_var, locals)
+
+        return None
+
     def _get_expression_completions(
         self,
         document: Document,
@@ -423,17 +435,17 @@ class DictionaryCompleter(Completer):
         """
         Complete the [ or . operator after an object.
         """
-        match = self.expression_pattern.search(document.text_before_cursor)
-        if match is not None:
-            object_var = match.groups()[0]
-            result = self._lookup(object_var, temp_locals)
+        result = self.eval_expression(document, temp_locals)
+
+        if result is not None:
 
             if isinstance(
                 result,
                 (list, tuple, dict, collections_abc.Mapping, collections_abc.Sequence),
             ):
                 yield Completion("[", 0)
-            elif result is not None:
+
+            else:
                 # Note: Don't call `if result` here. That can fail for types
                 #       that have custom truthness checks.
                 yield Completion(".", 0)
