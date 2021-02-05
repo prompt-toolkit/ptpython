@@ -299,6 +299,8 @@ def signature_toolbar(python_input):
         HasSignature(python_input) &
         # Signature needs to be shown.
         ShowSignature(python_input) &
+        # And no sidebar is visible.
+        ~ShowSidebar(python_input) &
         # Not done yet.
         ~is_done,
     )
