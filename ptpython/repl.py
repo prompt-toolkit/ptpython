@@ -198,11 +198,6 @@ class PythonRepl(PythonInput):
             # Try eval first
             try:
                 code = self._compile_with_flags(line, "eval")
-            except SyntaxError:
-                # If not a valid `eval` expression, run using `exec` instead.
-                code = self._compile_with_flags(line, "exec")
-                exec(code, self.get_globals(), self.get_locals())
-            else:
                 # No syntax errors for eval. Do eval.
                 result = eval(code, self.get_globals(), self.get_locals())
 
@@ -211,6 +206,12 @@ class PythonRepl(PythonInput):
 
                 self._store_eval_result(result)
                 return result
+            except SyntaxError:
+                pass  # Expected if this should be treated as exec
+
+            # If not a valid `eval` expression, run using `exec` instead.
+            code = self._compile_with_flags(line, "exec")
+            exec(code, self.get_globals(), self.get_locals())
 
         return None
 
