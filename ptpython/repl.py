@@ -199,9 +199,7 @@ class PythonRepl(PythonInput):
             try:
                 code = self._compile_with_flags(line, "eval")
             except SyntaxError:
-                # If not a valid `eval` expression, run using `exec` instead.
-                code = self._compile_with_flags(line, "exec")
-                exec(code, self.get_globals(), self.get_locals())
+                pass
             else:
                 # No syntax errors for eval. Do eval.
                 result = eval(code, self.get_globals(), self.get_locals())
@@ -211,6 +209,13 @@ class PythonRepl(PythonInput):
 
                 self._store_eval_result(result)
                 return result
+
+            # If not a valid `eval` expression, run using `exec` instead.
+            # Note that we shouldn't run this in the `except SyntaxError` block
+            # above, then `sys.exc_info()` would not report the right error.
+            # See issue: https://github.com/prompt-toolkit/ptpython/issues/435
+            code = self._compile_with_flags(line, "exec")
+            exec(code, self.get_globals(), self.get_locals())
 
         return None
 
@@ -231,9 +236,7 @@ class PythonRepl(PythonInput):
             try:
                 code = self._compile_with_flags(line, "eval")
             except SyntaxError:
-                # If not a valid `eval` expression, run using `exec` instead.
-                code = self._compile_with_flags(line, "exec")
-                exec(code, self.get_globals(), self.get_locals())
+                pass
             else:
                 # No syntax errors for eval. Do eval.
                 result = eval(code, self.get_globals(), self.get_locals())
@@ -243,6 +246,10 @@ class PythonRepl(PythonInput):
 
                 self._store_eval_result(result)
                 return result
+
+            # If not a valid `eval` expression, run using `exec` instead.
+            code = self._compile_with_flags(line, "exec")
+            exec(code, self.get_globals(), self.get_locals())
 
         return None
 
