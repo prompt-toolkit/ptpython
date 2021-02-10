@@ -1,6 +1,25 @@
 CHANGELOG
 =========
 
+3.0.14: 2020-02-10
+------------------
+
+New features:
+- Display of signature and completion drop down together.
+- If `DictionaryCompleter` is enabled, also retrieve signatures when Jedi
+  fails, using the same logic.
+- List function parameters first and private attributes at the end in the
+  completion menu.
+- Cleanup of the completion code.
+
+Fixes:
+- Handle exceptions raised when `repr()` is called.
+- Fix leakage of `exc_info` from eval to exec call.
+- Fix handling of `KeyboardInterrupt` in REPL during evaluation of `__repr__`.
+- Fix style for signature toolbar.
+- Hide signature when sidebar is visible.
+
+
 3.0.13: 2020-01-26
 ------------------
 
