@@ -1,6 +1,18 @@
 CHANGELOG
 =========
 
+3.0.16: 2020-02-11
+------------------
+
+(Commit 7f619e was missing in previous release.)
+
+Fixes:
+- Several fixes to the completion code:
+  * Give dictionary completions priority over path completions.
+  * Always call non-fuzzy completer after fuzzy completer to prevent that some
+    completions were missed out if the fuzzy completer doesn't find them.
+
+
 3.0.15: 2020-02-11
 ------------------
 
