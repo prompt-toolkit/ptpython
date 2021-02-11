@@ -10,6 +10,7 @@ from prompt_toolkit.filters import (
     vi_insert_mode,
 )
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.bindings.named_commands import get_by_name
 from prompt_toolkit.keys import Keys
 
 from .utils import document_is_multiline_python
@@ -60,6 +61,10 @@ def load_python_bindings(python_input):
         """
         if python_input.enable_system_bindings:
             event.app.suspend_to_background()
+
+    # Delete word before cursor, but use all Python symbols as separators
+    # (WORD=False).
+    handle("c-w")(get_by_name("backward-kill-word"))
 
     @handle("f2")
     def _(event):
