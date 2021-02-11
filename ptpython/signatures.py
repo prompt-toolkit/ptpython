@@ -35,6 +35,18 @@ class Parameter:
     def __repr__(self) -> str:
         return f"Parameter(name={self.name!r})"
 
+    @property
+    def description(self) -> str:
+        """
+        Name + annotation.
+        """
+        description = self.name
+
+        if self.annotation is not None:
+            description += f": {self.annotation}"
+
+        return description
+
 
 class Signature:
     """
@@ -71,11 +83,27 @@ class Signature:
         index: int,
     ) -> "Signature":
         parameters = []
+
+        def get_annotation_name(annotation: object) -> str:
+            """
+            Get annotation as string from inspect signature.
+            """
+            try:
+                # In case the annotation is a class like "int", "float", ...
+                return str(annotation.__name__)  # type: ignore
+            except AttributeError:
+                pass  # No attribute `__name__`, e.g., in case of `List[int]`.
+
+            annotation = str(annotation)
+            if annotation.startswith("typing."):
+                annotation = annotation[len("typing:") :]
+            return annotation
+
         for p in signature.parameters.values():
             parameters.append(
                 Parameter(
                     name=p.name,
-                    annotation=p.annotation.__name__,
+                    annotation=get_annotation_name(p.annotation),
                     default=repr(p.default)
                     if p.default is not inspect.Parameter.empty
                     else None,
@@ -102,7 +130,7 @@ class Signature:
 
             parameters.append(
                 Parameter(
-                    name=p.to_string(),  # p.name,
+                    name=p.to_string(),  # p.name, (`to_string()` already includes the annotation).
                     annotation=None,  # p.infer_annotation()
                     default=None,  # p.infer_default()
                     kind=p.kind,

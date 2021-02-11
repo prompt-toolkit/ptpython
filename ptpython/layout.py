@@ -265,15 +265,14 @@ def signature_toolbar(python_input):
                     append((Signature, "*"))
                     append((Signature + ",operator", ", "))
 
-                description = p.name
                 sig_index = getattr(sig, "index", 0)
 
                 if i == sig_index:
                     # Note: we use `_Param.description` instead of
                     #       `_Param.name`, that way we also get the '*' before args.
-                    append((Signature + ",current-name", description))
+                    append((Signature + ",current-name", p.description))
                 else:
-                    append((Signature, str(description)))
+                    append((Signature, p.description))
 
                 if p.default:
                     # NOTE: For the jedi-based completion, the default is
