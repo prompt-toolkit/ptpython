@@ -42,13 +42,16 @@ class PythonCompleter(Completer):
     """
 
     def __init__(
-        self, get_globals, get_locals, get_enable_dictionary_completion
+        self,
+        get_globals: Callable[[], dict],
+        get_locals: Callable[[], dict],
+        enable_dictionary_completion: Callable[[], bool],
     ) -> None:
         super().__init__()
 
         self.get_globals = get_globals
         self.get_locals = get_locals
-        self.get_enable_dictionary_completion = get_enable_dictionary_completion
+        self.enable_dictionary_completion = enable_dictionary_completion
 
         self._system_completer = SystemCompleter()
         self._jedi_completer = JediCompleter(get_globals, get_locals)
@@ -134,10 +137,10 @@ class PythonCompleter(Completer):
         When `complete_while_typing` is set, only return completions when this
         returns `True`.
         """
-        text = document.text_before_cursor.rstrip()
+        text = document.text_before_cursor  # .rstrip()
         char_before_cursor = text[-1:]
         return bool(
-            text and (char_before_cursor.isalnum() or char_before_cursor in "_.(,")
+            text and (char_before_cursor.isalnum() or char_before_cursor in "_.([,")
         )
 
     def get_completions(
@@ -156,22 +159,11 @@ class PythonCompleter(Completer):
             )
             return
 
-        # Do Path completions (if there were no dictionary completions).
-        # TODO: not if we have dictionary completions...
-        if complete_event.completion_requested or self._complete_path_while_typing(
-            document
-        ):
-            yield from self._path_completer.get_completions(document, complete_event)
-
+        # Do dictionary key completions.
         if complete_event.completion_requested or self._complete_python_while_typing(
             document
         ):
-            # If we are inside a string, Don't do Python completion.
-            if self._path_completer_grammar.match(document.text_before_cursor):
-                return
-
-            # Do dictionary key completions.
-            if self.get_enable_dictionary_completion():
+            if self.enable_dictionary_completion():
                 has_dict_completions = False
                 for c in self._dictionary_completer.get_completions(
                     document, complete_event
@@ -184,8 +176,23 @@ class PythonCompleter(Completer):
                 if has_dict_completions:
                     return
 
-            # Do Jedi Python completions.
-            yield from self._jedi_completer.get_completions(document, complete_event)
+        # Do Path completions (if there were no dictionary completions).
+        if complete_event.completion_requested or self._complete_path_while_typing(
+            document
+        ):
+            yield from self._path_completer.get_completions(document, complete_event)
+
+        # Do Jedi completions.
+        if complete_event.completion_requested or self._complete_python_while_typing(
+            document
+        ):
+            # If we are inside a string, Don't do Jedi completion.
+            if not self._path_completer_grammar.match(document.text_before_cursor):
+
+                # Do Jedi Python completions.
+                yield from self._jedi_completer.get_completions(
+                    document, complete_event
+                )
 
 
 class JediCompleter(Completer):

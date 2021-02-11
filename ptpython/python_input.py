@@ -18,9 +18,11 @@ from prompt_toolkit.auto_suggest import (
 from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.completion import (
     Completer,
+    ConditionalCompleter,
     DynamicCompleter,
     FuzzyCompleter,
     ThreadedCompleter,
+    merge_completers,
 )
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
@@ -205,9 +207,20 @@ class PythonInput:
         )
 
         self._completer = HidePrivateCompleter(
-            FuzzyCompleter(
-                DynamicCompleter(lambda: self.completer),
-                enable_fuzzy=Condition(lambda: self.enable_fuzzy_completion),
+            # If fuzzy is enabled, first do fuzzy completion, but always add
+            # the non-fuzzy completions, if somehow the fuzzy completer didn't
+            # find them. (Due to the way the cursor position is moved in the
+            # fuzzy completer, some completions will not always be found by the
+            # fuzzy completer, but will be found with the normal completer.)
+            merge_completers(
+                [
+                    ConditionalCompleter(
+                        FuzzyCompleter(DynamicCompleter(lambda: self.completer)),
+                        Condition(lambda: self.enable_fuzzy_completion),
+                    ),
+                    DynamicCompleter(lambda: self.completer),
+                ],
+                deduplicate=True,
             ),
             lambda: self.complete_private_attributes,
         )
