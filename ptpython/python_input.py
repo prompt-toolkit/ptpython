@@ -253,6 +253,11 @@ class PythonInput:
         self.enable_system_bindings: bool = True
         self.enable_input_validation: bool = True
         self.enable_auto_suggest: bool = False
+        self.enable_auto_complete_on_tab: bool = False
+        self.enable_auto_complete_top_option_on_enter: bool = False
+        self.enable_auto_complete_top_option_on_tab: bool = False
+        self.enable_auto_complete_only_option_on_tab: bool = False
+        self.enable_auto_complete_function_parentheses: bool = False
         self.enable_mouse_support: bool = False
         self.enable_history_search: bool = False  # When True, like readline, going
         # back in history will filter the
