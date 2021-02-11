@@ -1,6 +1,16 @@
 CHANGELOG
 =========
 
+3.0.15: 2020-02-11
+------------------
+
+New features:
+- When pressing control-w, only delete characters until a punctuation.
+
+Fixes:
+- Fix `AttributeError` during retrieval of signatures with type annotations.
+
+
 3.0.14: 2020-02-10
 ------------------
 
