@@ -179,9 +179,11 @@ def run() -> None:
         path = a.args[0]
         with open(path, "rb") as f:
             code = compile(f.read(), path, "exec")
-            # NOTE: We have to pass an empty dictionary as namespace. Omitting
-            #       this argument causes imports to not be found. See issue #326.
-            exec(code, {})
+            # NOTE: We have to pass a dict as namespace. Omitting this argument
+            #       causes imports to not be found. See issue #326.
+            #       However, an empty dict sets __name__ to 'builtins', which
+            #       breaks `if __name__ == '__main__'` checks. See issue #444.
+            exec(code, {'__name__': '__main__', '__file__': path})
 
     # Run interactive shell.
     else:
