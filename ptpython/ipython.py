@@ -282,4 +282,21 @@ def embed(**kwargs):
         kwargs["config"] = config
     shell = InteractiveShellEmbed.instance(**kwargs)
     initialize_extensions(shell, config["InteractiveShellApp"]["extensions"])
+    run_startup_scripts(shell)
     shell(header=header, stack_depth=2, compile_flags=compile_flags)
+
+
+def run_startup_scripts(shell):
+    """
+    Contributed by linyuxu:
+    https://github.com/prompt-toolkit/ptpython/issues/126#issue-161242480
+    """
+    import glob
+    import os
+
+    startup_dir = shell.profile_dir.startup_dir
+    startup_files = []
+    startup_files += glob.glob(os.path.join(startup_dir, "*.py"))
+    startup_files += glob.glob(os.path.join(startup_dir, "*.ipy"))
+    for file in startup_files:
+        shell.run_cell(open(file).read())
