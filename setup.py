@@ -20,8 +20,8 @@ setup(
         "appdirs",
         "importlib_metadata;python_version<'3.8'",
         "jedi>=0.16.0",
-        # Use prompt_toolkit 3.0.16, because of the `DeduplicateCompleter`.
-        "prompt_toolkit>=3.0.16,<3.1.0",
+        # Use prompt_toolkit 3.0.18, because of the `in_thread` option.
+        "prompt_toolkit>=3.0.18,<3.1.0",
         "pygments",
         "black",
     ],

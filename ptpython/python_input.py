@@ -1012,43 +1012,25 @@ class PythonInput:
                 self.app.vi_state.input_mode = InputMode.NAVIGATION
 
         # Run the UI.
-        result: str = ""
-        exception: Optional[BaseException] = None
-
-        def in_thread() -> None:
-            nonlocal result, exception
+        while True:
             try:
-                while True:
-                    try:
-                        result = self.app.run(pre_run=pre_run)
+                result = self.app.run(pre_run=pre_run, in_thread=True)
 
-                        if result.lstrip().startswith("\x1a"):
-                            # When the input starts with Ctrl-Z, quit the REPL.
-                            # (Important for Windows users.)
-                            raise EOFError
+                if result.lstrip().startswith("\x1a"):
+                    # When the input starts with Ctrl-Z, quit the REPL.
+                    # (Important for Windows users.)
+                    raise EOFError
 
-                        # Remove leading whitespace.
-                        # (Users can add extra indentation, which happens for
-                        # instance because of copy/pasting code.)
-                        result = unindent_code(result)
+                # Remove leading whitespace.
+                # (Users can add extra indentation, which happens for
+                # instance because of copy/pasting code.)
+                result = unindent_code(result)
 
-                        if result and not result.isspace():
-                            return
-                    except KeyboardInterrupt:
-                        # Abort - try again.
-                        self.default_buffer.document = Document()
-                    except BaseException as e:
-                        exception = e
-                        return
+                if result and not result.isspace():
+                    if self.insert_blank_line_after_input:
+                        self.app.output.write("\n")
 
-            finally:
-                if self.insert_blank_line_after_input:
-                    self.app.output.write("\n")
-
-        thread = threading.Thread(target=in_thread)
-        thread.start()
-        thread.join()
-
-        if exception is not None:
-            raise exception
-        return result
+                    return result
+            except KeyboardInterrupt:
+                # Abort - try again.
+                self.default_buffer.document = Document()

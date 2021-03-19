@@ -421,15 +421,7 @@ class PythonRepl(PythonInput):
             # Run pager prompt in another thread.
             # Same as for the input. This prevents issues with nested event
             # loops.
-            pager_result = None
-
-            def in_thread() -> None:
-                nonlocal pager_result
-                pager_result = pager_prompt.prompt()
-
-            th = threading.Thread(target=in_thread)
-            th.start()
-            th.join()
+            pager_result = pager_prompt.prompt(in_thread=True)
 
             if pager_result == PagerResult.ABORT:
                 print("...")
