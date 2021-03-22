@@ -4,7 +4,6 @@ This can be used for creation of Python REPLs.
 """
 import __future__
 
-import threading
 from asyncio import get_event_loop
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, List, Optional, TypeVar
@@ -914,23 +913,13 @@ class PythonInput:
         else:
             self.editing_mode = EditingMode.EMACS
 
-    def _on_input_timeout(self, buff: Buffer, loop=None) -> None:
+    def _on_input_timeout(self, buff: Buffer) -> None:
         """
         When there is no input activity,
         in another thread, get the signature of the current code.
         """
-        app = self.app
 
-        # Never run multiple get-signature threads.
-        if self._get_signatures_thread_running:
-            return
-        self._get_signatures_thread_running = True
-
-        document = buff.document
-
-        loop = loop or get_event_loop()
-
-        def run():
+        def get_signatures_in_executor(document: Document) -> List[Signature]:
             # First, get signatures from Jedi. If we didn't found any and if
             # "dictionary completion" (eval-based completion) is enabled, then
             # get signatures using eval.
@@ -942,26 +931,47 @@ class PythonInput:
                     document, self.get_locals(), self.get_globals()
                 )
 
-            self._get_signatures_thread_running = False
+            return signatures
 
-            # Set signatures and redraw if the text didn't change in the
-            # meantime. Otherwise request new signatures.
-            if buff.text == document.text:
-                self.signatures = signatures
+        app = self.app
 
-                # Set docstring in docstring buffer.
-                if signatures:
-                    self.docstring_buffer.reset(
-                        document=Document(signatures[0].docstring, cursor_position=0)
+        async def on_timeout_task() -> None:
+            loop = get_event_loop()
+
+            # Never run multiple get-signature threads.
+            if self._get_signatures_thread_running:
+                return
+            self._get_signatures_thread_running = True
+
+            try:
+                while True:
+                    document = buff.document
+                    signatures = await loop.run_in_executor(
+                        None, get_signatures_in_executor, document
                     )
-                else:
-                    self.docstring_buffer.reset()
 
-                app.invalidate()
+                    # If the text didn't change in the meantime, take these
+                    # signatures. Otherwise, try again.
+                    if buff.text == document.text:
+                        break
+            finally:
+                self._get_signatures_thread_running = False
+
+            # Set signatures and redraw.
+            self.signatures = signatures
+
+            # Set docstring in docstring buffer.
+            if signatures:
+                self.docstring_buffer.reset(
+                    document=Document(signatures[0].docstring, cursor_position=0)
+                )
             else:
-                self._on_input_timeout(buff, loop=loop)
+                self.docstring_buffer.reset()
 
-        loop.run_in_executor(None, run)
+            app.invalidate()
+
+        if app.is_running:
+            app.create_background_task(on_timeout_task())
 
     def on_reset(self) -> None:
         self.signatures = []
