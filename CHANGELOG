@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+3.0.17: 2020-03-22
+------------------
+
+Fixes:
+- Fix leaking file descriptors due to not closing the asyncio event loop after
+  reading input in a thread.
+- Fix race condition during retrieval of signatures.
+
+
 3.0.16: 2020-02-11
 ------------------
 
