@@ -11,7 +11,6 @@ import asyncio
 import builtins
 import os
 import sys
-import threading
 import traceback
 import types
 import warnings
@@ -112,7 +111,7 @@ class PythonRepl(PythonInput):
                     # Eval.
                     try:
                         result = self.eval(text)
-                    except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
+                    except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
                         raise
                     except SystemExit:
                         return
@@ -171,7 +170,7 @@ class PythonRepl(PythonInput):
                     # Eval.
                     try:
                         result = await self.eval_async(text)
-                    except KeyboardInterrupt as e:  # KeyboardInterrupt doesn't inherit from Exception.
+                    except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
                         raise
                     except SystemExit:
                         return
