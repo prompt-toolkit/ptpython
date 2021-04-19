@@ -90,6 +90,35 @@ class PythonRepl(PythonInput):
                     output = self.app.output
                     output.write("WARNING | File not found: {}\n\n".format(path))
 
+    def run_and_show_expression(self, expression):
+        try:
+            # Eval.
+            try:
+                result = self.eval(expression)
+            except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
+                raise
+            except SystemExit:
+                return
+            except BaseException as e:
+                self._handle_exception(e)
+            else:
+                # Print.
+                if result is not None:
+                    self.show_result(result)
+
+                # Loop.
+                self.current_statement_index += 1
+                self.signatures = []
+
+        except KeyboardInterrupt as e:
+            # Handle all possible `KeyboardInterrupt` errors. This can
+            # happen during the `eval`, but also during the
+            # `show_result` if something takes too long.
+            # (Try/catch is around the whole block, because we want to
+            # prevent that a Control-C keypress terminates the REPL in
+            # any case.)
+            self._handle_keyboard_interrupt(e)
+
     def run(self) -> None:
         """
         Run the REPL loop.
@@ -101,43 +130,42 @@ class PythonRepl(PythonInput):
 
         try:
             while True:
+                # Pull text from the user.
                 try:
-                    # Read.
-                    try:
-                        text = self.read()
-                    except EOFError:
-                        return
+                    text = self.read()
+                except EOFError:
+                    return
 
-                    # Eval.
-                    try:
-                        result = self.eval(text)
-                    except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
-                        raise
-                    except SystemExit:
-                        return
-                    except BaseException as e:
-                        self._handle_exception(e)
-                    else:
-                        # Print.
-                        if result is not None:
-                            self.show_result(result)
-
-                        # Loop.
-                        self.current_statement_index += 1
-                        self.signatures = []
-
-                except KeyboardInterrupt as e:
-                    # Handle all possible `KeyboardInterrupt` errors. This can
-                    # happen during the `eval`, but also during the
-                    # `show_result` if something takes too long.
-                    # (Try/catch is around the whole block, because we want to
-                    # prevent that a Control-C keypress terminates the REPL in
-                    # any case.)
-                    self._handle_keyboard_interrupt(e)
+                # Run it; display the result (or errors if applicable).
+                self.run_and_show_expression(text)
         finally:
             if self.terminal_title:
                 clear_title()
             self._remove_from_namespace()
+
+    async def run_and_show_expression_async(self, text):
+        loop = asyncio.get_event_loop()
+
+        try:
+            result = await self.eval_async(text)
+        except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
+            raise
+        except SystemExit:
+            return
+        except BaseException as e:
+            self._handle_exception(e)
+        else:
+            # Print.
+            if result is not None:
+                await loop.run_in_executor(
+                    None, lambda: self.show_result(result)
+                )
+
+            # Loop.
+            self.current_statement_index += 1
+            self.signatures = []
+            # Return the result for future consumers.
+            return result
 
     async def run_async(self) -> None:
         """
@@ -168,24 +196,7 @@ class PythonRepl(PythonInput):
                         return
 
                     # Eval.
-                    try:
-                        result = await self.eval_async(text)
-                    except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
-                        raise
-                    except SystemExit:
-                        return
-                    except BaseException as e:
-                        self._handle_exception(e)
-                    else:
-                        # Print.
-                        if result is not None:
-                            await loop.run_in_executor(
-                                None, lambda: self.show_result(result)
-                            )
-
-                        # Loop.
-                        self.current_statement_index += 1
-                        self.signatures = []
+                    await self.run_and_show_expression_async(text)
 
                 except KeyboardInterrupt as e:
                     # XXX: This does not yet work properly. In some situations,
@@ -285,9 +296,9 @@ class PythonRepl(PythonInput):
             dont_inherit=True,
         )
 
-    def show_result(self, result: object) -> None:
+    def _format_result_output(self, result: object) -> AnyFormattedText:
         """
-        Show __repr__ for an `eval` result.
+        Format __repr__ for an `eval` result.
 
         Note: this can raise `KeyboardInterrupt` if either calling `__repr__`,
               `__pt_repr__` or formatting the output with "Black" takes to long
@@ -303,7 +314,7 @@ class PythonRepl(PythonInput):
         except BaseException as e:
             # Calling repr failed.
             self._handle_exception(e)
-            return
+            return None
 
         try:
             compile(result_repr, "", "eval")
@@ -362,10 +373,18 @@ class PythonRepl(PythonInput):
                 out_prompt + [("", fragment_list_to_text(formatted_result_repr))]
             )
 
+        return to_formatted_text(formatted_output)
+
+    def show_result(self, result: object) -> None:
+        """
+        Show __repr__ for an `eval` result and print to ouptut.
+        """
+        formatted_text_output = self._format_result_output(result)
+
         if self.enable_pager:
-            self.print_paginated_formatted_text(to_formatted_text(formatted_output))
+            self.print_paginated_formatted_text(formatted_text_output)
         else:
-            self.print_formatted_text(to_formatted_text(formatted_output))
+            self.print_formatted_text(formatted_text_output)
 
         self.app.output.flush()
 
@@ -485,9 +504,7 @@ class PythonRepl(PythonInput):
         """
         return create_pager_prompt(self._current_style, self.title)
 
-    def _handle_exception(self, e: BaseException) -> None:
-        output = self.app.output
-
+    def _format_exception_output(self, e: BaseException) -> AnyFormattedText:
         # Instead of just calling ``traceback.format_exc``, we take the
         # traceback and skip the bottom calls of this framework.
         t, v, tb = sys.exc_info()
@@ -516,6 +533,12 @@ class PythonRepl(PythonInput):
             tokens = list(_lex_python_traceback(tb_str))
         else:
             tokens = [(Token, tb_str)]
+        return tokens
+
+    def _handle_exception(self, e: BaseException) -> None:
+        output = self.app.output
+
+        tokens = self._format_exception_output(e)
 
         print_formatted_text(
             PygmentsTokens(tokens),
