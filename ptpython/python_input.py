@@ -173,6 +173,11 @@ class PythonInput:
 
         python_input = PythonInput(...)
         python_code = python_input.app.run()
+
+    :param create_app: When `False`, don't create and manage a prompt_toolkit
+                       application. The default is `True` and should only be set
+                       to false if PythonInput is being embedded in a separate
+                       prompt_toolkit application.
     """
 
     def __init__(
@@ -187,6 +192,7 @@ class PythonInput:
         output: Optional[Output] = None,
         # For internal use.
         extra_key_bindings: Optional[KeyBindings] = None,
+        create_app = True,
         _completer: Optional[Completer] = None,
         _validator: Optional[Validator] = None,
         _lexer: Optional[Lexer] = None,
@@ -379,10 +385,17 @@ class PythonInput:
             extra_toolbars=self._extra_toolbars,
         )
 
-        self.app = self._create_application(input, output)
+        # Create an app if requested. If not, the global get_app() is returned
+        # for self.app via property getter.
+        if create_app:
+            self._app = self._create_application(input, output)
+            # Setting vi_mode will not work unless the prompt_toolkit
+            # application has been created.
+            if vi_mode:
+                self.app.editing_mode = EditingMode.VI
+        else:
+            self._app = None
 
-        if vi_mode:
-            self.app.editing_mode = EditingMode.VI
 
     def _accept_handler(self, buff: Buffer) -> bool:
         app = get_app()
@@ -913,6 +926,12 @@ class PythonInput:
         else:
             self.editing_mode = EditingMode.EMACS
 
+    @property
+    def app(self) -> Application:
+        if self._app is None:
+            return get_app()
+        return self._app
+
     def _on_input_timeout(self, buff: Buffer) -> None:
         """
         When there is no input activity,
@@ -980,7 +999,7 @@ class PythonInput:
         """
         Display the history.
         """
-        app = get_app()
+        app = self.app
         app.vi_state.input_mode = InputMode.NAVIGATION
 
         history = PythonHistory(self, self.default_buffer.document)

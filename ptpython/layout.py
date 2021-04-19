@@ -646,7 +646,7 @@ class PtPythonLayout:
         sidebar = python_sidebar(python_input)
         self.exit_confirmation = create_exit_confirmation(python_input)
 
-        root_container = HSplit(
+        self.root_container = HSplit(
             [
                 VSplit(
                     [
@@ -759,5 +759,5 @@ class PtPythonLayout:
             ]
         )
 
-        self.layout = Layout(root_container)
+        self.layout = Layout(self.root_container)
         self.sidebar = sidebar
