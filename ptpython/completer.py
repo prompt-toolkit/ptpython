@@ -468,7 +468,7 @@ class DictionaryCompleter(Completer):
         """
 
         def abbr_meta(text: str) -> str:
-            " Abbreviate meta text, make sure it fits on one line. "
+            "Abbreviate meta text, make sure it fits on one line."
             # Take first line, if multiple lines.
             if len(text) > 20:
                 text = text[:20] + "..."
@@ -621,7 +621,7 @@ class HidePrivateCompleter(Completer):
 
 
 class ReprFailedError(Exception):
-    " Raised when the repr() call in `DictionaryCompleter` fails. "
+    "Raised when the repr() call in `DictionaryCompleter` fails."
 
 
 try:
