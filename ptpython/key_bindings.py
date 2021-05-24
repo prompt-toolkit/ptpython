@@ -203,7 +203,7 @@ def load_python_bindings(python_input):
 
     @handle("c-c", filter=has_focus(python_input.default_buffer))
     def _(event):
-        " Abort when Control-C has been pressed. "
+        "Abort when Control-C has been pressed."
         event.app.exit(exception=KeyboardInterrupt, style="class:aborting")
 
     return bindings
@@ -222,7 +222,7 @@ def load_sidebar_bindings(python_input):
     @handle("c-p", filter=sidebar_visible)
     @handle("k", filter=sidebar_visible)
     def _(event):
-        " Go to previous option. "
+        "Go to previous option."
         python_input.selected_option_index = (
             python_input.selected_option_index - 1
         ) % python_input.option_count
@@ -231,7 +231,7 @@ def load_sidebar_bindings(python_input):
     @handle("c-n", filter=sidebar_visible)
     @handle("j", filter=sidebar_visible)
     def _(event):
-        " Go to next option. "
+        "Go to next option."
         python_input.selected_option_index = (
             python_input.selected_option_index + 1
         ) % python_input.option_count
@@ -240,14 +240,14 @@ def load_sidebar_bindings(python_input):
     @handle("l", filter=sidebar_visible)
     @handle(" ", filter=sidebar_visible)
     def _(event):
-        " Select next value for current option. "
+        "Select next value for current option."
         option = python_input.selected_option
         option.activate_next()
 
     @handle("left", filter=sidebar_visible)
     @handle("h", filter=sidebar_visible)
     def _(event):
-        " Select previous value for current option. "
+        "Select previous value for current option."
         option = python_input.selected_option
         option.activate_previous()
 
@@ -257,7 +257,7 @@ def load_sidebar_bindings(python_input):
     @handle("enter", filter=sidebar_visible)
     @handle("escape", filter=sidebar_visible)
     def _(event):
-        " Hide sidebar. "
+        "Hide sidebar."
         python_input.show_sidebar = False
         event.app.layout.focus_last()
 

@@ -79,7 +79,7 @@ class PythonRepl(PythonInput):
         self._load_start_paths()
 
     def _load_start_paths(self) -> None:
-        " Start the Read-Eval-Print Loop. "
+        "Start the Read-Eval-Print Loop."
         if self._startup_paths:
             for path in self._startup_paths:
                 if os.path.exists(path):
@@ -157,9 +157,7 @@ class PythonRepl(PythonInput):
         else:
             # Print.
             if result is not None:
-                await loop.run_in_executor(
-                    None, lambda: self.show_result(result)
-                )
+                await loop.run_in_executor(None, lambda: self.show_result(result))
 
             # Loop.
             self.current_statement_index += 1
@@ -287,7 +285,7 @@ class PythonRepl(PythonInput):
         return super().get_compiler_flags() | PyCF_ALLOW_TOP_LEVEL_AWAIT
 
     def _compile_with_flags(self, code: str, mode: str):
-        " Compile code with the right compiler flags. "
+        "Compile code with the right compiler flags."
         return compile(
             code,
             "<stdin>",
@@ -578,13 +576,13 @@ class PythonRepl(PythonInput):
 
 
 def _lex_python_traceback(tb):
-    " Return token list for traceback string. "
+    "Return token list for traceback string."
     lexer = PythonTracebackLexer()
     return lexer.get_tokens(tb)
 
 
 def _lex_python_result(tb):
-    " Return token list for Python string. "
+    "Return token list for Python string."
     lexer = PythonLexer()
     # Use `get_tokens_unprocessed`, so that we get exactly the same string,
     # without line endings appended. `print_formatted_text` already appends a
@@ -604,7 +602,9 @@ def enable_deprecation_warnings() -> None:
     warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
 
 
-def run_config(repl: PythonInput, config_file: str = "~/.config/ptpython/config.py") -> None:
+def run_config(
+    repl: PythonInput, config_file: str = "~/.config/ptpython/config.py"
+) -> None:
     """
     Execute REPL config file.
 
@@ -752,7 +752,7 @@ def create_pager_prompt(
 
     @bindings.add("<any>")
     def _(event: KeyPressEvent) -> None:
-        " Disallow inserting other text. "
+        "Disallow inserting other text."
         pass
 
     style

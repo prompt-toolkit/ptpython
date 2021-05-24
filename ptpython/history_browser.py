@@ -85,7 +85,7 @@ Further, remember that searching works like in Emacs
 
 
 class BORDER:
-    " Box drawing characters. "
+    "Box drawing characters."
     HORIZONTAL = "\u2501"
     VERTICAL = "\u2503"
     TOP_LEFT = "\u250f"
@@ -420,7 +420,7 @@ class HistoryMapping:
 
 
 def _toggle_help(history):
-    " Display/hide help. "
+    "Display/hide help."
     help_buffer_control = history.history_layout.help_buffer_control
 
     if history.app.layout.current_control == help_buffer_control:
@@ -430,7 +430,7 @@ def _toggle_help(history):
 
 
 def _select_other_window(history):
-    " Toggle focus between left/right window. "
+    "Toggle focus between left/right window."
     current_buffer = history.app.current_buffer
     layout = history.history_layout.layout
 
@@ -513,17 +513,17 @@ def create_key_bindings(history, python_input, history_mapping):
     # Eager: ignore the Emacs [Ctrl-X Ctrl-X] binding.
     @handle("c-w", filter=main_buffer_focussed)
     def _(event):
-        " Select other window. "
+        "Select other window."
         _select_other_window(history)
 
     @handle("f4")
     def _(event):
-        " Switch between Emacs/Vi mode. "
+        "Switch between Emacs/Vi mode."
         python_input.vi_mode = not python_input.vi_mode
 
     @handle("f1")
     def _(event):
-        " Display/hide help. "
+        "Display/hide help."
         _toggle_help(history)
 
     @handle("enter", filter=help_focussed)
@@ -531,7 +531,7 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle("c-g", filter=help_focussed)
     @handle("escape", filter=help_focussed)
     def _(event):
-        " Leave help. "
+        "Leave help."
         event.app.layout.focus_previous()
 
     @handle("q", filter=main_buffer_focussed)
@@ -539,19 +539,19 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle("c-c", filter=main_buffer_focussed)
     @handle("c-g", filter=main_buffer_focussed)
     def _(event):
-        " Cancel and go back. "
+        "Cancel and go back."
         event.app.exit(result=None)
 
     @handle("enter", filter=main_buffer_focussed)
     def _(event):
-        " Accept input. "
+        "Accept input."
         event.app.exit(result=history.default_buffer.text)
 
     enable_system_bindings = Condition(lambda: python_input.enable_system_bindings)
 
     @handle("c-z", filter=enable_system_bindings)
     def _(event):
-        " Suspend to background. "
+        "Suspend to background."
         event.app.suspend_to_background()
 
     return bindings
@@ -630,7 +630,7 @@ class PythonHistory:
                 )
 
     def _history_buffer_pos_changed(self, _):
-        """ When the cursor changes in the history buffer. Synchronize. """
+        """When the cursor changes in the history buffer. Synchronize."""
         # Only when this buffer has the focus.
         if self.app.current_buffer == self.history_buffer:
             line_no = self.history_buffer.document.cursor_position_row

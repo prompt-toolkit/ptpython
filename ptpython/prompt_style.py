@@ -16,7 +16,7 @@ class PromptStyle(metaclass=ABCMeta):
 
     @abstractmethod
     def in_prompt(self) -> AnyFormattedText:
-        " Return the input tokens. "
+        "Return the input tokens."
         return []
 
     @abstractmethod
@@ -31,7 +31,7 @@ class PromptStyle(metaclass=ABCMeta):
 
     @abstractmethod
     def out_prompt(self) -> AnyFormattedText:
-        " Return the output tokens. "
+        "Return the output tokens."
         return []
 
 
