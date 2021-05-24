@@ -388,7 +388,7 @@ class PythonInput:
         # Create an app if requested. If not, the global get_app() is returned
         # for self.app via property getter.
         if create_app:
-            self._app = self._create_application(input, output)
+            self._app: Optional[Application] = self._create_application(input, output)
             # Setting vi_mode will not work unless the prompt_toolkit
             # application has been created.
             if vi_mode:
