@@ -31,7 +31,7 @@ def run(user_ns=None):
         path = a.args[0]
         with open(path, "rb") as f:
             code = compile(f.read(), path, "exec")
-            exec(code, {'__name__': '__main__', '__file__': path})
+            exec(code, {"__name__": "__main__", "__file__": path})
     else:
         enable_deprecation_warnings()
 

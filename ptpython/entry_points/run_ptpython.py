@@ -183,7 +183,7 @@ def run() -> None:
             #       causes imports to not be found. See issue #326.
             #       However, an empty dict sets __name__ to 'builtins', which
             #       breaks `if __name__ == '__main__'` checks. See issue #444.
-            exec(code, {'__name__': '__main__', '__file__': path})
+            exec(code, {"__name__": "__main__", "__file__": path})
 
     # Run interactive shell.
     else:

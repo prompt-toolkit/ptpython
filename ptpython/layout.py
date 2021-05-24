@@ -64,7 +64,7 @@ __all__ = ["PtPythonLayout", "CompletionVisualisation"]
 
 
 class CompletionVisualisation(Enum):
-    " Visualisation method for the completions. "
+    "Visualisation method for the completions."
     NONE = "none"
     POP_UP = "pop-up"
     MULTI_COLUMN = "multi-column"
@@ -116,7 +116,7 @@ def python_sidebar(python_input: "PythonInput") -> Window:
 
             @if_mousedown
             def goto_next(mouse_event: MouseEvent) -> None:
-                " Select item and go to next value. "
+                "Select item and go to next value."
                 python_input.selected_option_index = index
                 option = python_input.selected_option
                 option.activate_next()
@@ -472,7 +472,7 @@ def show_sidebar_button_info(python_input: "PythonInput") -> Container:
 
     @if_mousedown
     def toggle_sidebar(mouse_event: MouseEvent) -> None:
-        " Click handler for the menu. "
+        "Click handler for the menu."
         python_input.show_sidebar = not python_input.show_sidebar
 
     version = sys.version_info
@@ -544,7 +544,7 @@ def meta_enter_message(python_input: "PythonInput") -> Container:
 
     @Condition
     def extra_condition() -> bool:
-        " Only show when... "
+        "Only show when..."
         b = python_input.default_buffer
 
         return (

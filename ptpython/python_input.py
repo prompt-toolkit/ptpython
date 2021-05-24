@@ -192,7 +192,7 @@ class PythonInput:
         output: Optional[Output] = None,
         # For internal use.
         extra_key_bindings: Optional[KeyBindings] = None,
-        create_app = True,
+        create_app=True,
         _completer: Optional[Completer] = None,
         _validator: Optional[Validator] = None,
         _lexer: Optional[Lexer] = None,
@@ -396,7 +396,6 @@ class PythonInput:
         else:
             self._app = None
 
-
     def _accept_handler(self, buff: Buffer) -> bool:
         app = get_app()
         app.exit(result=buff.text)
@@ -405,12 +404,12 @@ class PythonInput:
 
     @property
     def option_count(self) -> int:
-        " Return the total amount of options. (In all categories together.) "
+        "Return the total amount of options. (In all categories together.)"
         return sum(len(category.options) for category in self.options)
 
     @property
     def selected_option(self) -> Option:
-        " Return the currently selected option. "
+        "Return the currently selected option."
         i = 0
         for category in self.options:
             for o in category.options:
@@ -533,7 +532,7 @@ class PythonInput:
         def simple_option(
             title: str, description: str, field_name: str, values: Optional[List] = None
         ) -> Option:
-            " Create Simple on/of option. "
+            "Create Simple on/of option."
             values = values or ["off", "on"]
 
             def get_current_value():
