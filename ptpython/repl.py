@@ -294,7 +294,7 @@ class PythonRepl(PythonInput):
             dont_inherit=True,
         )
 
-    def _format_result_output(self, result: object) -> AnyFormattedText:
+    def _format_result_output(self, result: object) -> StyleAndTextTuples:
         """
         Format __repr__ for an `eval` result.
 
@@ -312,7 +312,7 @@ class PythonRepl(PythonInput):
         except BaseException as e:
             # Calling repr failed.
             self._handle_exception(e)
-            return None
+            return []
 
         try:
             compile(result_repr, "", "eval")
@@ -502,7 +502,7 @@ class PythonRepl(PythonInput):
         """
         return create_pager_prompt(self._current_style, self.title)
 
-    def _format_exception_output(self, e: BaseException) -> AnyFormattedText:
+    def _format_exception_output(self, e: BaseException) -> PygmentsTokens:
         # Instead of just calling ``traceback.format_exc``, we take the
         # traceback and skip the bottom calls of this framework.
         t, v, tb = sys.exc_info()
@@ -531,7 +531,7 @@ class PythonRepl(PythonInput):
             tokens = list(_lex_python_traceback(tb_str))
         else:
             tokens = [(Token, tb_str)]
-        return tokens
+        return PygmentsTokens(tokens)
 
     def _handle_exception(self, e: BaseException) -> None:
         output = self.app.output
@@ -539,7 +539,7 @@ class PythonRepl(PythonInput):
         tokens = self._format_exception_output(e)
 
         print_formatted_text(
-            PygmentsTokens(tokens),
+            tokens,
             style=self._current_style,
             style_transformation=self.style_transformation,
             include_default_pygments_style=False,
