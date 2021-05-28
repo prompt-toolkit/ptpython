@@ -23,7 +23,7 @@ setup(
         # Use prompt_toolkit 3.0.18, because of the `in_thread` option.
         "prompt_toolkit>=3.0.18,<3.1.0",
         "pygments",
-        "black",
+        "black;sys_platform == 'win32' and platform_python_implementation != 'PyPy'",
     ],
     python_requires=">=3.6",
     classifiers=[
