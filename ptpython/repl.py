@@ -325,12 +325,13 @@ class PythonRepl(PythonInput):
                 # not used.
                 try:
                     import black
+                except ImportError:
+                    pass  #   no Black package in your installation
+                else:
                     result_repr = black.format_str(
                         result_repr,
                         mode=black.FileMode(line_length=self.app.output.get_size().columns),
                     )
-                except ImportError:
-                    pass  #   no Black package in your installation
 
             formatted_result_repr = to_formatted_text(
                 PygmentsTokens(list(_lex_python_result(result_repr)))
