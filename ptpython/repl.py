@@ -323,12 +323,17 @@ class PythonRepl(PythonInput):
             if self.enable_output_formatting:
                 # Inline import. Slightly speed up start-up time if black is
                 # not used.
-                import black
-
-                result_repr = black.format_str(
-                    result_repr,
-                    mode=black.FileMode(line_length=self.app.output.get_size().columns),
-                )
+                try:
+                    import black
+                except ImportError:
+                    pass  #   no Black package in your installation
+                else:
+                    result_repr = black.format_str(
+                        result_repr,
+                        mode=black.FileMode(
+                            line_length=self.app.output.get_size().columns
+                        ),
+                    )
 
             formatted_result_repr = to_formatted_text(
                 PygmentsTokens(list(_lex_python_result(result_repr)))
