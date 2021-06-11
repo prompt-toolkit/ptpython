@@ -271,9 +271,14 @@ class PythonRepl(PythonInput):
                 self._store_eval_result(result)
                 return result
 
-            # If not a valid `eval` expression, run using `exec` instead.
+            # If not a valid `eval` expression, compile as `exec` expression
+            # but still run with eval to get an awaitable in case of a
+            # awaitable expression.
             code = self._compile_with_flags(line, "exec")
-            exec(code, self.get_globals(), self.get_locals())
+            result = eval(code, self.get_globals(), self.get_locals())
+
+            if _has_coroutine_flag(code):
+                result = await result
 
         return None
 
