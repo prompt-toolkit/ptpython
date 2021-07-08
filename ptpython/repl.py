@@ -98,7 +98,7 @@ class PythonRepl(PythonInput):
             except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
                 raise
             except SystemExit:
-                return
+                raise
             except BaseException as e:
                 self._handle_exception(e)
             else:
