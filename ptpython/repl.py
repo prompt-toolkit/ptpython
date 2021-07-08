@@ -239,7 +239,10 @@ class PythonRepl(PythonInput):
             # above, then `sys.exc_info()` would not report the right error.
             # See issue: https://github.com/prompt-toolkit/ptpython/issues/435
             code = self._compile_with_flags(line, "exec")
-            exec(code, self.get_globals(), self.get_locals())
+            result = eval(code, self.get_globals(), self.get_locals())
+
+            if _has_coroutine_flag(code):
+                result = asyncio.get_event_loop().run_until_complete(result)
 
         return None
 
