@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+3.0.19: 2020-07-08
+------------------
+
+Fixes:
+- Fix handling of `SystemExit` (fixes "ValueError: I/O operation on closed
+  file").
+- Allow usage of `await` in assignment expressions or for-loops.
+
+
 3.0.18: 2020-06-26
 ------------------
 
