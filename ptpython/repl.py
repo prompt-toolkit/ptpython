@@ -330,9 +330,7 @@ class PythonRepl(PythonInput):
                 else:
                     result_repr = black.format_str(
                         result_repr,
-                        mode=black.FileMode(
-                            line_length=self.app.output.get_size().columns
-                        ),
+                        mode=black.Mode(line_length=self.app.output.get_size().columns),
                     )
 
             formatted_result_repr = to_formatted_text(
