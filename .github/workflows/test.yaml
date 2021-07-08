@@ -23,6 +23,7 @@ jobs:
           sudo apt remove python3-pip
           python -m pip install --upgrade pip
           python -m pip install . black isort mypy pytest readme_renderer
+          python -m pip install . types-dataclasses  # Needed for Python 3.6
           pip list
       - name: Type Checker
         run: |
