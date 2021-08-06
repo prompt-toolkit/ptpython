@@ -505,6 +505,10 @@ class DictionaryCompleter(Completer):
                                 display=f"[{k_repr}]",
                                 display_meta=abbr_meta(self._do_repr(result[k])),
                             )
+                        except KeyError:
+                            # `result[k]` lookup failed. Trying to complete
+                            # broken object.
+                            pass
                         except ReprFailedError:
                             pass
 
@@ -521,6 +525,10 @@ class DictionaryCompleter(Completer):
                                     display=f"[{k_repr}]",
                                     display_meta=abbr_meta(self._do_repr(result[k])),
                                 )
+                            except KeyError:
+                                # `result[k]` lookup failed. Trying to complete
+                                # broken object.
+                                pass
                             except ReprFailedError:
                                 pass
 
