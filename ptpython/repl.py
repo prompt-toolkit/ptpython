@@ -135,6 +135,12 @@ class PythonRepl(PythonInput):
                     text = self.read()
                 except EOFError:
                     return
+                except BaseException as e:
+                    # Something went wrong while reading input.
+                    # (E.g., a bug in the completer that propagates. Don't
+                    # crash the REPL.)
+                    traceback.print_exc()
+                    continue
 
                 # Run it; display the result (or errors if applicable).
                 self.run_and_show_expression(text)
@@ -192,6 +198,12 @@ class PythonRepl(PythonInput):
                         text = await loop.run_in_executor(None, self.read)
                     except EOFError:
                         return
+                    except BaseException:
+                        # Something went wrong while reading input.
+                        # (E.g., a bug in the completer that propagates. Don't
+                        # crash the REPL.)
+                        traceback.print_exc()
+                        continue
 
                     # Eval.
                     await self.run_and_show_expression_async(text)
