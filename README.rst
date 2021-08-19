@@ -109,6 +109,8 @@ like this:
    else:
        sys.exit(embed(globals(), locals()))
 
+Note config file support currently only works when invoking `ptpython` directly.
+That it, the config file will be ignored when embedding ptpython in an application.
 
 Multiline editing
 *****************
@@ -158,6 +160,9 @@ is looked for.
 
 Have a look at this example to see what is possible:
 `config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_
+
+Note config file support currently only works when invoking `ptpython` directly.
+That it, the config file will be ignored when embedding ptpython in an application.
 
 
 IPython support
@@ -211,7 +216,7 @@ FAQ
 
 **Q**: The ``Meta``-key doesn't work.
 
-**A**: For some terminals you have to enable the Alt-key to act as meta key, but you 
+**A**: For some terminals you have to enable the Alt-key to act as meta key, but you
 can also type ``Escape`` before any key instead.
 
 
