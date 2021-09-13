@@ -345,6 +345,9 @@ class PythonRepl(PythonInput):
                 # not used.
                 try:
                     import black
+
+                    if not hasattr(black, "Mode"):
+                        raise ImportError
                 except ImportError:
                     pass  #   no Black package in your installation
                 else:
