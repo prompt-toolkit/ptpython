@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+3.0.20: 2021-09-14
+------------------
+
+New features:
+- For `DictionaryCompleter`: show parentheses after methods.
+
+Fixes:
+- Don't crash when trying to complete broken mappings in `DictionaryCompleter`.
+- Don't crash when an older version of `black` is installed that is not
+  compatible.
+
 
 3.0.19: 2021-07-08
 ------------------
