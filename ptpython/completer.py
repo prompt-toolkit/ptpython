@@ -553,9 +553,8 @@ class DictionaryCompleter(Completer):
             def get_suffix(name: str) -> str:
                 try:
                     obj = getattr(result, name, None)
-                    if inspect.isfunction(obj):
+                    if inspect.isfunction(obj) or inspect.ismethod(obj):
                         return "()"
-
                     if isinstance(obj, dict):
                         return "{}"
                     if isinstance(obj, (list, tuple)):
