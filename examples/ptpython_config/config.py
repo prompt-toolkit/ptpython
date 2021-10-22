@@ -106,8 +106,13 @@ def configure(repl):
     repl.enable_input_validation = True
 
     # Use this colorscheme for the code.
+    # Ptpython uses Pygments for code styling, so you can choose from Pygments'
+    # color schemes. See:
+    # https://pygments.org/docs/styles/
+    # https://pygments.org/demo/
     repl.use_code_colorscheme("default")
-    # repl.use_code_colorscheme("pastie")
+    # A colorscheme that looks good on dark backgrounds is 'native':
+    # repl.use_code_colorscheme("native")
 
     # Set color depth (keep in mind that not all terminals support true color).
 
