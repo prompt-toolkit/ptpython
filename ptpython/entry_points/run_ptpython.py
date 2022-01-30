@@ -35,7 +35,10 @@ from prompt_toolkit.shortcuts import print_formatted_text
 from ptpython.repl import embed, enable_deprecation_warnings, run_config
 
 try:
-    from importlib import metadata
+    if sys.version_info >= (3, 8):
+        import importlib.metadata as metadata
+    else:
+        import importlib_metadata as metadata
 except ImportError:
     import importlib_metadata as metadata  # type: ignore
 
