@@ -715,10 +715,10 @@ class PythonInput:
                         title="Prompt",
                         description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
                         get_current_value=lambda: self.prompt_style,
-                        get_values=lambda: dict(
-                            (s, partial(enable, "prompt_style", s))
+                        get_values=lambda: {
+                            s: partial(enable, "prompt_style", s)
                             for s in self.all_prompt_styles
-                        ),
+                        },
                     ),
                     simple_option(
                         title="Blank line after input",
@@ -810,10 +810,10 @@ class PythonInput:
                         title="User interface",
                         description="Color scheme to use for the user interface.",
                         get_current_value=lambda: self._current_ui_style_name,
-                        get_values=lambda: dict(
-                            (name, partial(self.use_ui_colorscheme, name))
+                        get_values=lambda: {
+                            name: partial(self.use_ui_colorscheme, name)
                             for name in self.ui_styles
-                        ),
+                        },
                     ),
                     Option(
                         title="Color depth",

@@ -237,7 +237,7 @@ class JediCompleter(Completer):
                 # Jedi issue: "KeyError: u'a_lambda'."
                 # https://github.com/jonathanslenders/ptpython/issues/89
                 pass
-            except IOError:
+            except OSError:
                 # Jedi issue: "IOError: No such file or directory."
                 # https://github.com/jonathanslenders/ptpython/issues/71
                 pass

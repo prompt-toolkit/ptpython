@@ -58,12 +58,12 @@ class IPythonPrompt(PromptStyle):
 
 class IPythonValidator(PythonValidator):
     def __init__(self, *args, **kwargs):
-        super(IPythonValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.isp = IPythonInputSplitter()
 
     def validate(self, document):
         document = Document(text=self.isp.transform_cell(document.text))
-        super(IPythonValidator, self).validate(document)
+        super().validate(document)
 
 
 def create_ipython_grammar():

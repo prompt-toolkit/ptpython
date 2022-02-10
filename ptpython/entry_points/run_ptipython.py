@@ -58,7 +58,7 @@ def run(user_ns=None):
                     code = compile(f.read(), path, "exec")
                     exec(code, user_ns, user_ns)
             else:
-                print("File not found: {}\n\n".format(path))
+                print(f"File not found: {path}\n\n")
                 sys.exit(1)
 
         # Apply config file

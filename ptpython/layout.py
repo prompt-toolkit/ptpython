@@ -431,7 +431,7 @@ def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
         recording_register = app.vi_state.recording_register
         if recording_register:
             append((token, " "))
-            append((token + " class:record", "RECORD({})".format(recording_register)))
+            append((token + " class:record", f"RECORD({recording_register})"))
             append((token, " - "))
 
         if app.current_buffer.selection_state is not None:

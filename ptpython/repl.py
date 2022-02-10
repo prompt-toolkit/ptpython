@@ -88,7 +88,7 @@ class PythonRepl(PythonInput):
                         exec(code, self.get_globals(), self.get_locals())
                 else:
                     output = self.app.output
-                    output.write("WARNING | File not found: {}\n\n".format(path))
+                    output.write(f"WARNING | File not found: {path}\n\n")
 
     def run_and_show_expression(self, expression):
         try:
