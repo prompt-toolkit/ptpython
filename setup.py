@@ -16,6 +16,7 @@ setup(
     description="Python REPL build on top of prompt_toolkit",
     long_description=long_description,
     packages=find_packages("."),
+    package_data={"ptpython": ["py.typed"]},
     install_requires=[
         "appdirs",
         "importlib_metadata;python_version<'3.8'",
