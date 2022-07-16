@@ -599,7 +599,7 @@ class PythonHistory:
         Create an `Application` for the history screen.
         This has to be run as a sub application of `python_input`.
 
-        When this application runs and returns, it retuns the selected lines.
+        When this application runs and returns, it returns the selected lines.
         """
         self.python_input = python_input
 

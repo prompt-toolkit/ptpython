@@ -599,7 +599,7 @@ class DictionaryCompleter(Completer):
 
 class HidePrivateCompleter(Completer):
     """
-    Wrapper around completer that hides private fields, deponding on whether or
+    Wrapper around completer that hides private fields, depending on whether or
     not public fields are shown.
 
     (The reason this is implemented as a `Completer` wrapper is because this

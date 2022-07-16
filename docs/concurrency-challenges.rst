@@ -67,7 +67,7 @@ When a normal blocking embed is used:
 When an awaitable embed is used, for embedding in a coroutine, but having the
 event loop continue:
     * We run the input method from the blocking embed in an asyncio executor
-      and do an `await loop.run_in_excecutor(...)`.
+      and do an `await loop.run_in_executor(...)`.
     * The "eval" happens again in the main thread.
     * "print" is also similar, except that the pager code (if used) runs in an
       executor too.
