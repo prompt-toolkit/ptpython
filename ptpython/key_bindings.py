@@ -148,7 +148,7 @@ def load_python_bindings(python_input):
         Behaviour of the Enter key.
 
         Auto indent after newline/Enter.
-        (When not in Vi navigaton mode, and when multiline is enabled.)
+        (When not in Vi navigation mode, and when multiline is enabled.)
         """
         b = event.current_buffer
         empty_lines_required = python_input.accept_input_on_enter or 10000

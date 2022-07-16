@@ -49,7 +49,7 @@ def configure(repl):
     # Swap light/dark colors on or off
     repl.swap_light_and_dark = False
 
-    # Highlight matching parethesis.
+    # Highlight matching parentheses.
     repl.highlight_matching_parenthesis = True
 
     # Line wrapping. (Instead of horizontal scrolling.)

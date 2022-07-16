@@ -401,7 +401,7 @@ class PythonRepl(PythonInput):
 
     def show_result(self, result: object) -> None:
         """
-        Show __repr__ for an `eval` result and print to ouptut.
+        Show __repr__ for an `eval` result and print to output.
         """
         formatted_text_output = self._format_result_output(result)
 
