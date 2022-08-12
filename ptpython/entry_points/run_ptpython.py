@@ -77,9 +77,11 @@ def create_parser() -> _Parser:
         help="Run on a dark background (use light colors for text).",
     ),
     parser.add_argument(
-        "--config-file", type=str, help="Location of configuration file."
+        "--config-file", type=str, metavar="file", help="Location of configuration file."
     )
-    parser.add_argument("--history-file", type=str, help="Location of history file.")
+    parser.add_argument(
+        "--history-file", type=str, metavar="file", help="Location of history file."
+    )
     parser.add_argument(
         "-V",
         "--version",

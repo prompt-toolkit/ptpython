@@ -1,0 +1,6 @@
+#compdef -P ptpython[0-9.]# ptipython[0-9.]#
+# https://github.com/zsh-users/zsh/blob/master/Etc/completion-style-guide
+
+_arguments -s -S \
+  {{flags}} \
+  '*:file:_files'
