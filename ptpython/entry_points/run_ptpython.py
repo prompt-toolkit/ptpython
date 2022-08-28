@@ -28,6 +28,10 @@ import sys
 from textwrap import dedent
 from typing import Tuple
 
+try:
+    import shtab
+except ImportError:
+    from .. import _shtab as shtab
 import appdirs
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import print_formatted_text
@@ -41,6 +45,27 @@ except ImportError:
 
 
 __all__ = ["create_parser", "get_config_and_history_file", "run"]
+# https://github.com/iterative/shtab/blob/master/examples/customcomplete.py#L11-L22
+PY_FILE = {
+    "bash": "_shtab_greeter_compgen_py_file",
+    "zsh": "_files -g '*.py'",
+    "tcsh": "f:*.py",
+}
+PREAMBLE = {
+    "bash": """\
+# $1=COMP_WORDS[1]
+_shtab_greeter_compgen_py_file() {
+  compgen -d -- $1  # recurse into subdirs
+  compgen -f -X '!*?.py' -- $1
+}
+""",
+    "zsh": """\
+_script_args() {
+  _arguments -S -s '(-)1:script_args:_files -g "*.py"' '*: :_files'
+}
+""",
+}
+SCRIPT_ARGS = {"zsh": "_script_args"}
 
 
 class _Parser(argparse.ArgumentParser):
@@ -58,7 +83,8 @@ class _Parser(argparse.ArgumentParser):
 
 
 def create_parser() -> _Parser:
-    parser = _Parser(description="ptpython: Interactive Python shell.")
+    parser = _Parser("ptpython", description="ptpython: Interactive Python shell.")
+    shtab.add_argument_to(parser, preamble=PREAMBLE)
     parser.add_argument("--vi", action="store_true", help="Enable Vi key bindings")
     parser.add_argument(
         "-i",
@@ -70,23 +96,27 @@ def create_parser() -> _Parser:
         "--light-bg",
         action="store_true",
         help="Run on a light background (use dark colors for text).",
-    ),
+    )
     parser.add_argument(
         "--dark-bg",
         action="store_true",
         help="Run on a dark background (use light colors for text).",
-    ),
+    )
     parser.add_argument(
         "--config-file", type=str, help="Location of configuration file."
-    )
-    parser.add_argument("--history-file", type=str, help="Location of history file.")
+    ).complete = PY_FILE
+    parser.add_argument(
+        "--history-file", type=str, help="Location of history file."
+    ).complete = shtab.FILE
     parser.add_argument(
         "-V",
         "--version",
         action="version",
         version=metadata.version("ptpython"),  # type: ignore
     )
-    parser.add_argument("args", nargs="*", help="Script and arguments")
+    parser.add_argument(
+        "args", nargs=argparse.REMAINDER, help="Script and arguments"
+    ).complete = SCRIPT_ARGS
     return parser
 
 

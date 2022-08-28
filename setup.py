@@ -18,6 +18,7 @@ setup(
     packages=find_packages("."),
     package_data={"ptpython": ["py.typed"]},
     install_requires=[
+        "shtab",
         "appdirs",
         "importlib_metadata;python_version<'3.8'",
         "jedi>=0.16.0",
@@ -50,5 +51,6 @@ setup(
     extras_require={
         "ptipython": ["ipython"],  # For ptipython, we need to have IPython
         "all": ["black"],  # Black not always possible on PyPy
+        "completion": ["shtab"],
     },
 )
