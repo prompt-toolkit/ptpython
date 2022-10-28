@@ -5,7 +5,7 @@ import platform
 import sys
 from enum import Enum
 from inspect import _ParameterKind as ParameterKind
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Type
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
@@ -15,10 +15,15 @@ from prompt_toolkit.filters import (
     is_done,
     renderer_height_is_known,
 )
-from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
+from prompt_toolkit.formatted_text import (
+    AnyFormattedText,
+    fragment_list_width,
+    to_formatted_text,
+)
 from prompt_toolkit.formatted_text.base import StyleAndTextTuples
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import (
+    AnyContainer,
     ConditionalContainer,
     Container,
     Float,
@@ -40,9 +45,10 @@ from prompt_toolkit.layout.processors import (
     HighlightIncrementalSearchProcessor,
     HighlightMatchingBracketProcessor,
     HighlightSelectionProcessor,
+    Processor,
     TabsProcessor,
 )
-from prompt_toolkit.lexers import SimpleLexer
+from prompt_toolkit.lexers import Lexer, SimpleLexer
 from prompt_toolkit.mouse_events import MouseEvent
 from prompt_toolkit.selection import SelectionType
 from prompt_toolkit.widgets.toolbars import (
@@ -55,6 +61,7 @@ from prompt_toolkit.widgets.toolbars import (
 from pygments.lexers import PythonLexer
 
 from .filters import HasSignature, ShowDocstring, ShowSidebar, ShowSignature
+from .prompt_style import PromptStyle
 from .utils import if_mousedown
 
 if TYPE_CHECKING:
@@ -98,7 +105,7 @@ def python_sidebar(python_input: "PythonInput") -> Window:
     def get_text_fragments() -> StyleAndTextTuples:
         tokens: StyleAndTextTuples = []
 
-        def append_category(category: "OptionCategory") -> None:
+        def append_category(category: "OptionCategory[Any]") -> None:
             tokens.extend(
                 [
                     ("class:sidebar", "  "),
@@ -150,10 +157,10 @@ def python_sidebar(python_input: "PythonInput") -> Window:
         return tokens
 
     class Control(FormattedTextControl):
-        def move_cursor_down(self):
+        def move_cursor_down(self) -> None:
             python_input.selected_option_index += 1
 
-        def move_cursor_up(self):
+        def move_cursor_up(self) -> None:
             python_input.selected_option_index -= 1
 
     return Window(
@@ -165,12 +172,12 @@ def python_sidebar(python_input: "PythonInput") -> Window:
     )
 
 
-def python_sidebar_navigation(python_input):
+def python_sidebar_navigation(python_input: "PythonInput") -> Window:
     """
     Create the `Layout` showing the navigation information for the sidebar.
     """
 
-    def get_text_fragments():
+    def get_text_fragments() -> StyleAndTextTuples:
         # Show navigation info.
         return [
             ("class:sidebar", "    "),
@@ -191,13 +198,13 @@ def python_sidebar_navigation(python_input):
     )
 
 
-def python_sidebar_help(python_input):
+def python_sidebar_help(python_input: "PythonInput") -> Container:
     """
     Create the `Layout` for the help text for the current item in the sidebar.
     """
     token = "class:sidebar.helptext"
 
-    def get_current_description():
+    def get_current_description() -> str:
         """
         Return the description of the selected option.
         """
@@ -209,7 +216,7 @@ def python_sidebar_help(python_input):
                 i += 1
         return ""
 
-    def get_help_text():
+    def get_help_text() -> StyleAndTextTuples:
         return [(token, get_current_description())]
 
     return ConditionalContainer(
@@ -225,7 +232,7 @@ def python_sidebar_help(python_input):
     )
 
 
-def signature_toolbar(python_input):
+def signature_toolbar(python_input: "PythonInput") -> Container:
     """
     Return the `Layout` for the signature.
     """
@@ -311,21 +318,23 @@ class PythonPromptMargin(PromptMargin):
     It shows something like "In [1]:".
     """
 
-    def __init__(self, python_input) -> None:
+    def __init__(self, python_input: "PythonInput") -> None:
         self.python_input = python_input
 
-        def get_prompt_style():
+        def get_prompt_style() -> PromptStyle:
             return python_input.all_prompt_styles[python_input.prompt_style]
 
         def get_prompt() -> StyleAndTextTuples:
             return to_formatted_text(get_prompt_style().in_prompt())
 
-        def get_continuation(width, line_number, is_soft_wrap):
+        def get_continuation(
+            width: int, line_number: int, is_soft_wrap: bool
+        ) -> StyleAndTextTuples:
             if python_input.show_line_numbers and not is_soft_wrap:
                 text = ("%i " % (line_number + 1)).rjust(width)
                 return [("class:line-number", text)]
             else:
-                return get_prompt_style().in2_prompt(width)
+                return to_formatted_text(get_prompt_style().in2_prompt(width))
 
         super().__init__(get_prompt, get_continuation)
 
@@ -510,7 +519,7 @@ def show_sidebar_button_info(python_input: "PythonInput") -> Container:
 
 
 def create_exit_confirmation(
-    python_input: "PythonInput", style="class:exit-confirmation"
+    python_input: "PythonInput", style: str = "class:exit-confirmation"
 ) -> Container:
     """
     Create `Layout` for the exit message.
@@ -567,22 +576,22 @@ class PtPythonLayout:
     def __init__(
         self,
         python_input: "PythonInput",
-        lexer=PythonLexer,
-        extra_body=None,
-        extra_toolbars=None,
-        extra_buffer_processors=None,
+        lexer: Lexer,
+        extra_body: Optional[AnyContainer] = None,
+        extra_toolbars: Optional[List[AnyContainer]] = None,
+        extra_buffer_processors: Optional[List[Processor]] = None,
         input_buffer_height: Optional[AnyDimension] = None,
     ) -> None:
         D = Dimension
-        extra_body = [extra_body] if extra_body else []
+        extra_body_list: List[AnyContainer] = [extra_body] if extra_body else []
         extra_toolbars = extra_toolbars or []
-        extra_buffer_processors = extra_buffer_processors or []
+
         input_buffer_height = input_buffer_height or D(min=6)
 
         search_toolbar = SearchToolbar(python_input.search_buffer)
 
-        def create_python_input_window():
-            def menu_position():
+        def create_python_input_window() -> Window:
+            def menu_position() -> Optional[int]:
                 """
                 When there is no autocompletion menu to be shown, and we have a
                 signature, set the pop-up position at `bracket_start`.
@@ -593,6 +602,7 @@ class PtPythonLayout:
                     row, col = python_input.signatures[0].bracket_start
                     index = b.document.translate_row_col_to_index(row - 1, col)
                     return index
+                return None
 
             return Window(
                 BufferControl(
@@ -622,7 +632,7 @@ class PtPythonLayout:
                             processor=AppendAutoSuggestion(), filter=~is_done
                         ),
                     ]
-                    + extra_buffer_processors,
+                    + (extra_buffer_processors or []),
                     menu_position=menu_position,
                     # Make sure that we always see the result of an reverse-i-search:
                     preview_search=True,
@@ -654,7 +664,7 @@ class PtPythonLayout:
                             [
                                 FloatContainer(
                                     content=HSplit(
-                                        [create_python_input_window()] + extra_body
+                                        [create_python_input_window()] + extra_body_list
                                     ),
                                     floats=[
                                         Float(

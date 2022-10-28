@@ -8,12 +8,15 @@ can use `eval()` to evaluate the function object.
 import inspect
 from inspect import Signature as InspectSignature
 from inspect import _ParameterKind as ParameterKind
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple
 
 from prompt_toolkit.document import Document
 
 from .completer import DictionaryCompleter
 from .utils import get_jedi_script_from_document
+
+if TYPE_CHECKING:
+    import jedi.api.classes
 
 __all__ = ["Signature", "get_signatures_using_jedi", "get_signatures_using_eval"]
 
@@ -120,7 +123,9 @@ class Signature:
         )
 
     @classmethod
-    def from_jedi_signature(cls, signature) -> "Signature":
+    def from_jedi_signature(
+        cls, signature: "jedi.api.classes.Signature"
+    ) -> "Signature":
         parameters = []
 
         for p in signature.params:

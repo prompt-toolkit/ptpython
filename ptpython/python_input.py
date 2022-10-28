@@ -6,7 +6,18 @@ import __future__
 
 from asyncio import get_event_loop
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, List, Optional, TypeVar
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    List,
+    Mapping,
+    Optional,
+    Tuple,
+    TypeVar,
+)
 
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import (
@@ -44,6 +55,7 @@ from prompt_toolkit.key_binding.bindings.open_in_editor import (
     load_open_in_editor_bindings,
 )
 from prompt_toolkit.key_binding.vi_state import InputMode
+from prompt_toolkit.layout.containers import AnyContainer
 from prompt_toolkit.lexers import DynamicLexer, Lexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth, Output
 from prompt_toolkit.styles import (
@@ -88,8 +100,8 @@ if TYPE_CHECKING:
 _T = TypeVar("_T", bound="_SupportsLessThan")
 
 
-class OptionCategory:
-    def __init__(self, title: str, options: List["Option"]) -> None:
+class OptionCategory(Generic[_T]):
+    def __init__(self, title: str, options: List["Option[_T]"]) -> None:
         self.title = title
         self.options = options
 
@@ -113,7 +125,7 @@ class Option(Generic[_T]):
         get_current_value: Callable[[], _T],
         # We accept `object` as return type for the select functions, because
         # often they return an unused boolean. Maybe this can be improved.
-        get_values: Callable[[], Dict[_T, Callable[[], object]]],
+        get_values: Callable[[], Mapping[_T, Callable[[], object]]],
     ) -> None:
         self.title = title
         self.description = description
@@ -121,7 +133,7 @@ class Option(Generic[_T]):
         self.get_values = get_values
 
     @property
-    def values(self) -> Dict[_T, Callable[[], object]]:
+    def values(self) -> Mapping[_T, Callable[[], object]]:
         return self.get_values()
 
     def activate_next(self, _previous: bool = False) -> None:
@@ -192,12 +204,12 @@ class PythonInput:
         output: Optional[Output] = None,
         # For internal use.
         extra_key_bindings: Optional[KeyBindings] = None,
-        create_app=True,
+        create_app: bool = True,
         _completer: Optional[Completer] = None,
         _validator: Optional[Validator] = None,
         _lexer: Optional[Lexer] = None,
         _extra_buffer_processors=None,
-        _extra_layout_body=None,
+        _extra_layout_body: Optional[AnyContainer] = None,
         _extra_toolbars=None,
         _input_buffer_height=None,
     ) -> None:
@@ -239,7 +251,7 @@ class PythonInput:
             self.history = InMemoryHistory()
 
         self._input_buffer_height = _input_buffer_height
-        self._extra_layout_body = _extra_layout_body or []
+        self._extra_layout_body = _extra_layout_body
         self._extra_toolbars = _extra_toolbars or []
         self._extra_buffer_processors = _extra_buffer_processors or []
 
@@ -388,7 +400,9 @@ class PythonInput:
         # Create an app if requested. If not, the global get_app() is returned
         # for self.app via property getter.
         if create_app:
-            self._app: Optional[Application] = self._create_application(input, output)
+            self._app: Optional[Application[str]] = self._create_application(
+                input, output
+            )
             # Setting vi_mode will not work unless the prompt_toolkit
             # application has been created.
             if vi_mode:
@@ -408,7 +422,7 @@ class PythonInput:
         return sum(len(category.options) for category in self.options)
 
     @property
-    def selected_option(self) -> Option:
+    def selected_option(self) -> Option[Any]:
         "Return the currently selected option."
         i = 0
         for category in self.options:
@@ -514,7 +528,7 @@ class PythonInput:
             self.ui_styles[self._current_ui_style_name],
         )
 
-    def _create_options(self) -> List[OptionCategory]:
+    def _create_options(self) -> List[OptionCategory[Any]]:
         """
         Create a list of `Option` instances for the options sidebar.
         """
@@ -530,15 +544,17 @@ class PythonInput:
             return True
 
         def simple_option(
-            title: str, description: str, field_name: str, values: Optional[List] = None
-        ) -> Option:
+            title: str,
+            description: str,
+            field_name: str,
+            values: Tuple[str, str] = ("off", "on"),
+        ) -> Option[str]:
             "Create Simple on/of option."
-            values = values or ["off", "on"]
 
-            def get_current_value():
+            def get_current_value() -> str:
                 return values[bool(getattr(self, field_name))]
 
-            def get_values():
+            def get_values() -> Dict[str, Callable[[], bool]]:
                 return {
                     values[1]: lambda: enable(field_name),
                     values[0]: lambda: disable(field_name),
@@ -848,7 +864,7 @@ class PythonInput:
 
     def _create_application(
         self, input: Optional[Input], output: Optional[Output]
-    ) -> Application:
+    ) -> Application[str]:
         """
         Create an `Application` instance.
         """
@@ -926,7 +942,7 @@ class PythonInput:
             self.editing_mode = EditingMode.EMACS
 
     @property
-    def app(self) -> Application:
+    def app(self) -> Application[str]:
         if self._app is None:
             return get_app()
         return self._app

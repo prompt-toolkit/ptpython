@@ -8,6 +8,7 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
+from typing import Iterable
 from warnings import warn
 
 from IPython import utils as ipy_utils
@@ -15,6 +16,7 @@ from IPython.core.inputsplitter import IPythonInputSplitter
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
 from IPython.terminal.ipapp import load_default_config
 from prompt_toolkit.completion import (
+    CompleteEvent,
     Completer,
     Completion,
     PathCompleter,
@@ -25,15 +27,17 @@ from prompt_toolkit.contrib.regular_languages.compiler import compile
 from prompt_toolkit.contrib.regular_languages.completion import GrammarCompleter
 from prompt_toolkit.contrib.regular_languages.lexer import GrammarLexer
 from prompt_toolkit.document import Document
-from prompt_toolkit.formatted_text import PygmentsTokens
+from prompt_toolkit.formatted_text import AnyFormattedText, PygmentsTokens
 from prompt_toolkit.lexers import PygmentsLexer, SimpleLexer
 from prompt_toolkit.styles import Style
 from pygments.lexers import BashLexer, PythonLexer
 
 from ptpython.prompt_style import PromptStyle
 
-from .python_input import PythonCompleter, PythonInput, PythonValidator
+from .completer import PythonCompleter
+from .python_input import PythonInput
 from .style import default_ui_style
+from .validator import PythonValidator
 
 __all__ = ["embed"]
 
@@ -46,13 +50,13 @@ class IPythonPrompt(PromptStyle):
     def __init__(self, prompts):
         self.prompts = prompts
 
-    def in_prompt(self):
+    def in_prompt(self) -> AnyFormattedText:
         return PygmentsTokens(self.prompts.in_prompt_tokens())
 
-    def in2_prompt(self, width):
+    def in2_prompt(self, width: int) -> AnyFormattedText:
         return PygmentsTokens(self.prompts.continuation_prompt_tokens())
 
-    def out_prompt(self):
+    def out_prompt(self) -> AnyFormattedText:
         return []
 
 
@@ -61,7 +65,7 @@ class IPythonValidator(PythonValidator):
         super(IPythonValidator, self).__init__(*args, **kwargs)
         self.isp = IPythonInputSplitter()
 
-    def validate(self, document):
+    def validate(self, document: Document) -> None:
         document = Document(text=self.isp.transform_cell(document.text))
         super(IPythonValidator, self).validate(document)
 
@@ -142,7 +146,9 @@ class MagicsCompleter(Completer):
     def __init__(self, magics_manager):
         self.magics_manager = magics_manager
 
-    def get_completions(self, document, complete_event):
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
         text = document.text_before_cursor.lstrip()
 
         for m in sorted(self.magics_manager.magics["line"]):
@@ -154,7 +160,9 @@ class AliasCompleter(Completer):
     def __init__(self, alias_manager):
         self.alias_manager = alias_manager
 
-    def get_completions(self, document, complete_event):
+    def get_completions(
+        self, document: Document, complete_event: CompleteEvent
+    ) -> Iterable[Completion]:
         text = document.text_before_cursor.lstrip()
         # aliases = [a for a, _ in self.alias_manager.aliases]
         aliases = self.alias_manager.aliases
@@ -240,7 +248,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
 
         self.python_input = python_input
 
-    def prompt_for_code(self):
+    def prompt_for_code(self) -> str:
         try:
             return self.python_input.app.run()
         except KeyboardInterrupt:

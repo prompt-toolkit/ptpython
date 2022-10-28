@@ -1,4 +1,7 @@
+from typing import TYPE_CHECKING
+
 from prompt_toolkit.application import get_app
+from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import (
@@ -11,9 +14,13 @@ from prompt_toolkit.filters import (
 )
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.key_binding.bindings.named_commands import get_by_name
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.keys import Keys
 
 from .utils import document_is_multiline_python
+
+if TYPE_CHECKING:
+    from .python_input import PythonInput
 
 __all__ = [
     "load_python_bindings",
@@ -21,9 +28,11 @@ __all__ = [
     "load_confirm_exit_bindings",
 ]
 
+E = KeyPressEvent
+
 
 @Condition
-def tab_should_insert_whitespace():
+def tab_should_insert_whitespace() -> bool:
     """
     When the 'tab' key is pressed with only whitespace character before the
     cursor, do autocompletion. Otherwise, insert indentation.
@@ -38,7 +47,7 @@ def tab_should_insert_whitespace():
     return bool(b.text and (not before_cursor or before_cursor.isspace()))
 
 
-def load_python_bindings(python_input):
+def load_python_bindings(python_input: "PythonInput") -> KeyBindings:
     """
     Custom key bindings.
     """
@@ -48,14 +57,14 @@ def load_python_bindings(python_input):
     handle = bindings.add
 
     @handle("c-l")
-    def _(event):
+    def _(event: E) -> None:
         """
         Clear whole screen and render again -- also when the sidebar is visible.
         """
         event.app.renderer.clear()
 
     @handle("c-z")
-    def _(event):
+    def _(event: E) -> None:
         """
         Suspend.
         """
@@ -67,7 +76,7 @@ def load_python_bindings(python_input):
     handle("c-w")(get_by_name("backward-kill-word"))
 
     @handle("f2")
-    def _(event):
+    def _(event: E) -> None:
         """
         Show/hide sidebar.
         """
@@ -78,21 +87,21 @@ def load_python_bindings(python_input):
             event.app.layout.focus_last()
 
     @handle("f3")
-    def _(event):
+    def _(event: E) -> None:
         """
         Select from the history.
         """
         python_input.enter_history()
 
     @handle("f4")
-    def _(event):
+    def _(event: E) -> None:
         """
         Toggle between Vi and Emacs mode.
         """
         python_input.vi_mode = not python_input.vi_mode
 
     @handle("f6")
-    def _(event):
+    def _(event: E) -> None:
         """
         Enable/Disable paste mode.
         """
@@ -101,14 +110,14 @@ def load_python_bindings(python_input):
     @handle(
         "tab", filter=~sidebar_visible & ~has_selection & tab_should_insert_whitespace
     )
-    def _(event):
+    def _(event: E) -> None:
         """
         When tab should insert whitespace, do that instead of completion.
         """
         event.app.current_buffer.insert_text("    ")
 
     @Condition
-    def is_multiline():
+    def is_multiline() -> bool:
         return document_is_multiline_python(python_input.default_buffer.document)
 
     @handle(
@@ -120,7 +129,7 @@ def load_python_bindings(python_input):
         & ~is_multiline,
     )
     @handle(Keys.Escape, Keys.Enter, filter=~sidebar_visible & emacs_mode)
-    def _(event):
+    def _(event: E) -> None:
         """
         Accept input (for single line input).
         """
@@ -143,7 +152,7 @@ def load_python_bindings(python_input):
         & has_focus(DEFAULT_BUFFER)
         & is_multiline,
     )
-    def _(event):
+    def _(event: E) -> None:
         """
         Behaviour of the Enter key.
 
@@ -153,11 +162,11 @@ def load_python_bindings(python_input):
         b = event.current_buffer
         empty_lines_required = python_input.accept_input_on_enter or 10000
 
-        def at_the_end(b):
+        def at_the_end(b: Buffer) -> bool:
             """we consider the cursor at the end when there is no text after
             the cursor, or only whitespace."""
             text = b.document.text_after_cursor
-            return text == "" or (text.isspace() and not "\n" in text)
+            return text == "" or (text.isspace() and "\n" not in text)
 
         if python_input.paste_mode:
             # In paste mode, always insert text.
@@ -187,7 +196,7 @@ def load_python_bindings(python_input):
             not get_app().current_buffer.text
         ),
     )
-    def _(event):
+    def _(event: E) -> None:
         """
         Override Control-D exit, to ask for confirmation.
         """
@@ -202,14 +211,14 @@ def load_python_bindings(python_input):
             event.app.exit(exception=EOFError)
 
     @handle("c-c", filter=has_focus(python_input.default_buffer))
-    def _(event):
+    def _(event: E) -> None:
         "Abort when Control-C has been pressed."
         event.app.exit(exception=KeyboardInterrupt, style="class:aborting")
 
     return bindings
 
 
-def load_sidebar_bindings(python_input):
+def load_sidebar_bindings(python_input: "PythonInput") -> KeyBindings:
     """
     Load bindings for the navigation in the sidebar.
     """
@@ -221,7 +230,7 @@ def load_sidebar_bindings(python_input):
     @handle("up", filter=sidebar_visible)
     @handle("c-p", filter=sidebar_visible)
     @handle("k", filter=sidebar_visible)
-    def _(event):
+    def _(event: E) -> None:
         "Go to previous option."
         python_input.selected_option_index = (
             python_input.selected_option_index - 1
@@ -230,7 +239,7 @@ def load_sidebar_bindings(python_input):
     @handle("down", filter=sidebar_visible)
     @handle("c-n", filter=sidebar_visible)
     @handle("j", filter=sidebar_visible)
-    def _(event):
+    def _(event: E) -> None:
         "Go to next option."
         python_input.selected_option_index = (
             python_input.selected_option_index + 1
@@ -239,14 +248,14 @@ def load_sidebar_bindings(python_input):
     @handle("right", filter=sidebar_visible)
     @handle("l", filter=sidebar_visible)
     @handle(" ", filter=sidebar_visible)
-    def _(event):
+    def _(event: E) -> None:
         "Select next value for current option."
         option = python_input.selected_option
         option.activate_next()
 
     @handle("left", filter=sidebar_visible)
     @handle("h", filter=sidebar_visible)
-    def _(event):
+    def _(event: E) -> None:
         "Select previous value for current option."
         option = python_input.selected_option
         option.activate_previous()
@@ -256,7 +265,7 @@ def load_sidebar_bindings(python_input):
     @handle("c-d", filter=sidebar_visible)
     @handle("enter", filter=sidebar_visible)
     @handle("escape", filter=sidebar_visible)
-    def _(event):
+    def _(event: E) -> None:
         "Hide sidebar."
         python_input.show_sidebar = False
         event.app.layout.focus_last()
@@ -264,7 +273,7 @@ def load_sidebar_bindings(python_input):
     return bindings
 
 
-def load_confirm_exit_bindings(python_input):
+def load_confirm_exit_bindings(python_input: "PythonInput") -> KeyBindings:
     """
     Handle yes/no key presses when the exit confirmation is shown.
     """
@@ -277,14 +286,14 @@ def load_confirm_exit_bindings(python_input):
     @handle("Y", filter=confirmation_visible)
     @handle("enter", filter=confirmation_visible)
     @handle("c-d", filter=confirmation_visible)
-    def _(event):
+    def _(event: E) -> None:
         """
         Really quit.
         """
         event.app.exit(exception=EOFError, style="class:exiting")
 
     @handle(Keys.Any, filter=confirmation_visible)
-    def _(event):
+    def _(event: E) -> None:
         """
         Cancel exit.
         """
@@ -294,7 +303,7 @@ def load_confirm_exit_bindings(python_input):
     return bindings
 
 
-def auto_newline(buffer):
+def auto_newline(buffer: Buffer) -> None:
     r"""
     Insert \n at the cursor position. Also add necessary padding.
     """

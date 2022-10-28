@@ -26,16 +26,16 @@ import os
 import pathlib
 import sys
 from textwrap import dedent
-from typing import Tuple
+from typing import IO, Optional, Tuple
 
 import appdirs
 from prompt_toolkit.formatted_text import HTML
 from prompt_toolkit.shortcuts import print_formatted_text
 
-from ptpython.repl import embed, enable_deprecation_warnings, run_config
+from ptpython.repl import PythonRepl, embed, enable_deprecation_warnings, run_config
 
 try:
-    from importlib import metadata
+    from importlib import metadata  # type: ignore
 except ImportError:
     import importlib_metadata as metadata  # type: ignore
 
@@ -44,7 +44,7 @@ __all__ = ["create_parser", "get_config_and_history_file", "run"]
 
 
 class _Parser(argparse.ArgumentParser):
-    def print_help(self):
+    def print_help(self, file: Optional[IO[str]] = None) -> None:
         super().print_help()
         print(
             dedent(
@@ -84,7 +84,7 @@ def create_parser() -> _Parser:
         "-V",
         "--version",
         action="version",
-        version=metadata.version("ptpython"),  # type: ignore
+        version=metadata.version("ptpython"),
     )
     parser.add_argument("args", nargs="*", help="Script and arguments")
     return parser
@@ -190,7 +190,7 @@ def run() -> None:
         enable_deprecation_warnings()
 
         # Apply config file
-        def configure(repl) -> None:
+        def configure(repl: PythonRepl) -> None:
             if os.path.exists(config_file):
                 run_config(repl, config_file)
 
