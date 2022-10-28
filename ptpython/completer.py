@@ -495,7 +495,7 @@ class DictionaryCompleter(Completer):
                     else:
                         break
 
-                for k in result:
+                for k, v in result.items():
                     if str(k).startswith(str(key_obj)):
                         try:
                             k_repr = self._do_repr(k)
@@ -503,7 +503,7 @@ class DictionaryCompleter(Completer):
                                 k_repr + "]",
                                 -len(key),
                                 display=f"[{k_repr}]",
-                                display_meta=abbr_meta(self._do_repr(result[k])),
+                                display_meta=abbr_meta(self._do_repr(v)),
                             )
                         except KeyError:
                             # `result[k]` lookup failed. Trying to complete
