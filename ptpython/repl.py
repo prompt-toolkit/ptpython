@@ -44,6 +44,7 @@ from pygments.token import Token
 
 from .python_input import PythonInput
 
+PyCF_ALLOW_TOP_LEVEL_AWAIT: int
 try:
     from ast import PyCF_ALLOW_TOP_LEVEL_AWAIT  # type: ignore
 except ImportError:
@@ -90,7 +91,7 @@ class PythonRepl(PythonInput):
                     output = self.app.output
                     output.write("WARNING | File not found: {}\n\n".format(path))
 
-    def run_and_show_expression(self, expression):
+    def run_and_show_expression(self, expression: str) -> None:
         try:
             # Eval.
             try:
@@ -135,7 +136,7 @@ class PythonRepl(PythonInput):
                     text = self.read()
                 except EOFError:
                     return
-                except BaseException as e:
+                except BaseException:
                     # Something went wrong while reading input.
                     # (E.g., a bug in the completer that propagates. Don't
                     # crash the REPL.)
@@ -149,7 +150,7 @@ class PythonRepl(PythonInput):
                 clear_title()
             self._remove_from_namespace()
 
-    async def run_and_show_expression_async(self, text):
+    async def run_and_show_expression_async(self, text: str):
         loop = asyncio.get_event_loop()
 
         try:
@@ -349,7 +350,7 @@ class PythonRepl(PythonInput):
                     if not hasattr(black, "Mode"):
                         raise ImportError
                 except ImportError:
-                    pass  #   no Black package in your installation
+                    pass  # no Black package in your installation
                 else:
                     result_repr = black.format_str(
                         result_repr,
@@ -725,17 +726,17 @@ def embed(
         configure(repl)
 
     # Start repl.
-    patch_context: ContextManager = (
+    patch_context: ContextManager[None] = (
         patch_stdout_context() if patch_stdout else DummyContext()
     )
 
     if return_asyncio_coroutine:
 
-        async def coroutine():
+        async def coroutine() -> None:
             with patch_context:
                 await repl.run_async()
 
-        return coroutine()
+        return coroutine()  # type: ignore
     else:
         with patch_context:
             repl.run()

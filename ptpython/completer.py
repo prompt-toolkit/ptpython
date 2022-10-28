@@ -4,7 +4,7 @@ import inspect
 import keyword
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional
+from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Tuple
 
 from prompt_toolkit.completion import (
     CompleteEvent,
@@ -21,6 +21,7 @@ from prompt_toolkit.formatted_text import fragment_list_to_text, to_formatted_te
 from ptpython.utils import get_jedi_script_from_document
 
 if TYPE_CHECKING:
+    import jedi.api.classes
     from prompt_toolkit.contrib.regular_languages.compiler import _CompiledGrammar
 
 __all__ = ["PythonCompleter", "CompletePrivateAttributes", "HidePrivateCompleter"]
@@ -43,8 +44,8 @@ class PythonCompleter(Completer):
 
     def __init__(
         self,
-        get_globals: Callable[[], dict],
-        get_locals: Callable[[], dict],
+        get_globals: Callable[[], Dict[str, Any]],
+        get_locals: Callable[[], Dict[str, Any]],
         enable_dictionary_completion: Callable[[], bool],
     ) -> None:
         super().__init__()
@@ -200,7 +201,11 @@ class JediCompleter(Completer):
     Autocompleter that uses the Jedi library.
     """
 
-    def __init__(self, get_globals, get_locals) -> None:
+    def __init__(
+        self,
+        get_globals: Callable[[], Dict[str, Any]],
+        get_locals: Callable[[], Dict[str, Any]],
+    ) -> None:
         super().__init__()
 
         self.get_globals = get_globals
@@ -296,7 +301,11 @@ class DictionaryCompleter(Completer):
              function calls, so it only triggers attribute access.
     """
 
-    def __init__(self, get_globals, get_locals):
+    def __init__(
+        self,
+        get_globals: Callable[[], Dict[str, Any]],
+        get_locals: Callable[[], Dict[str, Any]],
+    ) -> None:
         super().__init__()
 
         self.get_globals = get_globals
@@ -574,7 +583,7 @@ class DictionaryCompleter(Completer):
         underscore names to the end.
         """
 
-        def sort_key(name: str):
+        def sort_key(name: str) -> Tuple[int, str]:
             if name.startswith("__"):
                 return (2, name)  # Double underscore comes latest.
             if name.startswith("_"):
@@ -639,7 +648,9 @@ except ImportError:  # Python 2.
     _builtin_names = []
 
 
-def _get_style_for_jedi_completion(jedi_completion) -> str:
+def _get_style_for_jedi_completion(
+    jedi_completion: "jedi.api.classes.Completion",
+) -> str:
     """
     Return completion style to use for this name.
     """

@@ -2,11 +2,30 @@
 For internal use only.
 """
 import re
-from typing import Callable, Iterable, Type, TypeVar, cast
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Iterable,
+    Optional,
+    Type,
+    TypeVar,
+    cast,
+)
 
+from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import to_formatted_text
 from prompt_toolkit.formatted_text.utils import fragment_list_to_text
 from prompt_toolkit.mouse_events import MouseEvent, MouseEventType
+
+if TYPE_CHECKING:
+    from jedi import Interpreter
+
+    # See: prompt_toolkit/key_binding/key_bindings.py
+    # Annotating these return types as `object` is what works best, because
+    # `NotImplemented` is typed `Any`.
+    NotImplementedOrNone = object
 
 __all__ = [
     "has_unclosed_brackets",
@@ -45,7 +64,9 @@ def has_unclosed_brackets(text: str) -> bool:
     return False
 
 
-def get_jedi_script_from_document(document, locals, globals):
+def get_jedi_script_from_document(
+    document: Document, locals: Dict[str, Any], globals: Dict[str, Any]
+) -> "Interpreter":
     import jedi  # We keep this import in-line, to improve start-up time.
 
     # Importing Jedi is 'slow'.
@@ -78,7 +99,7 @@ def get_jedi_script_from_document(document, locals, globals):
 _multiline_string_delims = re.compile("""[']{3}|["]{3}""")
 
 
-def document_is_multiline_python(document):
+def document_is_multiline_python(document: Document) -> bool:
     """
     Determine whether this is a multiline Python document.
     """
@@ -133,7 +154,7 @@ def if_mousedown(handler: _T) -> _T:
     by the Window.)
     """
 
-    def handle_if_mouse_down(mouse_event: MouseEvent):
+    def handle_if_mouse_down(mouse_event: MouseEvent) -> "NotImplementedOrNone":
         if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
             return handler(mouse_event)
         else:
@@ -142,7 +163,7 @@ def if_mousedown(handler: _T) -> _T:
     return cast(_T, handle_if_mouse_down)
 
 
-_T_type = TypeVar("_T_type", bound=Type)
+_T_type = TypeVar("_T_type", bound=type)
 
 
 def ptrepr_to_repr(cls: _T_type) -> _T_type:
@@ -154,7 +175,8 @@ def ptrepr_to_repr(cls: _T_type) -> _T_type:
             "@ptrepr_to_repr can only be applied to classes that have a `__pt_repr__` method."
         )
 
-    def __repr__(self) -> str:
+    def __repr__(self: object) -> str:
+        assert hasattr(cls, "__pt_repr__")
         return fragment_list_to_text(to_formatted_text(cls.__pt_repr__(self)))
 
     cls.__repr__ = __repr__  # type:ignore

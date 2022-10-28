@@ -5,6 +5,7 @@ Utility to easily select lines from the history and execute them again.
 run as a sub application of the Repl/PythonInput.
 """
 from functools import partial
+from typing import TYPE_CHECKING, Callable, List, Optional, Set
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
@@ -12,8 +13,11 @@ from prompt_toolkit.buffer import Buffer
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER
 from prompt_toolkit.filters import Condition, has_focus
+from prompt_toolkit.formatted_text.base import StyleAndTextTuples
 from prompt_toolkit.formatted_text.utils import fragment_list_to_text
+from prompt_toolkit.history import History
 from prompt_toolkit.key_binding import KeyBindings
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.layout.containers import (
     ConditionalContainer,
     Container,
@@ -24,13 +28,23 @@ from prompt_toolkit.layout.containers import (
     VSplit,
     Window,
     WindowAlign,
+    WindowRenderInfo,
 )
-from prompt_toolkit.layout.controls import BufferControl, FormattedTextControl
+from prompt_toolkit.layout.controls import (
+    BufferControl,
+    FormattedTextControl,
+    UIContent,
+)
 from prompt_toolkit.layout.dimension import Dimension as D
 from prompt_toolkit.layout.layout import Layout
 from prompt_toolkit.layout.margins import Margin, ScrollbarMargin
-from prompt_toolkit.layout.processors import Processor, Transformation
+from prompt_toolkit.layout.processors import (
+    Processor,
+    Transformation,
+    TransformationInput,
+)
 from prompt_toolkit.lexers import PygmentsLexer
+from prompt_toolkit.mouse_events import MouseEvent
 from prompt_toolkit.widgets import Frame
 from prompt_toolkit.widgets.toolbars import ArgToolbar, SearchToolbar
 from pygments.lexers import Python3Lexer as PythonLexer
@@ -40,9 +54,14 @@ from ptpython.layout import get_inputmode_fragments
 
 from .utils import if_mousedown
 
+if TYPE_CHECKING:
+    from .python_input import PythonInput
+
 HISTORY_COUNT = 2000
 
 __all__ = ["HistoryLayout", "PythonHistory"]
+
+E = KeyPressEvent
 
 HELP_TEXT = """
 This interface is meant to select multiple lines from the
@@ -109,7 +128,7 @@ class HistoryLayout:
     application.
     """
 
-    def __init__(self, history):
+    def __init__(self, history: "PythonHistory") -> None:
         search_toolbar = SearchToolbar()
 
         self.help_buffer_control = BufferControl(
@@ -201,19 +220,19 @@ class HistoryLayout:
         self.layout = Layout(self.root_container, history_window)
 
 
-def _get_top_toolbar_fragments():
+def _get_top_toolbar_fragments() -> StyleAndTextTuples:
     return [("class:status-bar.title", "History browser - Insert from history")]
 
 
-def _get_bottom_toolbar_fragments(history):
+def _get_bottom_toolbar_fragments(history: "PythonHistory") -> StyleAndTextTuples:
     python_input = history.python_input
 
     @if_mousedown
-    def f1(mouse_event):
+    def f1(mouse_event: MouseEvent) -> None:
         _toggle_help(history)
 
     @if_mousedown
-    def tab(mouse_event):
+    def tab(mouse_event: MouseEvent) -> None:
         _select_other_window(history)
 
     return (
@@ -239,14 +258,16 @@ class HistoryMargin(Margin):
     This displays a green bar for the selected entries.
     """
 
-    def __init__(self, history):
+    def __init__(self, history: "PythonHistory") -> None:
         self.history_buffer = history.history_buffer
         self.history_mapping = history.history_mapping
 
-    def get_width(self, ui_content):
+    def get_width(self, get_ui_content: Callable[[], UIContent]) -> int:
         return 2
 
-    def create_margin(self, window_render_info, width, height):
+    def create_margin(
+        self, window_render_info: WindowRenderInfo, width: int, height: int
+    ) -> StyleAndTextTuples:
         document = self.history_buffer.document
 
         lines_starting_new_entries = self.history_mapping.lines_starting_new_entries
@@ -255,7 +276,7 @@ class HistoryMargin(Margin):
         current_lineno = document.cursor_position_row
 
         visible_line_to_input_line = window_render_info.visible_line_to_input_line
-        result = []
+        result: StyleAndTextTuples = []
 
         for y in range(height):
             line_number = visible_line_to_input_line.get(y)
@@ -286,14 +307,16 @@ class ResultMargin(Margin):
     The margin to be shown in the result pane.
     """
 
-    def __init__(self, history):
+    def __init__(self, history: "PythonHistory") -> None:
         self.history_mapping = history.history_mapping
         self.history_buffer = history.history_buffer
 
-    def get_width(self, ui_content):
+    def get_width(self, get_ui_content: Callable[[], UIContent]) -> int:
         return 2
 
-    def create_margin(self, window_render_info, width, height):
+    def create_margin(
+        self, window_render_info: WindowRenderInfo, width: int, height: int
+    ) -> StyleAndTextTuples:
         document = self.history_buffer.document
 
         current_lineno = document.cursor_position_row
@@ -303,7 +326,7 @@ class ResultMargin(Margin):
 
         visible_line_to_input_line = window_render_info.visible_line_to_input_line
 
-        result = []
+        result: StyleAndTextTuples = []
 
         for y in range(height):
             line_number = visible_line_to_input_line.get(y)
@@ -324,7 +347,7 @@ class ResultMargin(Margin):
 
         return result
 
-    def invalidation_hash(self, document):
+    def invalidation_hash(self, document: Document) -> int:
         return document.cursor_position_row
 
 
@@ -333,13 +356,15 @@ class GrayExistingText(Processor):
     Turn the existing input, before and after the inserted code gray.
     """
 
-    def __init__(self, history_mapping):
+    def __init__(self, history_mapping: "HistoryMapping") -> None:
         self.history_mapping = history_mapping
         self._lines_before = len(
             history_mapping.original_document.text_before_cursor.splitlines()
         )
 
-    def apply_transformation(self, transformation_input):
+    def apply_transformation(
+        self, transformation_input: TransformationInput
+    ) -> Transformation:
         lineno = transformation_input.lineno
         fragments = transformation_input.fragments
 
@@ -357,17 +382,22 @@ class HistoryMapping:
     Keep a list of all the lines from the history and the selected lines.
     """
 
-    def __init__(self, history, python_history, original_document):
+    def __init__(
+        self,
+        history: "PythonHistory",
+        python_history: History,
+        original_document: Document,
+    ) -> None:
         self.history = history
         self.python_history = python_history
         self.original_document = original_document
 
         self.lines_starting_new_entries = set()
-        self.selected_lines = set()
+        self.selected_lines: Set[int] = set()
 
         # Process history.
         history_strings = python_history.get_strings()
-        history_lines = []
+        history_lines: List[str] = []
 
         for entry_nr, entry in list(enumerate(history_strings))[-HISTORY_COUNT:]:
             self.lines_starting_new_entries.add(len(history_lines))
@@ -389,7 +419,7 @@ class HistoryMapping:
         else:
             self.result_line_offset = 0
 
-    def get_new_document(self, cursor_pos=None):
+    def get_new_document(self, cursor_pos: Optional[int] = None) -> Document:
         """
         Create a `Document` instance that contains the resulting text.
         """
@@ -413,13 +443,13 @@ class HistoryMapping:
             cursor_pos = len(text)
         return Document(text, cursor_pos)
 
-    def update_default_buffer(self):
+    def update_default_buffer(self) -> None:
         b = self.history.default_buffer
 
         b.set_document(self.get_new_document(b.cursor_position), bypass_readonly=True)
 
 
-def _toggle_help(history):
+def _toggle_help(history: "PythonHistory") -> None:
     "Display/hide help."
     help_buffer_control = history.history_layout.help_buffer_control
 
@@ -429,7 +459,7 @@ def _toggle_help(history):
         history.app.layout.current_control = help_buffer_control
 
 
-def _select_other_window(history):
+def _select_other_window(history: "PythonHistory") -> None:
     "Toggle focus between left/right window."
     current_buffer = history.app.current_buffer
     layout = history.history_layout.layout
@@ -441,7 +471,11 @@ def _select_other_window(history):
         layout.current_control = history.history_layout.history_buffer_control
 
 
-def create_key_bindings(history, python_input, history_mapping):
+def create_key_bindings(
+    history: "PythonHistory",
+    python_input: "PythonInput",
+    history_mapping: HistoryMapping,
+) -> KeyBindings:
     """
     Key bindings.
     """
@@ -449,7 +483,7 @@ def create_key_bindings(history, python_input, history_mapping):
     handle = bindings.add
 
     @handle(" ", filter=has_focus(history.history_buffer))
-    def _(event):
+    def _(event: E) -> None:
         """
         Space: select/deselect line from history pane.
         """
@@ -486,7 +520,7 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle(" ", filter=has_focus(DEFAULT_BUFFER))
     @handle("delete", filter=has_focus(DEFAULT_BUFFER))
     @handle("c-h", filter=has_focus(DEFAULT_BUFFER))
-    def _(event):
+    def _(event: E) -> None:
         """
         Space: remove line from default pane.
         """
@@ -512,17 +546,17 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle("c-x", filter=main_buffer_focussed, eager=True)
     # Eager: ignore the Emacs [Ctrl-X Ctrl-X] binding.
     @handle("c-w", filter=main_buffer_focussed)
-    def _(event):
+    def _(event: E) -> None:
         "Select other window."
         _select_other_window(history)
 
     @handle("f4")
-    def _(event):
+    def _(event: E) -> None:
         "Switch between Emacs/Vi mode."
         python_input.vi_mode = not python_input.vi_mode
 
     @handle("f1")
-    def _(event):
+    def _(event: E) -> None:
         "Display/hide help."
         _toggle_help(history)
 
@@ -530,7 +564,7 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle("c-c", filter=help_focussed)
     @handle("c-g", filter=help_focussed)
     @handle("escape", filter=help_focussed)
-    def _(event):
+    def _(event: E) -> None:
         "Leave help."
         event.app.layout.focus_previous()
 
@@ -538,19 +572,19 @@ def create_key_bindings(history, python_input, history_mapping):
     @handle("f3", filter=main_buffer_focussed)
     @handle("c-c", filter=main_buffer_focussed)
     @handle("c-g", filter=main_buffer_focussed)
-    def _(event):
+    def _(event: E) -> None:
         "Cancel and go back."
         event.app.exit(result=None)
 
     @handle("enter", filter=main_buffer_focussed)
-    def _(event):
+    def _(event: E) -> None:
         "Accept input."
         event.app.exit(result=history.default_buffer.text)
 
     enable_system_bindings = Condition(lambda: python_input.enable_system_bindings)
 
     @handle("c-z", filter=enable_system_bindings)
-    def _(event):
+    def _(event: E) -> None:
         "Suspend to background."
         event.app.suspend_to_background()
 
@@ -558,7 +592,9 @@ def create_key_bindings(history, python_input, history_mapping):
 
 
 class PythonHistory:
-    def __init__(self, python_input, original_document):
+    def __init__(
+        self, python_input: "PythonInput", original_document: Document
+    ) -> None:
         """
         Create an `Application` for the history screen.
         This has to be run as a sub application of `python_input`.
@@ -577,12 +613,14 @@ class PythonHistory:
             + document.get_start_of_line_position(),
         )
 
+        def accept_handler(buffer: Buffer) -> bool:
+            get_app().exit(result=self.default_buffer.text)
+            return False
+
         self.history_buffer = Buffer(
             document=document,
             on_cursor_position_changed=self._history_buffer_pos_changed,
-            accept_handler=(
-                lambda buff: get_app().exit(result=self.default_buffer.text)
-            ),
+            accept_handler=accept_handler,
             read_only=True,
         )
 
@@ -597,7 +635,7 @@ class PythonHistory:
 
         self.history_layout = HistoryLayout(self)
 
-        self.app = Application(
+        self.app: Application[str] = Application(
             layout=self.history_layout.layout,
             full_screen=True,
             style=python_input._current_style,
@@ -605,7 +643,7 @@ class PythonHistory:
             key_bindings=create_key_bindings(self, python_input, history_mapping),
         )
 
-    def _default_buffer_pos_changed(self, _):
+    def _default_buffer_pos_changed(self, _: Buffer) -> None:
         """When the cursor changes in the default buffer. Synchronize with
         history buffer."""
         # Only when this buffer has the focus.
@@ -629,7 +667,7 @@ class PythonHistory:
                     )
                 )
 
-    def _history_buffer_pos_changed(self, _):
+    def _history_buffer_pos_changed(self, _: Buffer) -> None:
         """When the cursor changes in the history buffer. Synchronize."""
         # Only when this buffer has the focus.
         if self.app.current_buffer == self.history_buffer:

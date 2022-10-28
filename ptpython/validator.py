@@ -1,3 +1,6 @@
+from typing import Callable, Optional
+
+from prompt_toolkit.document import Document
 from prompt_toolkit.validation import ValidationError, Validator
 
 from .utils import unindent_code
@@ -13,10 +16,10 @@ class PythonValidator(Validator):
         active compiler flags.
     """
 
-    def __init__(self, get_compiler_flags=None):
+    def __init__(self, get_compiler_flags: Optional[Callable[[], int]] = None) -> None:
         self.get_compiler_flags = get_compiler_flags
 
-    def validate(self, document):
+    def validate(self, document: Document) -> None:
         """
         Check input for Python syntax errors.
         """
@@ -45,7 +48,7 @@ class PythonValidator(Validator):
             # fixed in Python 3.)
             # TODO: This is not correct if indentation was removed.
             index = document.translate_row_col_to_index(
-                e.lineno - 1, (e.offset or 1) - 1
+                (e.lineno or 1) - 1, (e.offset or 1) - 1
             )
             raise ValidationError(index, f"Syntax Error: {e}")
         except TypeError as e:
