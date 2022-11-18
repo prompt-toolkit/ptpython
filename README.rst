@@ -255,6 +255,22 @@ Windows. Some things might not work, but it is usable:
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/windows.png
 
+Windows terminal integration
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+If you are using the `Windows Terminal <https://aka.ms/terminal>`_ and want to 
+integrate ``ptpython`` as a profile, go to *Settings -> Open JSON file* and add the
+following profile under *profiles.list*:
+
+.. code-block:: JSON
+
+    {
+        "commandline": "%SystemRoot%\\System32\\cmd.exe /k ptpython",
+        "guid": "{f91d49a3-741b-409c-8a15-c4360649121f}",
+        "hidden": false,
+        "icon": "https://upload.wikimedia.org/wikipedia/commons/e/e6/Python_Windows_interpreter_icon_2006%E2%80%932016_Tiny.png",
+        "name": "ptpython@cmd"
+    }
 
 FAQ
 ***
