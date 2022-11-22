@@ -10,6 +10,7 @@ __all__ = ["HasSignature", "ShowSidebar", "ShowSignature", "ShowDocstring"]
 
 class PythonInputFilter(Filter):
     def __init__(self, python_input: "PythonInput") -> None:
+        super().__init__()
         self.python_input = python_input
 
     def __call__(self) -> bool:
