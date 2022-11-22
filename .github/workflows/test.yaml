@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9, "3.10"]
 
     steps:
       - uses: actions/checkout@v2
@@ -30,6 +30,7 @@ jobs:
           mypy ptpython
           isort -c --profile black ptpython examples setup.py
           black --check ptpython examples setup.py
+        if: matrix.python-version != '3.6'
       - name: Run Tests
         run: |
           ./tests/run_tests.py
