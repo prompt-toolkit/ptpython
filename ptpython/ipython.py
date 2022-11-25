@@ -277,6 +277,25 @@ def initialize_extensions(shell, extensions):
                 shell.showtraceback()
 
 
+def run_exec_lines(shell, exec_lines):
+    """
+    Partial copy of  run_exec_lines code from IPython.core.shellapp .
+    """
+    try:
+        iter(exec_lines)
+    except TypeError:
+        pass
+    else:
+        try:
+            for line in exec_lines:
+                try:
+                    shell.run_cell(line, store_history=False)
+                except:
+                    shell.showtraceback()
+        except:
+            shell.showtraceback()
+
+
 def embed(**kwargs):
     """
     Copied from `IPython/terminal/embed.py`, but using our `InteractiveShellEmbed` instead.
@@ -290,6 +309,7 @@ def embed(**kwargs):
         kwargs["config"] = config
     shell = InteractiveShellEmbed.instance(**kwargs)
     initialize_extensions(shell, config["InteractiveShellApp"]["extensions"])
+    run_exec_lines(shell, config["InteractiveShellApp"]["exec_lines"])
     run_startup_scripts(shell)
     shell(header=header, stack_depth=2, compile_flags=compile_flags)
 
