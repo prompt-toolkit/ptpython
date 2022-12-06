@@ -476,14 +476,22 @@ class DictionaryCompleter(Completer):
         Complete dictionary keys.
         """
 
-        def abbr_meta(text: str) -> str:
+        def meta_repr(value: object) -> Callable[[], str]:
             "Abbreviate meta text, make sure it fits on one line."
-            # Take first line, if multiple lines.
-            if len(text) > 20:
-                text = text[:20] + "..."
-            if "\n" in text:
-                text = text.split("\n", 1)[0] + "..."
-            return text
+            # We return a function, so that it gets computed when it's needed.
+            # When there are many completions, that improves the performance
+            # quite a bit (for the multi-column completion menu, we only need
+            # to display one meta text).
+            def get_value_repr() -> str:
+                text = self._do_repr(value)
+
+                # Take first line, if multiple lines.
+                if "\n" in text:
+                    text = text.split("\n", 1)[0] + "..."
+
+                return text
+
+            return get_value_repr
 
         match = self.item_lookup_pattern.search(document.text_before_cursor)
         if match is not None:
@@ -512,12 +520,8 @@ class DictionaryCompleter(Completer):
                                 k_repr + "]",
                                 -len(key),
                                 display=f"[{k_repr}]",
-                                display_meta=abbr_meta(self._do_repr(v)),
+                                display_meta=meta_repr(v),
                             )
-                        except KeyError:
-                            # `result[k]` lookup failed. Trying to complete
-                            # broken object.
-                            pass
                         except ReprFailedError:
                             pass
 
@@ -532,7 +536,7 @@ class DictionaryCompleter(Completer):
                                     k_repr + "]",
                                     -len(key),
                                     display=f"[{k_repr}]",
-                                    display_meta=abbr_meta(self._do_repr(result[k])),
+                                    display_meta=meta_repr(result[k]),
                                 )
                             except KeyError:
                                 # `result[k]` lookup failed. Trying to complete
