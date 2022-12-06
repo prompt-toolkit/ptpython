@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+3.0.22: 2022-12-06
+------------------
+
+New features:
+- Improve rendering performance when there are many completions.
+
+
 3.0.21: 2022-11-25
 ------------------
 
