@@ -213,7 +213,7 @@ This is also available for embedding:
 
 .. code:: python
 
-    from ptpython.ipython.repl import embed
+    from ptpython.ipython import embed
     embed(globals(), locals())
 
 
