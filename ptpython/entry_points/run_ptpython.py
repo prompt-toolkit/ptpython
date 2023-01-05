@@ -39,6 +39,8 @@ try:
 except ImportError:
     import importlib_metadata as metadata  # type: ignore
 
+if appdirs.system == 'darwin':
+    appdirs.system = 'linux2'
 
 __all__ = ["create_parser", "get_config_and_history_file", "run"]
 
