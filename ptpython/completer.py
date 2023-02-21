@@ -189,7 +189,6 @@ class PythonCompleter(Completer):
         ):
             # If we are inside a string, Don't do Jedi completion.
             if not self._path_completer_grammar.match(document.text_before_cursor):
-
                 # Do Jedi Python completions.
                 yield from self._jedi_completer.get_completions(
                     document, complete_event
@@ -399,7 +398,6 @@ class DictionaryCompleter(Completer):
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
-
         # First, find all for-loops, and assign the first item of the
         # collections they're iterating to the iterator variable, so that we
         # can provide code completion on the iterators.
@@ -454,7 +452,6 @@ class DictionaryCompleter(Completer):
         result = self.eval_expression(document, temp_locals)
 
         if result is not None:
-
             if isinstance(
                 result,
                 (list, tuple, dict, collections_abc.Mapping, collections_abc.Sequence),
@@ -478,6 +475,7 @@ class DictionaryCompleter(Completer):
 
         def meta_repr(value: object) -> Callable[[], str]:
             "Abbreviate meta text, make sure it fits on one line."
+
             # We return a function, so that it gets computed when it's needed.
             # When there are many completions, that improves the performance
             # quite a bit (for the multi-column completion menu, we only need
@@ -617,7 +615,6 @@ class HidePrivateCompleter(Completer):
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
-
         completions = list(self.completer.get_completions(document, complete_event))
         complete_private_attributes = self.complete_private_attributes()
         hide_private = False
