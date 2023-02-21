@@ -96,7 +96,8 @@ class PythonRepl(PythonInput):
             # Eval.
             try:
                 result = self.eval(expression)
-            except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
+            except KeyboardInterrupt:
+                # KeyboardInterrupt doesn't inherit from Exception.
                 raise
             except SystemExit:
                 raise

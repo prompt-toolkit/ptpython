@@ -213,7 +213,6 @@ class PythonInput:
         _extra_toolbars=None,
         _input_buffer_height=None,
     ) -> None:
-
         self.get_globals: _GetNamespace = get_globals or (lambda: {})
         self.get_locals: _GetNamespace = get_locals or self.get_globals
 
@@ -1043,6 +1042,7 @@ class PythonInput:
 
         This can raise EOFError, when Control-D is pressed.
         """
+
         # Capture the current input_mode in order to restore it after reset,
         # for ViState.reset() sets it to InputMode.INSERT unconditionally and
         # doesn't accept any arguments.
