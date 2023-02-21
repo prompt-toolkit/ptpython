@@ -573,8 +573,6 @@ class PythonRepl(PythonInput):
             include_default_pygments_style=False,
             output=output,
         )
-
-        output.write("%s\n" % e)
         output.flush()
 
     def _handle_keyboard_interrupt(self, e: KeyboardInterrupt) -> None:
