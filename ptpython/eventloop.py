@@ -7,6 +7,8 @@ way we don't block the UI of for instance ``turtle`` and other Tk libraries.
 in readline. ``prompt-toolkit`` doesn't understand that input hook, but this
 will fix it for Tk.)
 """
+from __future__ import annotations
+
 import sys
 import time
 

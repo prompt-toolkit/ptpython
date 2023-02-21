@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable, Optional
 
 from prompt_toolkit.document import Document
@@ -17,7 +19,7 @@ class PtpythonLexer(Lexer):
     use a Python 3 lexer.
     """
 
-    def __init__(self, python_lexer: Optional[Lexer] = None) -> None:
+    def __init__(self, python_lexer: Lexer | None = None) -> None:
         self.python_lexer = python_lexer or PygmentsLexer(PythonLexer)
         self.system_lexer = PygmentsLexer(BashLexer)
 

@@ -7,6 +7,8 @@ Utility for creating a Python repl.
     embed(globals(), locals(), vi_mode=False)
 
 """
+from __future__ import annotations
+
 import asyncio
 import builtins
 import os
@@ -53,7 +55,7 @@ except ImportError:
 __all__ = ["PythonRepl", "enable_deprecation_warnings", "run_config", "embed"]
 
 
-def _get_coroutine_flag() -> Optional[int]:
+def _get_coroutine_flag() -> int | None:
     for k, v in COMPILER_FLAG_NAMES.items():
         if v == "COROUTINE":
             return k
@@ -62,7 +64,7 @@ def _get_coroutine_flag() -> Optional[int]:
     return None
 
 
-COROUTINE_FLAG: Optional[int] = _get_coroutine_flag()
+COROUTINE_FLAG: int | None = _get_coroutine_flag()
 
 
 def _has_coroutine_flag(code: types.CodeType) -> bool:
@@ -89,7 +91,7 @@ class PythonRepl(PythonInput):
                         exec(code, self.get_globals(), self.get_locals())
                 else:
                     output = self.app.output
-                    output.write("WARNING | File not found: {}\n\n".format(path))
+                    output.write(f"WARNING | File not found: {path}\n\n")
 
     def run_and_show_expression(self, expression: str) -> None:
         try:
@@ -300,7 +302,7 @@ class PythonRepl(PythonInput):
         return None
 
     def _store_eval_result(self, result: object) -> None:
-        locals: Dict[str, Any] = self.get_locals()
+        locals: dict[str, Any] = self.get_locals()
         locals["_"] = locals["_%i" % self.current_statement_index] = result
 
     def get_compiler_flags(self) -> int:
@@ -524,7 +526,7 @@ class PythonRepl(PythonInput):
 
         flush_page()
 
-    def create_pager_prompt(self) -> PromptSession["PagerResult"]:
+    def create_pager_prompt(self) -> PromptSession[PagerResult]:
         """
         Create pager --MORE-- prompt.
         """
@@ -651,7 +653,7 @@ def run_config(
 
     # Run the config file in an empty namespace.
     try:
-        namespace: Dict[str, Any] = {}
+        namespace: dict[str, Any] = {}
 
         with open(config_file, "rb") as f:
             code = compile(f.read(), config_file, "exec")
@@ -670,10 +672,10 @@ def run_config(
 def embed(
     globals=None,
     locals=None,
-    configure: Optional[Callable[[PythonRepl], None]] = None,
+    configure: Callable[[PythonRepl], None] | None = None,
     vi_mode: bool = False,
-    history_filename: Optional[str] = None,
-    title: Optional[str] = None,
+    history_filename: str | None = None,
+    title: str | None = None,
     startup_paths=None,
     patch_stdout: bool = False,
     return_asyncio_coroutine: bool = False,

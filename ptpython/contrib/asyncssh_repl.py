@@ -6,6 +6,8 @@ Note that the code in this file is Python 3 only. However, we
 should make sure not to use Python 3-only syntax, because this
 package should be installable in Python 2 as well!
 """
+from __future__ import annotations
+
 import asyncio
 from typing import Any, Optional, TextIO, cast
 
@@ -29,7 +31,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
     """
 
     def __init__(
-        self, get_globals: _GetNamespace, get_locals: Optional[_GetNamespace] = None
+        self, get_globals: _GetNamespace, get_locals: _GetNamespace | None = None
     ) -> None:
         self._chan: Any = None
 

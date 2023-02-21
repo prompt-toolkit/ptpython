@@ -5,6 +5,8 @@ editing.
 Either with the Jedi library, or using `inspect.signature` if Jedi fails and we
 can use `eval()` to evaluate the function object.
 """
+from __future__ import annotations
+
 import inspect
 from inspect import Signature as InspectSignature
 from inspect import _ParameterKind as ParameterKind
@@ -25,8 +27,8 @@ class Parameter:
     def __init__(
         self,
         name: str,
-        annotation: Optional[str],
-        default: Optional[str],
+        annotation: str | None,
+        default: str | None,
         kind: ParameterKind,
     ) -> None:
         self.name = name
@@ -66,9 +68,9 @@ class Signature:
         name: str,
         docstring: str,
         parameters: Sequence[Parameter],
-        index: Optional[int] = None,
+        index: int | None = None,
         returns: str = "",
-        bracket_start: Tuple[int, int] = (0, 0),
+        bracket_start: tuple[int, int] = (0, 0),
     ) -> None:
         self.name = name
         self.docstring = docstring
@@ -84,7 +86,7 @@ class Signature:
         docstring: str,
         signature: InspectSignature,
         index: int,
-    ) -> "Signature":
+    ) -> Signature:
         parameters = []
 
         def get_annotation_name(annotation: object) -> str:
@@ -123,9 +125,7 @@ class Signature:
         )
 
     @classmethod
-    def from_jedi_signature(
-        cls, signature: "jedi.api.classes.Signature"
-    ) -> "Signature":
+    def from_jedi_signature(cls, signature: jedi.api.classes.Signature) -> Signature:
         parameters = []
 
         for p in signature.params:
@@ -160,8 +160,8 @@ class Signature:
 
 
 def get_signatures_using_jedi(
-    document: Document, locals: Dict[str, Any], globals: Dict[str, Any]
-) -> List[Signature]:
+    document: Document, locals: dict[str, Any], globals: dict[str, Any]
+) -> list[Signature]:
     script = get_jedi_script_from_document(document, locals, globals)
 
     # Show signatures in help text.
@@ -195,8 +195,8 @@ def get_signatures_using_jedi(
 
 
 def get_signatures_using_eval(
-    document: Document, locals: Dict[str, Any], globals: Dict[str, Any]
-) -> List[Signature]:
+    document: Document, locals: dict[str, Any], globals: dict[str, Any]
+) -> list[Signature]:
     """
     Look for the signature of the function before the cursor position without
     use of Jedi. This uses a similar approach as the `DictionaryCompleter` of

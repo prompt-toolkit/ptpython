@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import TYPE_CHECKING
 
 from prompt_toolkit.filters import Filter
@@ -9,7 +11,7 @@ __all__ = ["HasSignature", "ShowSidebar", "ShowSignature", "ShowDocstring"]
 
 
 class PythonInputFilter(Filter):
-    def __init__(self, python_input: "PythonInput") -> None:
+    def __init__(self, python_input: PythonInput) -> None:
         super().__init__()
         self.python_input = python_input
 

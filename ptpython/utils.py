@@ -1,6 +1,8 @@
 """
 For internal use only.
 """
+from __future__ import annotations
+
 import re
 from typing import (
     TYPE_CHECKING,
@@ -65,8 +67,8 @@ def has_unclosed_brackets(text: str) -> bool:
 
 
 def get_jedi_script_from_document(
-    document: Document, locals: Dict[str, Any], globals: Dict[str, Any]
-) -> "Interpreter":
+    document: Document, locals: dict[str, Any], globals: dict[str, Any]
+) -> Interpreter:
     import jedi  # We keep this import in-line, to improve start-up time.
 
     # Importing Jedi is 'slow'.
@@ -154,7 +156,7 @@ def if_mousedown(handler: _T) -> _T:
     by the Window.)
     """
 
-    def handle_if_mouse_down(mouse_event: MouseEvent) -> "NotImplementedOrNone":
+    def handle_if_mouse_down(mouse_event: MouseEvent) -> NotImplementedOrNone:
         if mouse_event.event_type == MouseEventType.MOUSE_DOWN:
             return handler(mouse_event)
         else:
