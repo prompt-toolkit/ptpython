@@ -8,6 +8,8 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
+from __future__ import annotations
+
 from typing import Iterable
 from warnings import warn
 
@@ -62,12 +64,12 @@ class IPythonPrompt(PromptStyle):
 
 class IPythonValidator(PythonValidator):
     def __init__(self, *args, **kwargs):
-        super(IPythonValidator, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.isp = IPythonInputSplitter()
 
     def validate(self, document: Document) -> None:
         document = Document(text=self.isp.transform_cell(document.text))
-        super(IPythonValidator, self).validate(document)
+        super().validate(document)
 
 
 def create_ipython_grammar():

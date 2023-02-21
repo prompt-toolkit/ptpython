@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import ast
 import collections.abc as collections_abc
 import inspect
@@ -44,8 +46,8 @@ class PythonCompleter(Completer):
 
     def __init__(
         self,
-        get_globals: Callable[[], Dict[str, Any]],
-        get_locals: Callable[[], Dict[str, Any]],
+        get_globals: Callable[[], dict[str, Any]],
+        get_locals: Callable[[], dict[str, Any]],
         enable_dictionary_completion: Callable[[], bool],
     ) -> None:
         super().__init__()
@@ -58,8 +60,8 @@ class PythonCompleter(Completer):
         self._jedi_completer = JediCompleter(get_globals, get_locals)
         self._dictionary_completer = DictionaryCompleter(get_globals, get_locals)
 
-        self._path_completer_cache: Optional[GrammarCompleter] = None
-        self._path_completer_grammar_cache: Optional["_CompiledGrammar"] = None
+        self._path_completer_cache: GrammarCompleter | None = None
+        self._path_completer_grammar_cache: _CompiledGrammar | None = None
 
     @property
     def _path_completer(self) -> GrammarCompleter:
@@ -74,7 +76,7 @@ class PythonCompleter(Completer):
         return self._path_completer_cache
 
     @property
-    def _path_completer_grammar(self) -> "_CompiledGrammar":
+    def _path_completer_grammar(self) -> _CompiledGrammar:
         """
         Return the grammar for matching paths inside strings inside Python
         code.
@@ -85,7 +87,7 @@ class PythonCompleter(Completer):
             self._path_completer_grammar_cache = self._create_path_completer_grammar()
         return self._path_completer_grammar_cache
 
-    def _create_path_completer_grammar(self) -> "_CompiledGrammar":
+    def _create_path_completer_grammar(self) -> _CompiledGrammar:
         def unwrapper(text: str) -> str:
             return re.sub(r"\\(.)", r"\1", text)
 
@@ -202,8 +204,8 @@ class JediCompleter(Completer):
 
     def __init__(
         self,
-        get_globals: Callable[[], Dict[str, Any]],
-        get_locals: Callable[[], Dict[str, Any]],
+        get_globals: Callable[[], dict[str, Any]],
+        get_locals: Callable[[], dict[str, Any]],
     ) -> None:
         super().__init__()
 
@@ -241,7 +243,7 @@ class JediCompleter(Completer):
                 # Jedi issue: "KeyError: u'a_lambda'."
                 # https://github.com/jonathanslenders/ptpython/issues/89
                 pass
-            except IOError:
+            except OSError:
                 # Jedi issue: "IOError: No such file or directory."
                 # https://github.com/jonathanslenders/ptpython/issues/71
                 pass
@@ -302,8 +304,8 @@ class DictionaryCompleter(Completer):
 
     def __init__(
         self,
-        get_globals: Callable[[], Dict[str, Any]],
-        get_locals: Callable[[], Dict[str, Any]],
+        get_globals: Callable[[], dict[str, Any]],
+        get_locals: Callable[[], dict[str, Any]],
     ) -> None:
         super().__init__()
 
@@ -385,7 +387,7 @@ class DictionaryCompleter(Completer):
             re.VERBOSE,
         )
 
-    def _lookup(self, expression: str, temp_locals: Dict[str, Any]) -> object:
+    def _lookup(self, expression: str, temp_locals: dict[str, Any]) -> object:
         """
         Do lookup of `object_var` in the context.
         `temp_locals` is a dictionary, used for the locals.
@@ -429,7 +431,7 @@ class DictionaryCompleter(Completer):
         except BaseException:
             raise ReprFailedError
 
-    def eval_expression(self, document: Document, locals: Dict[str, Any]) -> object:
+    def eval_expression(self, document: Document, locals: dict[str, Any]) -> object:
         """
         Evaluate
         """
@@ -444,7 +446,7 @@ class DictionaryCompleter(Completer):
         self,
         document: Document,
         complete_event: CompleteEvent,
-        temp_locals: Dict[str, Any],
+        temp_locals: dict[str, Any],
     ) -> Iterable[Completion]:
         """
         Complete the [ or . operator after an object.
@@ -467,7 +469,7 @@ class DictionaryCompleter(Completer):
         self,
         document: Document,
         complete_event: CompleteEvent,
-        temp_locals: Dict[str, Any],
+        temp_locals: dict[str, Any],
     ) -> Iterable[Completion]:
         """
         Complete dictionary keys.
@@ -547,7 +549,7 @@ class DictionaryCompleter(Completer):
         self,
         document: Document,
         complete_event: CompleteEvent,
-        temp_locals: Dict[str, Any],
+        temp_locals: dict[str, Any],
     ) -> Iterable[Completion]:
         """
         Complete attribute names.
@@ -579,13 +581,13 @@ class DictionaryCompleter(Completer):
                     suffix = get_suffix(name)
                     yield Completion(name, -len(attr_name), display=name + suffix)
 
-    def _sort_attribute_names(self, names: List[str]) -> List[str]:
+    def _sort_attribute_names(self, names: list[str]) -> list[str]:
         """
         Sort attribute names alphabetically, but move the double underscore and
         underscore names to the end.
         """
 
-        def sort_key(name: str) -> Tuple[int, str]:
+        def sort_key(name: str) -> tuple[int, str]:
             if name.startswith("__"):
                 return (2, name)  # Double underscore comes latest.
             if name.startswith("_"):
@@ -650,7 +652,7 @@ except ImportError:  # Python 2.
 
 
 def _get_style_for_jedi_completion(
-    jedi_completion: "jedi.api.classes.Completion",
+    jedi_completion: jedi.api.classes.Completion,
 ) -> str:
     """
     Return completion style to use for this name.

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Callable, Optional
 
 from prompt_toolkit.document import Document
@@ -16,7 +18,7 @@ class PythonValidator(Validator):
         active compiler flags.
     """
 
-    def __init__(self, get_compiler_flags: Optional[Callable[[], int]] = None) -> None:
+    def __init__(self, get_compiler_flags: Callable[[], int] | None = None) -> None:
         self.get_compiler_flags = get_compiler_flags
 
     def validate(self, document: Document) -> None:

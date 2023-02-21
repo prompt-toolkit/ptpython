@@ -1,6 +1,8 @@
 """
 Creation of the `Layout` instance for the Python input/REPL.
 """
+from __future__ import annotations
+
 import platform
 import sys
 from enum import Enum
@@ -78,26 +80,26 @@ class CompletionVisualisation(Enum):
     TOOLBAR = "toolbar"
 
 
-def show_completions_toolbar(python_input: "PythonInput") -> Condition:
+def show_completions_toolbar(python_input: PythonInput) -> Condition:
     return Condition(
         lambda: python_input.completion_visualisation == CompletionVisualisation.TOOLBAR
     )
 
 
-def show_completions_menu(python_input: "PythonInput") -> Condition:
+def show_completions_menu(python_input: PythonInput) -> Condition:
     return Condition(
         lambda: python_input.completion_visualisation == CompletionVisualisation.POP_UP
     )
 
 
-def show_multi_column_completions_menu(python_input: "PythonInput") -> Condition:
+def show_multi_column_completions_menu(python_input: PythonInput) -> Condition:
     return Condition(
         lambda: python_input.completion_visualisation
         == CompletionVisualisation.MULTI_COLUMN
     )
 
 
-def python_sidebar(python_input: "PythonInput") -> Window:
+def python_sidebar(python_input: PythonInput) -> Window:
     """
     Create the `Layout` for the sidebar with the configurable options.
     """
@@ -105,7 +107,7 @@ def python_sidebar(python_input: "PythonInput") -> Window:
     def get_text_fragments() -> StyleAndTextTuples:
         tokens: StyleAndTextTuples = []
 
-        def append_category(category: "OptionCategory[Any]") -> None:
+        def append_category(category: OptionCategory[Any]) -> None:
             tokens.extend(
                 [
                     ("class:sidebar", "  "),
@@ -172,7 +174,7 @@ def python_sidebar(python_input: "PythonInput") -> Window:
     )
 
 
-def python_sidebar_navigation(python_input: "PythonInput") -> Window:
+def python_sidebar_navigation(python_input: PythonInput) -> Window:
     """
     Create the `Layout` showing the navigation information for the sidebar.
     """
@@ -198,7 +200,7 @@ def python_sidebar_navigation(python_input: "PythonInput") -> Window:
     )
 
 
-def python_sidebar_help(python_input: "PythonInput") -> Container:
+def python_sidebar_help(python_input: PythonInput) -> Container:
     """
     Create the `Layout` for the help text for the current item in the sidebar.
     """
@@ -232,7 +234,7 @@ def python_sidebar_help(python_input: "PythonInput") -> Container:
     )
 
 
-def signature_toolbar(python_input: "PythonInput") -> Container:
+def signature_toolbar(python_input: PythonInput) -> Container:
     """
     Return the `Layout` for the signature.
     """
@@ -318,7 +320,7 @@ class PythonPromptMargin(PromptMargin):
     It shows something like "In [1]:".
     """
 
-    def __init__(self, python_input: "PythonInput") -> None:
+    def __init__(self, python_input: PythonInput) -> None:
         self.python_input = python_input
 
         def get_prompt_style() -> PromptStyle:
@@ -339,7 +341,7 @@ class PythonPromptMargin(PromptMargin):
         super().__init__(get_prompt, get_continuation)
 
 
-def status_bar(python_input: "PythonInput") -> Container:
+def status_bar(python_input: PythonInput) -> Container:
     """
     Create the `Layout` for the status bar.
     """
@@ -412,7 +414,7 @@ def status_bar(python_input: "PythonInput") -> Container:
     )
 
 
-def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
+def get_inputmode_fragments(python_input: PythonInput) -> StyleAndTextTuples:
     """
     Return current input mode as a list of (token, text) tuples for use in a
     toolbar.
@@ -440,7 +442,7 @@ def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
         recording_register = app.vi_state.recording_register
         if recording_register:
             append((token, " "))
-            append((token + " class:record", "RECORD({})".format(recording_register)))
+            append((token + " class:record", f"RECORD({recording_register})"))
             append((token, " - "))
 
         if app.current_buffer.selection_state is not None:
@@ -473,7 +475,7 @@ def get_inputmode_fragments(python_input: "PythonInput") -> StyleAndTextTuples:
     return result
 
 
-def show_sidebar_button_info(python_input: "PythonInput") -> Container:
+def show_sidebar_button_info(python_input: PythonInput) -> Container:
     """
     Create `Layout` for the information in the right-bottom corner.
     (The right part of the status bar.)
@@ -519,7 +521,7 @@ def show_sidebar_button_info(python_input: "PythonInput") -> Container:
 
 
 def create_exit_confirmation(
-    python_input: "PythonInput", style: str = "class:exit-confirmation"
+    python_input: PythonInput, style: str = "class:exit-confirmation"
 ) -> Container:
     """
     Create `Layout` for the exit message.
@@ -543,7 +545,7 @@ def create_exit_confirmation(
     )
 
 
-def meta_enter_message(python_input: "PythonInput") -> Container:
+def meta_enter_message(python_input: PythonInput) -> Container:
     """
     Create the `Layout` for the 'Meta+Enter` message.
     """
@@ -575,15 +577,15 @@ def meta_enter_message(python_input: "PythonInput") -> Container:
 class PtPythonLayout:
     def __init__(
         self,
-        python_input: "PythonInput",
+        python_input: PythonInput,
         lexer: Lexer,
-        extra_body: Optional[AnyContainer] = None,
-        extra_toolbars: Optional[List[AnyContainer]] = None,
-        extra_buffer_processors: Optional[List[Processor]] = None,
-        input_buffer_height: Optional[AnyDimension] = None,
+        extra_body: AnyContainer | None = None,
+        extra_toolbars: list[AnyContainer] | None = None,
+        extra_buffer_processors: list[Processor] | None = None,
+        input_buffer_height: AnyDimension | None = None,
     ) -> None:
         D = Dimension
-        extra_body_list: List[AnyContainer] = [extra_body] if extra_body else []
+        extra_body_list: list[AnyContainer] = [extra_body] if extra_body else []
         extra_toolbars = extra_toolbars or []
 
         input_buffer_height = input_buffer_height or D(min=6)
@@ -591,7 +593,7 @@ class PtPythonLayout:
         search_toolbar = SearchToolbar(python_input.search_buffer)
 
         def create_python_input_window() -> Window:
-            def menu_position() -> Optional[int]:
+            def menu_position() -> int | None:
                 """
                 When there is no autocompletion menu to be shown, and we have a
                 signature, set the pop-up position at `bracket_start`.

@@ -21,6 +21,8 @@ environment variables:
   PTPYTHON_CONFIG_HOME: a configuration directory to use
   PYTHONSTARTUP: file executed on interactive startup (no default)
 """
+from __future__ import annotations
+
 import argparse
 import os
 import pathlib
@@ -44,7 +46,7 @@ __all__ = ["create_parser", "get_config_and_history_file", "run"]
 
 
 class _Parser(argparse.ArgumentParser):
-    def print_help(self, file: Optional[IO[str]] = None) -> None:
+    def print_help(self, file: IO[str] | None = None) -> None:
         super().print_help()
         print(
             dedent(
@@ -90,7 +92,7 @@ def create_parser() -> _Parser:
     return parser
 
 
-def get_config_and_history_file(namespace: argparse.Namespace) -> Tuple[str, str]:
+def get_config_and_history_file(namespace: argparse.Namespace) -> tuple[str, str]:
     """
     Check which config/history files to use, ensure that the directories for
     these files exist, and return the config and history path.

@@ -4,6 +4,8 @@ Utility to easily select lines from the history and execute them again.
 `create_history_application` creates an `Application` instance that runs will
 run as a sub application of the Repl/PythonInput.
 """
+from __future__ import annotations
+
 from functools import partial
 from typing import TYPE_CHECKING, Callable, List, Optional, Set
 
@@ -128,7 +130,7 @@ class HistoryLayout:
     application.
     """
 
-    def __init__(self, history: "PythonHistory") -> None:
+    def __init__(self, history: PythonHistory) -> None:
         search_toolbar = SearchToolbar()
 
         self.help_buffer_control = BufferControl(
@@ -224,7 +226,7 @@ def _get_top_toolbar_fragments() -> StyleAndTextTuples:
     return [("class:status-bar.title", "History browser - Insert from history")]
 
 
-def _get_bottom_toolbar_fragments(history: "PythonHistory") -> StyleAndTextTuples:
+def _get_bottom_toolbar_fragments(history: PythonHistory) -> StyleAndTextTuples:
     python_input = history.python_input
 
     @if_mousedown
@@ -258,7 +260,7 @@ class HistoryMargin(Margin):
     This displays a green bar for the selected entries.
     """
 
-    def __init__(self, history: "PythonHistory") -> None:
+    def __init__(self, history: PythonHistory) -> None:
         self.history_buffer = history.history_buffer
         self.history_mapping = history.history_mapping
 
@@ -307,7 +309,7 @@ class ResultMargin(Margin):
     The margin to be shown in the result pane.
     """
 
-    def __init__(self, history: "PythonHistory") -> None:
+    def __init__(self, history: PythonHistory) -> None:
         self.history_mapping = history.history_mapping
         self.history_buffer = history.history_buffer
 
@@ -356,7 +358,7 @@ class GrayExistingText(Processor):
     Turn the existing input, before and after the inserted code gray.
     """
 
-    def __init__(self, history_mapping: "HistoryMapping") -> None:
+    def __init__(self, history_mapping: HistoryMapping) -> None:
         self.history_mapping = history_mapping
         self._lines_before = len(
             history_mapping.original_document.text_before_cursor.splitlines()
@@ -384,7 +386,7 @@ class HistoryMapping:
 
     def __init__(
         self,
-        history: "PythonHistory",
+        history: PythonHistory,
         python_history: History,
         original_document: Document,
     ) -> None:
@@ -393,11 +395,11 @@ class HistoryMapping:
         self.original_document = original_document
 
         self.lines_starting_new_entries = set()
-        self.selected_lines: Set[int] = set()
+        self.selected_lines: set[int] = set()
 
         # Process history.
         history_strings = python_history.get_strings()
-        history_lines: List[str] = []
+        history_lines: list[str] = []
 
         for entry_nr, entry in list(enumerate(history_strings))[-HISTORY_COUNT:]:
             self.lines_starting_new_entries.add(len(history_lines))
@@ -419,7 +421,7 @@ class HistoryMapping:
         else:
             self.result_line_offset = 0
 
-    def get_new_document(self, cursor_pos: Optional[int] = None) -> Document:
+    def get_new_document(self, cursor_pos: int | None = None) -> Document:
         """
         Create a `Document` instance that contains the resulting text.
         """
@@ -449,7 +451,7 @@ class HistoryMapping:
         b.set_document(self.get_new_document(b.cursor_position), bypass_readonly=True)
 
 
-def _toggle_help(history: "PythonHistory") -> None:
+def _toggle_help(history: PythonHistory) -> None:
     "Display/hide help."
     help_buffer_control = history.history_layout.help_buffer_control
 
@@ -459,7 +461,7 @@ def _toggle_help(history: "PythonHistory") -> None:
         history.app.layout.current_control = help_buffer_control
 
 
-def _select_other_window(history: "PythonHistory") -> None:
+def _select_other_window(history: PythonHistory) -> None:
     "Toggle focus between left/right window."
     current_buffer = history.app.current_buffer
     layout = history.history_layout.layout
@@ -472,8 +474,8 @@ def _select_other_window(history: "PythonHistory") -> None:
 
 
 def create_key_bindings(
-    history: "PythonHistory",
-    python_input: "PythonInput",
+    history: PythonHistory,
+    python_input: PythonInput,
     history_mapping: HistoryMapping,
 ) -> KeyBindings:
     """
@@ -592,9 +594,7 @@ def create_key_bindings(
 
 
 class PythonHistory:
-    def __init__(
-        self, python_input: "PythonInput", original_document: Document
-    ) -> None:
+    def __init__(self, python_input: PythonInput, original_document: Document) -> None:
         """
         Create an `Application` for the history screen.
         This has to be run as a sub application of `python_input`.

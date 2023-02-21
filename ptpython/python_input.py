@@ -2,7 +2,7 @@
 Application for reading Python input.
 This can be used for creation of Python REPLs.
 """
-import __future__
+from __future__ import annotations
 
 from asyncio import get_event_loop
 from functools import partial
@@ -84,6 +84,11 @@ from .style import generate_style, get_all_code_styles, get_all_ui_styles
 from .utils import unindent_code
 from .validator import PythonValidator
 
+# Isort introduces a SyntaxError, if we'd write `import __future__`.
+# https://github.com/PyCQA/isort/issues/2100
+__future__ = __import__("__future__")
+
+
 __all__ = ["PythonInput"]
 
 
@@ -101,7 +106,7 @@ _T = TypeVar("_T", bound="_SupportsLessThan")
 
 
 class OptionCategory(Generic[_T]):
-    def __init__(self, title: str, options: List["Option[_T]"]) -> None:
+    def __init__(self, title: str, options: list[Option[_T]]) -> None:
         self.title = title
         self.options = options
 
@@ -194,22 +199,22 @@ class PythonInput:
 
     def __init__(
         self,
-        get_globals: Optional[_GetNamespace] = None,
-        get_locals: Optional[_GetNamespace] = None,
-        history_filename: Optional[str] = None,
+        get_globals: _GetNamespace | None = None,
+        get_locals: _GetNamespace | None = None,
+        history_filename: str | None = None,
         vi_mode: bool = False,
-        color_depth: Optional[ColorDepth] = None,
+        color_depth: ColorDepth | None = None,
         # Input/output.
-        input: Optional[Input] = None,
-        output: Optional[Output] = None,
+        input: Input | None = None,
+        output: Output | None = None,
         # For internal use.
-        extra_key_bindings: Optional[KeyBindings] = None,
+        extra_key_bindings: KeyBindings | None = None,
         create_app: bool = True,
-        _completer: Optional[Completer] = None,
-        _validator: Optional[Validator] = None,
-        _lexer: Optional[Lexer] = None,
+        _completer: Completer | None = None,
+        _validator: Validator | None = None,
+        _lexer: Lexer | None = None,
         _extra_buffer_processors=None,
-        _extra_layout_body: Optional[AnyContainer] = None,
+        _extra_layout_body: AnyContainer | None = None,
         _extra_toolbars=None,
         _input_buffer_height=None,
     ) -> None:
@@ -309,7 +314,7 @@ class PythonInput:
         self.show_exit_confirmation: bool = False
 
         # The title to be displayed in the terminal. (None or string.)
-        self.terminal_title: Optional[str] = None
+        self.terminal_title: str | None = None
 
         self.exit_message: str = "Do you really want to exit?"
         self.insert_blank_line_after_output: bool = True  # (For the REPL.)
@@ -324,7 +329,7 @@ class PythonInput:
         self.prompt_style: str = "classic"  # The currently active style.
 
         # Styles selectable from the menu.
-        self.all_prompt_styles: Dict[str, PromptStyle] = {
+        self.all_prompt_styles: dict[str, PromptStyle] = {
             "ipython": IPythonPrompt(self),
             "classic": ClassicPrompt(),
         }
@@ -338,7 +343,7 @@ class PythonInput:
         ].out_prompt()
 
         #: Load styles.
-        self.code_styles: Dict[str, BaseStyle] = get_all_code_styles()
+        self.code_styles: dict[str, BaseStyle] = get_all_code_styles()
         self.ui_styles = get_all_ui_styles()
         self._current_code_style_name: str = "default"
         self._current_ui_style_name: str = "default"
@@ -360,7 +365,7 @@ class PythonInput:
         self.current_statement_index: int = 1
 
         # Code signatures. (This is set asynchronously after a timeout.)
-        self.signatures: List[Signature] = []
+        self.signatures: list[Signature] = []
 
         # Boolean indicating whether we have a signatures thread running.
         # (Never run more than one at the same time.)
@@ -399,9 +404,7 @@ class PythonInput:
         # Create an app if requested. If not, the global get_app() is returned
         # for self.app via property getter.
         if create_app:
-            self._app: Optional[Application[str]] = self._create_application(
-                input, output
-            )
+            self._app: Application[str] | None = self._create_application(input, output)
             # Setting vi_mode will not work unless the prompt_toolkit
             # application has been created.
             if vi_mode:
@@ -527,7 +530,7 @@ class PythonInput:
             self.ui_styles[self._current_ui_style_name],
         )
 
-    def _create_options(self) -> List[OptionCategory[Any]]:
+    def _create_options(self) -> list[OptionCategory[Any]]:
         """
         Create a list of `Option` instances for the options sidebar.
         """
@@ -546,14 +549,14 @@ class PythonInput:
             title: str,
             description: str,
             field_name: str,
-            values: Tuple[str, str] = ("off", "on"),
+            values: tuple[str, str] = ("off", "on"),
         ) -> Option[str]:
             "Create Simple on/of option."
 
             def get_current_value() -> str:
                 return values[bool(getattr(self, field_name))]
 
-            def get_values() -> Dict[str, Callable[[], bool]]:
+            def get_values() -> dict[str, Callable[[], bool]]:
                 return {
                     values[1]: lambda: enable(field_name),
                     values[0]: lambda: disable(field_name),
@@ -730,10 +733,10 @@ class PythonInput:
                         title="Prompt",
                         description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
                         get_current_value=lambda: self.prompt_style,
-                        get_values=lambda: dict(
-                            (s, partial(enable, "prompt_style", s))
+                        get_values=lambda: {
+                            s: partial(enable, "prompt_style", s)
                             for s in self.all_prompt_styles
-                        ),
+                        },
                     ),
                     simple_option(
                         title="Blank line after input",
@@ -825,10 +828,10 @@ class PythonInput:
                         title="User interface",
                         description="Color scheme to use for the user interface.",
                         get_current_value=lambda: self._current_ui_style_name,
-                        get_values=lambda: dict(
-                            (name, partial(self.use_ui_colorscheme, name))
+                        get_values=lambda: {
+                            name: partial(self.use_ui_colorscheme, name)
                             for name in self.ui_styles
-                        ),
+                        },
                     ),
                     Option(
                         title="Color depth",
@@ -862,7 +865,7 @@ class PythonInput:
         ]
 
     def _create_application(
-        self, input: Optional[Input], output: Optional[Output]
+        self, input: Input | None, output: Output | None
     ) -> Application[str]:
         """
         Create an `Application` instance.
@@ -952,7 +955,7 @@ class PythonInput:
         in another thread, get the signature of the current code.
         """
 
-        def get_signatures_in_executor(document: Document) -> List[Signature]:
+        def get_signatures_in_executor(document: Document) -> list[Signature]:
             # First, get signatures from Jedi. If we didn't found any and if
             # "dictionary completion" (eval-based completion) is enabled, then
             # get signatures using eval.

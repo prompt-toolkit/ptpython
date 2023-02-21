@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from typing import Dict
 
 from prompt_toolkit.styles import BaseStyle, Style, merge_styles
@@ -8,11 +10,11 @@ from pygments.styles import get_all_styles, get_style_by_name
 __all__ = ["get_all_code_styles", "get_all_ui_styles", "generate_style"]
 
 
-def get_all_code_styles() -> Dict[str, BaseStyle]:
+def get_all_code_styles() -> dict[str, BaseStyle]:
     """
     Return a mapping from style names to their classes.
     """
-    result: Dict[str, BaseStyle] = {
+    result: dict[str, BaseStyle] = {
         name: style_from_pygments_cls(get_style_by_name(name))
         for name in get_all_styles()
     }
@@ -20,7 +22,7 @@ def get_all_code_styles() -> Dict[str, BaseStyle]:
     return result
 
 
-def get_all_ui_styles() -> Dict[str, BaseStyle]:
+def get_all_ui_styles() -> dict[str, BaseStyle]:
     """
     Return a dict mapping {ui_style_name -> style_dict}.
     """
