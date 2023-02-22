@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+3.0.23: 2023-02-22
+------------------
+
+Fixes:
+- Don't print exception messages twice for unhandled exceptions.
+- Added cursor shape support.
+
+Breaking changes:
+- Drop Python 3.6 support.
+
+
 3.0.22: 2022-12-06
 ------------------
 
