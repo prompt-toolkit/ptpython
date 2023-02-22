@@ -568,9 +568,9 @@ class DictionaryCompleter(Completer):
                     obj = getattr(result, name, None)
                     if inspect.isfunction(obj) or inspect.ismethod(obj):
                         return "()"
-                    if isinstance(obj, dict):
+                    if isinstance(obj, collections_abc.Mapping):
                         return "{}"
-                    if isinstance(obj, (list, tuple)):
+                    if isinstance(obj, collections_abc.Sequence):
                         return "[]"
                 except:
                     pass
