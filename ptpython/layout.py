@@ -151,7 +151,7 @@ def python_sidebar(python_input: PythonInput) -> Window:
             append_category(category)
 
             for option in category.options:
-                append(i, option.title, "%s" % option.get_current_value())
+                append(i, option.title, "%s" % (option.get_current_value(),))
                 i += 1
 
         tokens.pop()  # Remove last newline.
