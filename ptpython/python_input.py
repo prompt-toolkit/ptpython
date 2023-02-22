@@ -34,6 +34,12 @@ from prompt_toolkit.completion import (
     ThreadedCompleter,
     merge_completers,
 )
+from prompt_toolkit.cursor_shapes import (
+    AnyCursorShapeConfig,
+    CursorShape,
+    DynamicCursorShapeConfig,
+    ModalCursorShapeConfig,
+)
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
 from prompt_toolkit.filters import Condition
@@ -325,6 +331,18 @@ class PythonInput:
         self.search_buffer: Buffer = Buffer()
         self.docstring_buffer: Buffer = Buffer(read_only=True)
 
+        # Cursor shapes.
+        self.cursor_shape_config = "Block"
+        self.all_cursor_shape_configs: Dict[str, AnyCursorShapeConfig] = {
+            "Block": CursorShape.BLOCK,
+            "Underline": CursorShape.UNDERLINE,
+            "Beam": CursorShape.BEAM,
+            "Modal (vi)": ModalCursorShapeConfig(),
+            "Blink block": CursorShape.BLINKING_BLOCK,
+            "Blink under": CursorShape.BLINKING_UNDERLINE,
+            "Blink beam": CursorShape.BLINKING_BEAM,
+        }
+
         # Tokens to be shown at the prompt.
         self.prompt_style: str = "classic"  # The currently active style.
 
@@ -583,6 +601,16 @@ class PythonInput:
                             "Emacs": lambda: disable("vi_mode"),
                             "Vi": lambda: enable("vi_mode"),
                         },
+                    ),
+                    Option(
+                        title="Cursor shape",
+                        description="Change the cursor style, possibly according "
+                        "to the Vi input mode.",
+                        get_current_value=lambda: self.cursor_shape_config,
+                        get_values=lambda: dict(
+                            (s, partial(enable, "cursor_shape_config", s))
+                            for s in self.all_cursor_shape_configs
+                        ),
                     ),
                     simple_option(
                         title="Paste mode",
@@ -896,6 +924,9 @@ class PythonInput:
             style_transformation=self.style_transformation,
             include_default_pygments_style=False,
             reverse_vi_search_direction=True,
+            cursor=DynamicCursorShapeConfig(
+                lambda: self.all_cursor_shape_configs[self.cursor_shape_config]
+            ),
             input=input,
             output=output,
         )
