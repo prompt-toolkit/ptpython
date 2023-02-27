@@ -59,7 +59,7 @@ The help menu shows basic command-line options.
 
     $ ptpython --help
     usage: ptpython [-h] [--vi] [-i] [--light-bg] [--dark-bg] [--config-file CONFIG_FILE]
-                    [--history-file HISTORY_FILE] [-V]
+                    [--options-dir OPTIONS_DIR] [--history-file HISTORY_FILE] [-V]
                     [args ...]
 
     ptpython: Interactive Python shell.
@@ -75,6 +75,9 @@ The help menu shows basic command-line options.
       --dark-bg             Run on a dark background (use light colors for text).
       --config-file CONFIG_FILE
                             Location of configuration file.
+      --options-dir OPTIONS_DIR
+                            Directory to store options save file.
+                            Specify "none" to disable option storing.
       --history-file HISTORY_FILE
                             Location of history file.
       -V, --version         show program's version number and exit
@@ -143,8 +146,9 @@ like this:
    else:
        sys.exit(embed(globals(), locals()))
 
-Note config file support currently only works when invoking `ptpython` directly.
-That it, the config file will be ignored when embedding ptpython in an application.
+Note config file and option storage support currently only works when invoking
+`ptpython` directly. That is, the config file will be ignored when embedding
+ptpython in an application and option changes will not be saved.
 
 Multiline editing
 *****************

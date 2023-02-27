@@ -13,6 +13,9 @@ optional arguments:
   --dark-bg             Run on a dark background (use light colors for text).
   --config-file CONFIG_FILE
                         Location of configuration file.
+  --options-dir OPTIONS_DIR
+                        Directory to store options save file.
+                        Specify "none" to disable option storing.
   --history-file HISTORY_FILE
                         Location of history file.
   -V, --version         show program's version number and exit
@@ -25,8 +28,8 @@ from __future__ import annotations
 
 import argparse
 import os
-import pathlib
 import sys
+from pathlib import Path
 from textwrap import dedent
 from typing import IO, Optional, Tuple
 
@@ -81,6 +84,10 @@ def create_parser() -> _Parser:
     parser.add_argument(
         "--config-file", type=str, help="Location of configuration file."
     )
+    parser.add_argument(
+        "--options-dir", type=str, help="Directory to store options save file. "
+        "Specify \"none\" to disable option storing."
+    )
     parser.add_argument("--history-file", type=str, help="Location of history file.")
     parser.add_argument(
         "-V",
@@ -105,7 +112,7 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> tuple[str, str
 
     # Create directories.
     for d in (config_dir, data_dir):
-        pathlib.Path(d).mkdir(parents=True, exist_ok=True)
+        Path(d).mkdir(parents=True, exist_ok=True)
 
     # Determine config file to be used.
     config_file = os.path.join(config_dir, "config.py")
@@ -155,10 +162,26 @@ def get_config_and_history_file(namespace: argparse.Namespace) -> tuple[str, str
     return config_file, history_file
 
 
+def get_options_file(namespace: argparse.Namespace, filename: str) -> str | None:
+    """
+    Given the options storage file name, add the directory path.
+    """
+    if namespace.options_dir:
+        if namespace.options_dir.lower() in {"none", "nil"}:
+            return None
+        return str(Path(namespace.options_dir, filename))
+
+    cnfdir = Path(os.getenv("PTPYTHON_CONFIG_HOME",
+                            appdirs.user_config_dir("ptpython", "prompt_toolkit")))
+
+    return str(cnfdir / filename)
+
+
 def run() -> None:
     a = create_parser().parse_args()
 
     config_file, history_file = get_config_and_history_file(a)
+    options_file = get_options_file(a, "config")
 
     # Startup path
     startup_paths = []
@@ -209,6 +232,7 @@ def run() -> None:
         embed(
             vi_mode=a.vi,
             history_filename=history_file,
+            options_filename=options_file,
             configure=configure,
             locals=__main__.__dict__,
             globals=__main__.__dict__,

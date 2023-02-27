@@ -45,6 +45,7 @@ from pygments.lexers import PythonLexer, PythonTracebackLexer
 from pygments.token import Token
 
 from .python_input import PythonInput
+from . import options_saver
 
 PyCF_ALLOW_TOP_LEVEL_AWAIT: int
 try:
@@ -675,6 +676,7 @@ def embed(
     configure: Callable[[PythonRepl], None] | None = None,
     vi_mode: bool = False,
     history_filename: str | None = None,
+    options_filename: str | None = None,
     title: str | None = None,
     startup_paths=None,
     patch_stdout: bool = False,
@@ -725,6 +727,9 @@ def embed(
 
     if configure:
         configure(repl)
+
+    if options_filename:
+        options_saver.create(repl, options_filename)
 
     # Start repl.
     patch_context: ContextManager[None] = (

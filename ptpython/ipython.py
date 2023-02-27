@@ -40,6 +40,7 @@ from .completer import PythonCompleter
 from .python_input import PythonInput
 from .style import default_ui_style
 from .validator import PythonValidator
+from . import options_saver
 
 __all__ = ["embed"]
 
@@ -223,6 +224,7 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
     def __init__(self, *a, **kw):
         vi_mode = kw.pop("vi_mode", False)
         history_filename = kw.pop("history_filename", None)
+        options_filename = kw.pop("options_filename", None)
         configure = kw.pop("configure", None)
         title = kw.pop("title", None)
 
@@ -247,6 +249,9 @@ class InteractiveShellEmbed(_InteractiveShellEmbed):
         if configure:
             configure(python_input)
             python_input.prompt_style = "ipython"  # Don't take from config.
+
+        if options_filename:
+            options_saver.create(python_input, options_filename)
 
         self.python_input = python_input
 
