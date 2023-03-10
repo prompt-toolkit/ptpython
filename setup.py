@@ -27,6 +27,7 @@ setup(
     ],
     python_requires=">=3.7",
     classifiers=[
+        "License :: OSI Approved :: BSD License",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.7",
