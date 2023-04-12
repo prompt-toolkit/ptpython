@@ -379,7 +379,7 @@ class PythonInput:
         self.options = self._create_options()
         self.selected_option_index: int = 0
 
-        #: Incremeting integer counting the current statement.
+        #: Incrementing integer counting the current statement.
         self.current_statement_index: int = 1
 
         # Code signatures. (This is set asynchronously after a timeout.)
@@ -835,7 +835,7 @@ class PythonInput:
                 [
                     simple_option(
                         title="Syntax highlighting",
-                        description="Use colors for syntax highligthing",
+                        description="Use colors for syntax highlighting",
                         field_name="enable_syntax_highlighting",
                     ),
                     simple_option(

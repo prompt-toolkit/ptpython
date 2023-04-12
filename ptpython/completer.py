@@ -259,7 +259,7 @@ class JediCompleter(Completer):
                 # See: https://github.com/jonathanslenders/ptpython/issues/223
                 pass
             except Exception:
-                # Supress all other Jedi exceptions.
+                # Suppress all other Jedi exceptions.
                 pass
             else:
                 # Move function parameters to the top.
@@ -367,7 +367,7 @@ class DictionaryCompleter(Completer):
             rf"""
                 {expression}
 
-                # Dict loopup to complete (square bracket open + start of
+                # Dict lookup to complete (square bracket open + start of
                 # string).
                 \[
                 \s* ([^\[\]]*)$
@@ -380,7 +380,7 @@ class DictionaryCompleter(Completer):
             rf"""
                 {expression}
 
-                # Attribute loopup to complete (dot + varname).
+                # Attribute lookup to complete (dot + varname).
                 \.
                 \s* ([a-zA-Z0-9_]*)$
             """,

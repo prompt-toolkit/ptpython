@@ -191,7 +191,7 @@ New features:
 - Optional pager for displaying outputs that don't fit on the screen.
 - Added --light-bg and --dark-bg flags to automatically optimize the brightness
   of the colors according to the terminal background.
-- Addd `PTPYTHON_CONFIG_HOME` for explicitely setting the config directory.
+- Add `PTPYTHON_CONFIG_HOME` for explicitly setting the config directory.
 - Show completion suffixes (like '(' for functions).
 
 Fixes:
