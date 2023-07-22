@@ -14,7 +14,7 @@ from typing import Iterable
 from warnings import warn
 
 from IPython import utils as ipy_utils
-from IPython.core.inputsplitter import IPythonInputSplitter
+from IPython.core.inputtransformer2 import TransformerManager
 from IPython.terminal.embed import InteractiveShellEmbed as _InteractiveShellEmbed
 from IPython.terminal.ipapp import load_default_config
 from prompt_toolkit.completion import (
@@ -66,7 +66,7 @@ class IPythonPrompt(PromptStyle):
 class IPythonValidator(PythonValidator):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.isp = IPythonInputSplitter()
+        self.isp = TransformerManager()
 
     def validate(self, document: Document) -> None:
         document = Document(text=self.isp.transform_cell(document.text))
