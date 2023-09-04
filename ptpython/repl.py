@@ -631,13 +631,16 @@ def enable_deprecation_warnings() -> None:
 
 
 def run_config(
-    repl: PythonInput, config_file: str = "~/.config/ptpython/config.py"
+    repl: PythonInput,
+    config_file: str = "~/.config/ptpython/config.py",
+    interrupt_if_not_found: bool = False,
 ) -> None:
     """
     Execute REPL config file.
 
     :param repl: `PythonInput` instance.
     :param config_file: Path of the configuration file.
+    :param interrupt_if_not_found: Whether to interrupt if config_file does not exist.
     """
     # Expand tildes.
     config_file = os.path.expanduser(config_file)
@@ -646,7 +649,7 @@ def run_config(
         input("\nPress ENTER to continue...")
 
     # Check whether this file exists.
-    if not os.path.exists(config_file):
+    if not os.path.exists(config_file) and interrupt_if_not_found:
         print("Impossible to read %r" % config_file)
         enter_to_continue()
         return
