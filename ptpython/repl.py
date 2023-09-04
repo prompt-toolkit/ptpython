@@ -630,23 +630,28 @@ def enable_deprecation_warnings() -> None:
     warnings.filterwarnings("default", category=DeprecationWarning, module="__main__")
 
 
-def run_config(
-    repl: PythonInput, config_file: str = "~/.config/ptpython/config.py"
-) -> None:
+DEFAULT_CONFIG_FILE = "~/.config/ptpython/config.py"
+
+
+def run_config(repl: PythonInput, config_file: str | None = None) -> None:
     """
     Execute REPL config file.
 
     :param repl: `PythonInput` instance.
     :param config_file: Path of the configuration file.
     """
+    explicit_config_file = config_file is not None
+
     # Expand tildes.
-    config_file = os.path.expanduser(config_file)
+    config_file = os.path.expanduser(
+        config_file if config_file is not None else DEFAULT_CONFIG_FILE
+    )
 
     def enter_to_continue() -> None:
         input("\nPress ENTER to continue...")
 
     # Check whether this file exists.
-    if not os.path.exists(config_file):
+    if not os.path.exists(config_file) and explicit_config_file:
         print("Impossible to read %r" % config_file)
         enter_to_continue()
         return
