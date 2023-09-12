@@ -70,6 +70,9 @@ def configure(repl):
     # Vi mode.
     repl.vi_mode = False
 
+    # Enable the modal cursor (when using Vi mode). Other options are 'Block', 'Underline',  'Beam',  'Blink under', 'Blink block', and 'Blink beam'
+    repl.cursor_shape_config = 'Modal (vi)'
+
     # Paste mode. (When True, don't insert whitespace after new line.)
     repl.paste_mode = False
 
