@@ -18,7 +18,7 @@ import types
 import warnings
 from dis import COMPILER_FLAG_NAMES
 from enum import Enum
-from typing import Any, Callable, ContextManager, Dict, Optional
+from typing import Any, Callable, ContextManager
 
 from prompt_toolkit.formatted_text import (
     HTML,
@@ -547,12 +547,12 @@ class PythonRepl(PythonInput):
                 tblist = tblist[line_nr:]
                 break
 
-        l = traceback.format_list(tblist)
-        if l:
-            l.insert(0, "Traceback (most recent call last):\n")
-        l.extend(traceback.format_exception_only(t, v))
+        tb_list = traceback.format_list(tblist)
+        if tb_list:
+            tb_list.insert(0, "Traceback (most recent call last):\n")
+        tb_list.extend(traceback.format_exception_only(t, v))
 
-        tb_str = "".join(l)
+        tb_str = "".join(tb_list)
 
         # Format exception and write to output.
         # (We use the default style. Most other styles result

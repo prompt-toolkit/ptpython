@@ -10,7 +10,7 @@ from __future__ import annotations
 import inspect
 from inspect import Signature as InspectSignature
 from inspect import _ParameterKind as ParameterKind
-from typing import TYPE_CHECKING, Any, Dict, List, Optional, Sequence, Tuple
+from typing import TYPE_CHECKING, Any, Sequence
 
 from prompt_toolkit.document import Document
 
@@ -203,7 +203,6 @@ def get_signatures_using_eval(
     running `eval()` over the detected function name.
     """
     # Look for open parenthesis, before cursor position.
-    text = document.text_before_cursor
     pos = document.cursor_position - 1
 
     paren_mapping = {")": "(", "}": "{", "]": "["}

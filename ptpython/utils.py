@@ -4,17 +4,7 @@ For internal use only.
 from __future__ import annotations
 
 import re
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Iterable,
-    Optional,
-    Type,
-    TypeVar,
-    cast,
-)
+from typing import TYPE_CHECKING, Any, Callable, Iterable, TypeVar, cast
 
 from prompt_toolkit.document import Document
 from prompt_toolkit.formatted_text import to_formatted_text

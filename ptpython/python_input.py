@@ -6,18 +6,7 @@ from __future__ import annotations
 
 from asyncio import get_event_loop
 from functools import partial
-from typing import (
-    TYPE_CHECKING,
-    Any,
-    Callable,
-    Dict,
-    Generic,
-    List,
-    Mapping,
-    Optional,
-    Tuple,
-    TypeVar,
-)
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Mapping, TypeVar
 
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import (
@@ -333,7 +322,7 @@ class PythonInput:
 
         # Cursor shapes.
         self.cursor_shape_config = "Block"
-        self.all_cursor_shape_configs: Dict[str, AnyCursorShapeConfig] = {
+        self.all_cursor_shape_configs: dict[str, AnyCursorShapeConfig] = {
             "Block": CursorShape.BLOCK,
             "Underline": CursorShape.UNDERLINE,
             "Beam": CursorShape.BEAM,
@@ -607,10 +596,10 @@ class PythonInput:
                         description="Change the cursor style, possibly according "
                         "to the Vi input mode.",
                         get_current_value=lambda: self.cursor_shape_config,
-                        get_values=lambda: dict(
-                            (s, partial(enable, "cursor_shape_config", s))
+                        get_values=lambda: {
+                            s: partial(enable, "cursor_shape_config", s)
                             for s in self.all_cursor_shape_configs
-                        ),
+                        },
                     ),
                     simple_option(
                         title="Paste mode",

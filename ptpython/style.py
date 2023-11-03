@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Dict
-
 from prompt_toolkit.styles import BaseStyle, Style, merge_styles
 from prompt_toolkit.styles.pygments import style_from_pygments_cls
 from prompt_toolkit.utils import is_conemu_ansi, is_windows, is_windows_vt100_supported
