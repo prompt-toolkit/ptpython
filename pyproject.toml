@@ -1,13 +1,34 @@
-[tool.black]
-target-version = ['py36']
+[tool.ruff]
+target-version = "py37"
+select = [
+    "E",  # pycodestyle errors
+    "W",  # pycodestyle warnings
+    "F",  # pyflakes
+    "C",  # flake8-comprehensions
+    "T",  # Print.
+    "I",  # isort
+    # "B",  # flake8-bugbear
+    "UP",  # pyupgrade
+    "RUF100",  # unused-noqa
+    "Q", # quotes
+]
+ignore = [
+    "E501",  # Line too long, handled by black
+    "C901",  # Too complex
+    "E722",  # bare except.
+]
 
 
-[tool.isort]
-# isort configuration that is compatible with Black.
-multi_line_output = 3
-include_trailing_comma = true
-known_first_party = "ptpython"
-known_third_party = "prompt_toolkit,pygments,asyncssh"
-force_grid_wrap = 0
-use_parentheses = true
-line_length = 88
+[tool.ruff.per-file-ignores]
+"examples/*" = ["T201"]  # Print allowed in examples.
+"examples/ptpython_config/config.py" = ["F401"]  # Unused imports in config.
+"ptpython/entry_points/run_ptipython.py" = ["T201", "F401"] # Print, import usage.
+"ptpython/entry_points/run_ptpython.py" = ["T201"]  # Print usage.
+"ptpython/ipython.py" = ["T100"]  # Import usage.
+"ptpython/repl.py" = ["T201"]  # Print usage.
+"tests/run_tests.py" = ["F401"]  # Unused imports.
+
+
+[tool.ruff.isort]
+known-first-party = ["ptpython"]
+known-third-party = ["prompt_toolkit", "pygments", "asyncssh"]

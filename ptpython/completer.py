@@ -6,7 +6,7 @@ import inspect
 import keyword
 import re
 from enum import Enum
-from typing import TYPE_CHECKING, Any, Callable, Dict, Iterable, List, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from prompt_toolkit.completion import (
     CompleteEvent,

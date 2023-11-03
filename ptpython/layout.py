@@ -7,7 +7,7 @@ import platform
 import sys
 from enum import Enum
 from inspect import _ParameterKind as ParameterKind
-from typing import TYPE_CHECKING, Any, List, Optional, Type
+from typing import TYPE_CHECKING, Any
 
 from prompt_toolkit.application import get_app
 from prompt_toolkit.enums import DEFAULT_BUFFER, SEARCH_BUFFER
@@ -17,11 +17,7 @@ from prompt_toolkit.filters import (
     is_done,
     renderer_height_is_known,
 )
-from prompt_toolkit.formatted_text import (
-    AnyFormattedText,
-    fragment_list_width,
-    to_formatted_text,
-)
+from prompt_toolkit.formatted_text import fragment_list_width, to_formatted_text
 from prompt_toolkit.formatted_text.base import StyleAndTextTuples
 from prompt_toolkit.key_binding.vi_state import InputMode
 from prompt_toolkit.layout.containers import (
@@ -60,7 +56,6 @@ from prompt_toolkit.widgets.toolbars import (
     SystemToolbar,
     ValidationToolbar,
 )
-from pygments.lexers import PythonLexer
 
 from .filters import HasSignature, ShowDocstring, ShowSidebar, ShowSignature
 from .prompt_style import PromptStyle
@@ -74,6 +69,7 @@ __all__ = ["PtPythonLayout", "CompletionVisualisation"]
 
 class CompletionVisualisation(Enum):
     "Visualisation method for the completions."
+
     NONE = "none"
     POP_UP = "pop-up"
     MULTI_COLUMN = "multi-column"
@@ -151,7 +147,7 @@ def python_sidebar(python_input: PythonInput) -> Window:
             append_category(category)
 
             for option in category.options:
-                append(i, option.title, "%s" % (option.get_current_value(),))
+                append(i, option.title, str(option.get_current_value()))
                 i += 1
 
         tokens.pop()  # Remove last newline.
@@ -302,13 +298,15 @@ def signature_toolbar(python_input: PythonInput) -> Container:
         content=Window(
             FormattedTextControl(get_text_fragments), height=Dimension.exact(1)
         ),
-        filter=
         # Show only when there is a signature
-        HasSignature(python_input) &
+        filter=HasSignature(python_input)
+        &
         # Signature needs to be shown.
-        ShowSignature(python_input) &
+        ShowSignature(python_input)
+        &
         # And no sidebar is visible.
-        ~ShowSidebar(python_input) &
+        ~ShowSidebar(python_input)
+        &
         # Not done yet.
         ~is_done,
     )

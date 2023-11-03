@@ -9,7 +9,7 @@ package should be installable in Python 2 as well!
 from __future__ import annotations
 
 import asyncio
-from typing import Any, Optional, TextIO, cast
+from typing import Any, TextIO, cast
 
 import asyncssh
 from prompt_toolkit.data_structures import Size

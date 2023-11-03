@@ -28,7 +28,7 @@ import os
 import pathlib
 import sys
 from textwrap import dedent
-from typing import IO, Optional, Tuple
+from typing import IO
 
 import appdirs
 from prompt_toolkit.formatted_text import HTML
@@ -72,12 +72,12 @@ def create_parser() -> _Parser:
         "--light-bg",
         action="store_true",
         help="Run on a light background (use dark colors for text).",
-    ),
+    )
     parser.add_argument(
         "--dark-bg",
         action="store_true",
         help="Run on a dark background (use light colors for text).",
-    ),
+    )
     parser.add_argument(
         "--config-file", type=str, help="Location of configuration file."
     )

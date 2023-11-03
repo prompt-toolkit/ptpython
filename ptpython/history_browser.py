@@ -7,7 +7,7 @@ run as a sub application of the Repl/PythonInput.
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING, Callable, List, Optional, Set
+from typing import TYPE_CHECKING, Callable
 
 from prompt_toolkit.application import Application
 from prompt_toolkit.application.current import get_app
@@ -107,6 +107,7 @@ Further, remember that searching works like in Emacs
 
 class BORDER:
     "Box drawing characters."
+
     HORIZONTAL = "\u2501"
     VERTICAL = "\u2503"
     TOP_LEFT = "\u250f"
