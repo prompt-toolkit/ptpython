@@ -122,6 +122,7 @@ class Option(Generic[_T]):
         self,
         title: str,
         description: str,
+        field_name: str,
         get_current_value: Callable[[], _T],
         # We accept `object` as return type for the select functions, because
         # often they return an unused boolean. Maybe this can be improved.
@@ -129,6 +130,7 @@ class Option(Generic[_T]):
     ) -> None:
         self.title = title
         self.description = description
+        self.field_name = field_name
         self.get_current_value = get_current_value
         self.get_values = get_values
 
@@ -572,6 +574,7 @@ class PythonInput:
             return Option(
                 title=title,
                 description=description,
+                field_name=field_name,
                 get_values=get_values,
                 get_current_value=get_current_value,
             )
@@ -585,6 +588,7 @@ class PythonInput:
                     Option(
                         title="Editing mode",
                         description="Vi or emacs key bindings.",
+                        field_name="vi_mode",
                         get_current_value=lambda: ["Emacs", "Vi"][self.vi_mode],
                         get_values=lambda: {
                             "Emacs": lambda: disable("vi_mode"),
@@ -595,6 +599,7 @@ class PythonInput:
                         title="Cursor shape",
                         description="Change the cursor style, possibly according "
                         "to the Vi input mode.",
+                        field_name="cursor_shape_config",
                         get_current_value=lambda: self.cursor_shape_config,
                         get_values=lambda: {
                             s: partial(enable, "cursor_shape_config", s)
@@ -610,6 +615,7 @@ class PythonInput:
                         title="Complete while typing",
                         description="Generate autocompletions automatically while typing. "
                         'Don\'t require pressing TAB. (Not compatible with "History search".)',
+                        field_name="complete_while_typing",
                         get_current_value=lambda: ["off", "on"][
                             self.complete_while_typing
                         ],
@@ -624,6 +630,7 @@ class PythonInput:
                         description="Show or hide private attributes in the completions. "
                         "'If no public' means: show private attributes only if no public "
                         "matches are found or if an underscore was typed.",
+                        field_name="complete_private_attributes",
                         get_current_value=lambda: {
                             CompletePrivateAttributes.NEVER: "Never",
                             CompletePrivateAttributes.ALWAYS: "Always",
@@ -647,6 +654,7 @@ class PythonInput:
                     Option(
                         title="Enable fuzzy completion",
                         description="Enable fuzzy completion.",
+                        field_name="enable_fuzzy_completion",
                         get_current_value=lambda: ["off", "on"][
                             self.enable_fuzzy_completion
                         ],
@@ -661,6 +669,7 @@ class PythonInput:
                         'WARNING: this does "eval" on fragments of\n'
                         "         your Python input and is\n"
                         "         potentially unsafe.",
+                        field_name="enable_dictionary_completion",
                         get_current_value=lambda: ["off", "on"][
                             self.enable_dictionary_completion
                         ],
@@ -673,6 +682,7 @@ class PythonInput:
                         title="History search",
                         description="When pressing the up-arrow, filter the history on input starting "
                         'with the current text. (Not compatible with "Complete while typing".)',
+                        field_name="enable_history_search",
                         get_current_value=lambda: ["off", "on"][
                             self.enable_history_search
                         ],
@@ -709,6 +719,7 @@ class PythonInput:
                         title="Accept input on enter",
                         description="Amount of ENTER presses required to execute input when the cursor "
                         "is at the end of the input. (Note that META+ENTER will always execute.)",
+                        field_name="accept_input_on_enter",
                         get_current_value=lambda: str(
                             self.accept_input_on_enter or "meta-enter"
                         ),
@@ -727,6 +738,7 @@ class PythonInput:
                     Option(
                         title="Completions",
                         description="Visualisation to use for displaying the completions. (Multiple columns, one column, a toolbar or nothing.)",
+                        field_name="completion_visualisation",
                         get_current_value=lambda: self.completion_visualisation.value,
                         get_values=lambda: {
                             CompletionVisualisation.NONE.value: lambda: enable(
@@ -749,6 +761,7 @@ class PythonInput:
                     Option(
                         title="Prompt",
                         description="Visualisation of the prompt. ('>>>' or 'In [1]:')",
+                        field_name="prompt_style",
                         get_current_value=lambda: self.prompt_style,
                         get_values=lambda: {
                             s: partial(enable, "prompt_style", s)
@@ -835,6 +848,7 @@ class PythonInput:
                     Option(
                         title="Code",
                         description="Color scheme to use for the Python code.",
+                        field_name="_current_code_style_name",
                         get_current_value=lambda: self._current_code_style_name,
                         get_values=lambda: {
                             name: partial(self.use_code_colorscheme, name)
@@ -844,6 +858,7 @@ class PythonInput:
                     Option(
                         title="User interface",
                         description="Color scheme to use for the user interface.",
+                        field_name="_current_ui_style_name",
                         get_current_value=lambda: self._current_ui_style_name,
                         get_values=lambda: {
                             name: partial(self.use_ui_colorscheme, name)
@@ -853,6 +868,7 @@ class PythonInput:
                     Option(
                         title="Color depth",
                         description="Monochrome (1 bit), 16 ANSI colors (4 bit),\n256 colors (8 bit), or 24 bit.",
+                        field_name="color_depth",
                         get_current_value=lambda: COLOR_DEPTHS[self.color_depth],
                         get_values=lambda: {
                             name: partial(self._use_color_depth, depth)
@@ -862,6 +878,7 @@ class PythonInput:
                     Option(
                         title="Min brightness",
                         description="Minimum brightness for the color scheme (default=0.0).",
+                        field_name="min_brightness",
                         get_current_value=lambda: "%.2f" % self.min_brightness,
                         get_values=lambda: {
                             "%.2f" % value: partial(self._set_min_brightness, value)
@@ -871,6 +888,7 @@ class PythonInput:
                     Option(
                         title="Max brightness",
                         description="Maximum brightness for the color scheme (default=1.0).",
+                        field_name="max_brightness",
                         get_current_value=lambda: "%.2f" % self.max_brightness,
                         get_values=lambda: {
                             "%.2f" % value: partial(self._set_max_brightness, value)

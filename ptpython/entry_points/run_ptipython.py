@@ -4,13 +4,14 @@ from __future__ import annotations
 import os
 import sys
 
-from .run_ptpython import create_parser, get_config_and_history_file
+from .run_ptpython import create_parser, get_config_and_history_file, get_options_file
 
 
 def run(user_ns=None):
     a = create_parser().parse_args()
 
     config_file, history_file = get_config_and_history_file(a)
+    options_file = get_options_file(a, "ipython-config")
 
     # If IPython is not available, show message and exit here with error status
     # code.
@@ -72,6 +73,7 @@ def run(user_ns=None):
         embed(
             vi_mode=a.vi,
             history_filename=history_file,
+            options_filename=options_file,
             configure=configure,
             user_ns=user_ns,
             title="IPython REPL (ptipython)",
