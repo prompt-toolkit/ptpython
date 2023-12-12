@@ -158,7 +158,7 @@ class PythonRepl(PythonInput):
                 clear_title()
             self._remove_from_namespace()
 
-    async def run_and_show_expression_async(self, text: str):
+    async def run_and_show_expression_async(self, text: str) -> object:
         loop = asyncio.get_event_loop()
 
         try:

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from asyncio import get_event_loop
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Mapping, TypeVar
+from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Mapping, TypeVar, Union
 
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import (
@@ -31,7 +31,7 @@ from prompt_toolkit.cursor_shapes import (
 )
 from prompt_toolkit.document import Document
 from prompt_toolkit.enums import DEFAULT_BUFFER, EditingMode
-from prompt_toolkit.filters import Condition
+from prompt_toolkit.filters import Condition, FilterOrBool
 from prompt_toolkit.formatted_text import AnyFormattedText
 from prompt_toolkit.history import (
     FileHistory,
@@ -49,8 +49,13 @@ from prompt_toolkit.key_binding.bindings.auto_suggest import load_auto_suggest_b
 from prompt_toolkit.key_binding.bindings.open_in_editor import (
     load_open_in_editor_bindings,
 )
+from prompt_toolkit.key_binding.key_bindings import Binding, KeyHandlerCallable
+from prompt_toolkit.key_binding.key_processor import KeyPressEvent
 from prompt_toolkit.key_binding.vi_state import InputMode
+from prompt_toolkit.keys import Keys
 from prompt_toolkit.layout.containers import AnyContainer
+from prompt_toolkit.layout.dimension import AnyDimension
+from prompt_toolkit.layout.processors import Processor
 from prompt_toolkit.lexers import DynamicLexer, Lexer, SimpleLexer
 from prompt_toolkit.output import ColorDepth, Output
 from prompt_toolkit.styles import (
@@ -91,22 +96,23 @@ if TYPE_CHECKING:
     from typing_extensions import Protocol
 
     class _SupportsLessThan(Protocol):
-        # Taken from typeshed. _T is used by "sorted", which needs anything
+        # Taken from typeshed. _T_lt is used by "sorted", which needs anything
         # sortable.
         def __lt__(self, __other: Any) -> bool:
             ...
 
 
-_T = TypeVar("_T", bound="_SupportsLessThan")
+_T_lt = TypeVar("_T_lt", bound="_SupportsLessThan")
+_T_kh = TypeVar("_T_kh", bound=Union[KeyHandlerCallable, Binding])
 
 
-class OptionCategory(Generic[_T]):
-    def __init__(self, title: str, options: list[Option[_T]]) -> None:
+class OptionCategory(Generic[_T_lt]):
+    def __init__(self, title: str, options: list[Option[_T_lt]]) -> None:
         self.title = title
         self.options = options
 
 
-class Option(Generic[_T]):
+class Option(Generic[_T_lt]):
     """
     Ptpython configuration option that can be shown and modified from the
     sidebar.
@@ -122,10 +128,10 @@ class Option(Generic[_T]):
         self,
         title: str,
         description: str,
-        get_current_value: Callable[[], _T],
+        get_current_value: Callable[[], _T_lt],
         # We accept `object` as return type for the select functions, because
         # often they return an unused boolean. Maybe this can be improved.
-        get_values: Callable[[], Mapping[_T, Callable[[], object]]],
+        get_values: Callable[[], Mapping[_T_lt, Callable[[], object]]],
     ) -> None:
         self.title = title
         self.description = description
@@ -133,7 +139,7 @@ class Option(Generic[_T]):
         self.get_values = get_values
 
     @property
-    def values(self) -> Mapping[_T, Callable[[], object]]:
+    def values(self) -> Mapping[_T_lt, Callable[[], object]]:
         return self.get_values()
 
     def activate_next(self, _previous: bool = False) -> None:
@@ -208,10 +214,10 @@ class PythonInput:
         _completer: Completer | None = None,
         _validator: Validator | None = None,
         _lexer: Lexer | None = None,
-        _extra_buffer_processors=None,
+        _extra_buffer_processors: list[Processor] | None = None,
         _extra_layout_body: AnyContainer | None = None,
-        _extra_toolbars=None,
-        _input_buffer_height=None,
+        _extra_toolbars: list[AnyContainer] | None = None,
+        _input_buffer_height: AnyDimension | None = None,
     ) -> None:
         self.get_globals: _GetNamespace = get_globals or (lambda: {})
         self.get_locals: _GetNamespace = get_locals or self.get_globals
@@ -466,12 +472,21 @@ class PythonInput:
 
         return flags
 
-    @property
-    def add_key_binding(self) -> Callable[[_T], _T]:
+    def add_key_binding(
+        self,
+        *keys: Keys | str,
+        filter: FilterOrBool = True,
+        eager: FilterOrBool = False,
+        is_global: FilterOrBool = False,
+        save_before: Callable[[KeyPressEvent], bool] = (lambda e: True),
+        record_in_macro: FilterOrBool = True,
+    ) -> Callable[[_T_kh], _T_kh]:
         """
         Shortcut for adding new key bindings.
         (Mostly useful for a config.py file, that receives
         a PythonInput/Repl instance as input.)
+
+        All arguments are identical to prompt_toolkit's `KeyBindings.add`.
 
         ::
 
@@ -479,11 +494,14 @@ class PythonInput:
             def handler(event):
                 ...
         """
-
-        def add_binding_decorator(*k, **kw):
-            return self.extra_key_bindings.add(*k, **kw)
-
-        return add_binding_decorator
+        return self.extra_key_bindings.add(
+            *keys,
+            filter=filter,
+            eager=eager,
+            is_global=is_global,
+            save_before=save_before,
+            record_in_macro=record_in_macro,
+        )
 
     def install_code_colorscheme(self, name: str, style: BaseStyle) -> None:
         """

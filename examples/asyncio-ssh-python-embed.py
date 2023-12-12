@@ -32,31 +32,25 @@ class MySSHServer(asyncssh.SSHServer):
         return ReplSSHServerSession(self.get_namespace)
 
 
-def main(port=8222):
+async def main(port: int = 8222) -> None:
     """
     Example that starts the REPL through an SSH server.
     """
-    loop = asyncio.get_event_loop()
-
     # Namespace exposed in the REPL.
     environ = {"hello": "world"}
 
     # Start SSH server.
-    def create_server():
+    def create_server() -> MySSHServer:
         return MySSHServer(lambda: environ)
 
     print("Listening on :%i" % port)
     print('To connect, do "ssh localhost -p %i"' % port)
 
-    loop.run_until_complete(
-        asyncssh.create_server(
-            create_server, "", port, server_host_keys=["/etc/ssh/ssh_host_dsa_key"]
-        )
+    await asyncssh.create_server(
+        create_server, "", port, server_host_keys=["/etc/ssh/ssh_host_dsa_key"]
     )
-
-    # Run eventloop.
-    loop.run_forever()
+    await asyncio.Future()  # Wait forever.
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(main())

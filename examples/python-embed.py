@@ -4,7 +4,7 @@
 from ptpython.repl import embed
 
 
-def main():
+def main() -> None:
     embed(globals(), locals(), vi_mode=False)
 
 

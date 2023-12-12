@@ -9,20 +9,20 @@ package should be installable in Python 2 as well!
 from __future__ import annotations
 
 import asyncio
-from typing import Any, TextIO, cast
+from typing import Any, AnyStr, TextIO, cast
 
 import asyncssh
 from prompt_toolkit.data_structures import Size
 from prompt_toolkit.input import create_pipe_input
 from prompt_toolkit.output.vt100 import Vt100_Output
 
-from ptpython.python_input import _GetNamespace
+from ptpython.python_input import _GetNamespace, _Namespace
 from ptpython.repl import PythonRepl
 
 __all__ = ["ReplSSHServerSession"]
 
 
-class ReplSSHServerSession(asyncssh.SSHServerSession):
+class ReplSSHServerSession(asyncssh.SSHServerSession[str]):
     """
     SSH server session that runs a Python REPL.
 
@@ -35,7 +35,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
     ) -> None:
         self._chan: Any = None
 
-        def _globals() -> dict:
+        def _globals() -> _Namespace:
             data = get_globals()
             data.setdefault("print", self._print)
             return data
@@ -79,7 +79,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
             width, height, pixwidth, pixheight = self._chan.get_terminal_size()
             return Size(rows=height, columns=width)
 
-    def connection_made(self, chan):
+    def connection_made(self, chan: Any) -> None:
         """
         Client connected, run repl in coroutine.
         """
@@ -89,7 +89,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
         f = asyncio.ensure_future(self.repl.run_async())
 
         # Close channel when done.
-        def done(_) -> None:
+        def done(_: object) -> None:
             chan.close()
             self._chan = None
 
@@ -98,24 +98,28 @@ class ReplSSHServerSession(asyncssh.SSHServerSession):
     def shell_requested(self) -> bool:
         return True
 
-    def terminal_size_changed(self, width, height, pixwidth, pixheight):
+    def terminal_size_changed(
+        self, width: int, height: int, pixwidth: int, pixheight: int
+    ) -> None:
         """
         When the terminal size changes, report back to CLI.
         """
         self.repl.app._on_resize()
 
-    def data_received(self, data, datatype):
+    def data_received(self, data: AnyStr, datatype: int | None) -> None:
         """
         When data is received, send to inputstream of the CLI and repaint.
         """
         self._input_pipe.send(data)
 
-    def _print(self, *data, sep=" ", end="\n", file=None) -> None:
+    def _print(
+        self, *data: object, sep: str = " ", end: str = "\n", file: Any = None
+    ) -> None:
         """
         Alternative 'print' function that prints back into the SSH channel.
         """
         # Pop keyword-only arguments. (We cannot use the syntax from the
         # signature. Otherwise, Python2 will give a syntax error message when
         # installing.)
-        data = sep.join(map(str, data))
-        self._chan.write(data + end)
+        data_as_str = sep.join(map(str, data))
+        self._chan.write(data_as_str + end)
