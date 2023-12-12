@@ -225,6 +225,8 @@ def run() -> None:
         )
 
         if a.asyncio:
+            print("Starting ptpython asyncio REPL")
+            print('Use "await" directly instead of "asyncio.run()".')
             asyncio.run(embed_result)
 
 
