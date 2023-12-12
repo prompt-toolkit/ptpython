@@ -26,6 +26,7 @@ ignore = [
 "ptpython/entry_points/run_ptpython.py" = ["T201"]  # Print usage.
 "ptpython/ipython.py" = ["T100"]  # Import usage.
 "ptpython/repl.py" = ["T201"]  # Print usage.
+"ptpython/printer.py" = ["T201"]  # Print usage.
 "tests/run_tests.py" = ["F401"]  # Unused imports.
 
 
