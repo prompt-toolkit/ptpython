@@ -12,6 +12,7 @@ from __future__ import annotations
 import asyncio
 import builtins
 import os
+import signal
 import sys
 import traceback
 import types
@@ -158,27 +159,58 @@ class PythonRepl(PythonInput):
                 clear_title()
             self._remove_from_namespace()
 
-    async def run_and_show_expression_async(self, text: str) -> object:
-        loop = asyncio.get_event_loop()
+    async def run_and_show_expression_async(self, text: str) -> Any:
+        loop = asyncio.get_running_loop()
+        system_exit: SystemExit | None = None
 
         try:
-            result = await self.eval_async(text)
-        except KeyboardInterrupt:  # KeyboardInterrupt doesn't inherit from Exception.
-            raise
-        except SystemExit:
-            return
-        except BaseException as e:
-            self._handle_exception(e)
-        else:
-            # Print.
-            if result is not None:
-                await loop.run_in_executor(None, lambda: self._show_result(result))
+            try:
+                # Create `eval` task. Ensure that control-c will cancel this
+                # task.
+                async def eval() -> Any:
+                    nonlocal system_exit
+                    try:
+                        return await self.eval_async(text)
+                    except SystemExit as e:
+                        # Don't propagate SystemExit in `create_task()`. That
+                        # will kill the event loop. We want to handle it
+                        # gracefully.
+                        system_exit = e
 
-            # Loop.
-            self.current_statement_index += 1
-            self.signatures = []
-            # Return the result for future consumers.
-            return result
+                task = asyncio.create_task(eval())
+                loop.add_signal_handler(signal.SIGINT, lambda *_: task.cancel())
+                result = await task
+
+                if system_exit is not None:
+                    raise system_exit
+            except KeyboardInterrupt:
+                # KeyboardInterrupt doesn't inherit from Exception.
+                raise
+            except SystemExit:
+                raise
+            except BaseException as e:
+                self._handle_exception(e)
+            else:
+                # Print.
+                if result is not None:
+                    await loop.run_in_executor(None, lambda: self._show_result(result))
+
+                # Loop.
+                self.current_statement_index += 1
+                self.signatures = []
+                # Return the result for future consumers.
+                return result
+            finally:
+                loop.remove_signal_handler(signal.SIGINT)
+
+        except KeyboardInterrupt as e:
+            # Handle all possible `KeyboardInterrupt` errors. This can
+            # happen during the `eval`, but also during the
+            # `show_result` if something takes too long.
+            # (Try/catch is around the whole block, because we want to
+            # prevent that a Control-C keypress terminates the REPL in
+            # any case.)
+            self._handle_keyboard_interrupt(e)
 
     async def run_async(self) -> None:
         """
@@ -192,7 +224,7 @@ class PythonRepl(PythonInput):
         (Both for control-C to work, as well as for the code to see the right
         thread in which it was embedded).
         """
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
 
         if self.terminal_title:
             set_title(self.terminal_title)
@@ -222,6 +254,8 @@ class PythonRepl(PythonInput):
                     # `KeyboardInterrupt` exceptions can end up in the event
                     # loop selector.
                     self._handle_keyboard_interrupt(e)
+                except SystemExit:
+                    return
         finally:
             if self.terminal_title:
                 clear_title()
@@ -250,7 +284,7 @@ class PythonRepl(PythonInput):
                 result = eval(code, self.get_globals(), self.get_locals())
 
                 if _has_coroutine_flag(code):
-                    result = asyncio.get_event_loop().run_until_complete(result)
+                    result = asyncio.get_running_loop().run_until_complete(result)
 
                 self._store_eval_result(result)
                 return result
@@ -263,7 +297,7 @@ class PythonRepl(PythonInput):
             result = eval(code, self.get_globals(), self.get_locals())
 
             if _has_coroutine_flag(code):
-                result = asyncio.get_event_loop().run_until_complete(result)
+                result = asyncio.get_running_loop().run_until_complete(result)
 
         return None
 

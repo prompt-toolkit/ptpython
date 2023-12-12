@@ -4,7 +4,7 @@ This can be used for creation of Python REPLs.
 """
 from __future__ import annotations
 
-from asyncio import get_event_loop
+from asyncio import get_running_loop
 from functools import partial
 from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Mapping, TypeVar, Union
 
@@ -1010,7 +1010,7 @@ class PythonInput:
         app = self.app
 
         async def on_timeout_task() -> None:
-            loop = get_event_loop()
+            loop = get_running_loop()
 
             # Never run multiple get-signature threads.
             if self._get_signatures_thread_running:

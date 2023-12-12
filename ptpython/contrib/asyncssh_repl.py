@@ -110,7 +110,7 @@ class ReplSSHServerSession(asyncssh.SSHServerSession[str]):
         """
         When data is received, send to inputstream of the CLI and repaint.
         """
-        self._input_pipe.send(data)
+        self._input_pipe.send(data)  # type: ignore
 
     def _print(
         self, *data: object, sep: str = " ", end: str = "\n", file: Any = None
