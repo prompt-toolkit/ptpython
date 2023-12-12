@@ -9,6 +9,7 @@ optional arguments:
   -h, --help            show this help message and exit
   --vi                  Enable Vi key bindings
   -i, --interactive     Start interactive shell after executing this file.
+  --asyncio             Run an asyncio event loop to support top-level "await".
   --light-bg            Run on a light background (use dark colors for text).
   --dark-bg             Run on a dark background (use light colors for text).
   --config-file CONFIG_FILE
@@ -24,6 +25,7 @@ environment variables:
 from __future__ import annotations
 
 import argparse
+import asyncio
 import os
 import pathlib
 import sys
@@ -67,6 +69,11 @@ def create_parser() -> _Parser:
         "--interactive",
         action="store_true",
         help="Start interactive shell after executing this file.",
+    )
+    parser.add_argument(
+        "--asyncio",
+        action="store_true",
+        help='Run an asyncio event loop to support top-level "await".',
     )
     parser.add_argument(
         "--light-bg",
@@ -206,7 +213,7 @@ def run() -> None:
 
         import __main__
 
-        embed(
+        embed_result = embed(  # type: ignore
             vi_mode=a.vi,
             history_filename=history_file,
             configure=configure,
@@ -214,7 +221,11 @@ def run() -> None:
             globals=__main__.__dict__,
             startup_paths=startup_paths,
             title="Python REPL (ptpython)",
+            return_asyncio_coroutine=a.asyncio,
         )
+
+        if a.asyncio:
+            asyncio.run(embed_result)
 
 
 if __name__ == "__main__":
