@@ -11,13 +11,16 @@ import pathlib
 
 import asyncssh
 from prompt_toolkit import print_formatted_text
-from prompt_toolkit.contrib.ssh.server import PromptToolkitSSHServer
+from prompt_toolkit.contrib.ssh.server import (
+    PromptToolkitSSHServer,
+    PromptToolkitSSHSession,
+)
 from prompt_toolkit.contrib.telnet.server import TelnetServer
 
 from ptpython.repl import embed
 
 
-def ensure_key(filename="ssh_host_key"):
+def ensure_key(filename: str = "ssh_host_key") -> str:
     path = pathlib.Path(filename)
     if not path.exists():
         rsa_key = asyncssh.generate_private_key("ssh-rsa")
@@ -25,12 +28,12 @@ def ensure_key(filename="ssh_host_key"):
     return str(path)
 
 
-async def interact(connection=None):
+async def interact(connection: PromptToolkitSSHSession) -> None:
     global_dict = {**globals(), "print": print_formatted_text}
     await embed(return_asyncio_coroutine=True, globals=global_dict)
 
 
-async def main(ssh_port=8022, telnet_port=8023):
+async def main(ssh_port: int = 8022, telnet_port: int = 8023) -> None:
     ssh_server = PromptToolkitSSHServer(interact=interact)
     await asyncssh.create_server(
         lambda: ssh_server, "", ssh_port, server_host_keys=[ensure_key()]
