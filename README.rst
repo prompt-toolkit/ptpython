@@ -71,6 +71,7 @@ The help menu shows basic command-line options.
       -h, --help            show this help message and exit
       --vi                  Enable Vi key bindings
       -i, --interactive     Start interactive shell after executing this file.
+      --asyncio             Run an asyncio event loop to support top-level "await".
       --light-bg            Run on a light background (use dark colors for text).
       --dark-bg             Run on a dark background (use light colors for text).
       --config-file CONFIG_FILE
@@ -169,6 +170,20 @@ correct Python code. If not, it will show a warning, and move the cursor to the
 error.
 
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
+
+
+Asyncio REPL and top level await
+********************************
+
+In order to get top-level ``await`` support, start ptpython as follows:
+
+.. code::
+
+   ptpython --asyncio
+
+This will spawn an asyncio event loop and embed the async REPL in the event
+loop. After this, top-level await will work and statements like ``await
+asyncio.sleep(10)`` will execute.
 
 
 Additional features
