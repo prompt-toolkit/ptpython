@@ -1,6 +1,26 @@
 CHANGELOG
 =========
 
+3.0.24: 2023-12-13
+------------------
+
+Fixes:
+- Don't show "Impossible to read config file" warnings when no config file was
+  passed to `run_config()`.
+- IPython integration fixes:
+  * Fix top-level await in IPython.
+  * Fix IPython `DeprecationWarning`.
+- Output printing fixes:
+  * Paginate exceptions if pagination is enabled.
+  * Handle big outputs without running out of memory.
+- Asyncio REPL improvements:
+  * From now on, passing `--asyncio` is required to activate the asyncio-REPL.
+    This will ensure that an event loop is created at the start in which we can
+    run top-level await statements.
+  * Use `get_running_loop()` instead of `get_event_loop()`.
+  * Better handling of `SystemExit` and control-c in the async REPL.
+
+
 3.0.23: 2023-02-22
 ------------------
 
