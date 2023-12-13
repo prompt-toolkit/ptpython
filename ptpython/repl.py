@@ -433,9 +433,10 @@ def run_config(repl: PythonInput, config_file: str | None = None) -> None:
         input("\nPress ENTER to continue...")
 
     # Check whether this file exists.
-    if not os.path.exists(config_file) and explicit_config_file:
-        print("Impossible to read %r" % config_file)
-        enter_to_continue()
+    if not os.path.exists(config_file):
+        if explicit_config_file:
+            print(f"Impossible to read {config_file}")
+            enter_to_continue()
         return
 
     # Run the config file in an empty namespace.
