@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+3.0.25: 2023-12-14
+------------------
+
+Fixes:
+- Fix handling of 'config file does not exist' when embedding ptpython.
+
+
 3.0.24: 2023-12-13
 ------------------
 
