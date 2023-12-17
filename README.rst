@@ -294,6 +294,6 @@ Special thanks to
 .. |License| image:: https://img.shields.io/github/license/prompt-toolkit/ptpython.svg
     :target: https://github.com/prompt-toolkit/ptpython/blob/master/LICENSE
 
-.. |PyPI| image:: https://pypip.in/version/ptpython/badge.svg
-    :target: https://pypi.python.org/pypi/ptpython/
+.. |PyPI| image:: https://img.shields.io/pypi/v/ptpython.svg
+    :target: https://pypi.org/project/ptpython/
     :alt: Latest Version
