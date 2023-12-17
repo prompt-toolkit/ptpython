@@ -15,6 +15,14 @@ setup(
     url="https://github.com/prompt-toolkit/ptpython",
     description="Python REPL build on top of prompt_toolkit",
     long_description=long_description,
+    package_urls={
+        "Changelog": "https://github.com/prompt-toolkit/ptpython/blob/master/CHANGELOG",
+    },
+    project_urls={
+        "Bug Tracker": "https://github.com/prompt-toolkit/ptpython/issues",
+        "Source Code": "https://github.com/prompt-toolkit/ptpython",
+        "Changelog": "https://github.com/prompt-toolkit/ptpython/blob/master/CHANGELOG",
+    },
     packages=find_packages("."),
     package_data={"ptpython": ["py.typed"]},
     install_requires=[
