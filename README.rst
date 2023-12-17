@@ -288,8 +288,8 @@ Special thanks to
 - `wcwidth <https://github.com/jquast/wcwidth>`_: Determine columns needed for a wide characters.
 - `prompt_toolkit <http://github.com/jonathanslenders/python-prompt-toolkit>`_ for the interface.
 
-.. |Build Status| image:: https://api.travis-ci.org/prompt-toolkit/ptpython.svg?branch=master
-    :target: https://travis-ci.org/prompt-toolkit/ptpython#
+.. |Build Status| image:: https://github.com/prompt-toolkit/ptpython/actions/workflows/test.yaml/badge.svg
+    :target: https://github.com/prompt-toolkit/ptpython/actions/workflows/test.yaml
 
 .. |License| image:: https://img.shields.io/github/license/prompt-toolkit/ptpython.svg
     :target: https://github.com/prompt-toolkit/ptpython/blob/master/LICENSE
