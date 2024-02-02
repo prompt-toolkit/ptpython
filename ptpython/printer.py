@@ -155,7 +155,7 @@ class OutputPrinter:
                 )
                 yield from formatted_result_repr
                 return
-        except KeyboardInterrupt:
+        except (GeneratorExit, KeyboardInterrupt):
             raise  # Don't catch here.
         except:
             # For bad code, `__getattr__` can raise something that's not an
