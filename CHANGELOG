@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+3.0.26: 2024-02-06
+------------------
+
+Fixes:
+- Handle `GeneratorExit` exception when leaving the paginator.
+
+
 3.0.25: 2023-12-14
 ------------------
 
