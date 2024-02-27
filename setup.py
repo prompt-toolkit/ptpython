@@ -29,8 +29,8 @@ setup(
         "appdirs",
         "importlib_metadata;python_version<'3.8'",
         "jedi>=0.16.0",
-        # Use prompt_toolkit 3.0.34, because of `OneStyleAndTextTuple` import.
-        "prompt_toolkit>=3.0.34,<3.1.0",
+        # Use prompt_toolkit 3.0.43, because of `OneStyleAndTextTuple` import.
+        "prompt_toolkit>=3.0.43,<3.1.0",
         "pygments",
     ],
     python_requires=">=3.7",
