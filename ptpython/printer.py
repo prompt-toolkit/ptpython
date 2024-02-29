@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import sys
 import traceback
+from contextlib import redirect_stdout
 from dataclasses import dataclass
 from enum import Enum
+from io import StringIO
 from typing import Generator, Iterable
 
 from prompt_toolkit.formatted_text import (
@@ -164,7 +166,10 @@ class OutputPrinter:
 
         # Call `__repr__` of given object first, to turn it in a string.
         try:
-            result_repr = repr(result)
+            result_repr_sio = StringIO()
+            with redirect_stdout(result_repr_sio):
+                sys.displayhook(result)
+            result_repr = result_repr_sio.getvalue()[:-1]  # Remove '\n' at the end
         except KeyboardInterrupt:
             raise  # Don't catch here.
         except BaseException as e:
