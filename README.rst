@@ -12,7 +12,7 @@ ptpython
 .. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/example1.png
 
 Ptpython is an advanced Python REPL. It should work on all
-Python versions from 2.6 up to 3.9 and work cross platform (Linux,
+Python versions from 2.6 up to 3.11 and work cross platform (Linux,
 BSD, OS X and Windows).
 
 Note: this version of ptpython requires at least Python 3.6. Install ptpython
