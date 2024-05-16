@@ -5,6 +5,7 @@ editing.
 Either with the Jedi library, or using `inspect.signature` if Jedi fails and we
 can use `eval()` to evaluate the function object.
 """
+
 from __future__ import annotations
 
 import inspect

@@ -22,6 +22,7 @@ environment variables:
   PTPYTHON_CONFIG_HOME: a configuration directory to use
   PYTHONSTARTUP: file executed on interactive startup (no default)
 """
+
 from __future__ import annotations
 
 import argparse

@@ -8,6 +8,7 @@ also the power of for instance all the %-magic functions that IPython has to
 offer.
 
 """
+
 from __future__ import annotations
 
 from typing import Iterable
