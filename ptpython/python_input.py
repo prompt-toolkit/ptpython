@@ -347,14 +347,6 @@ class PythonInput:
             "classic": ClassicPrompt(),
         }
 
-        self.get_input_prompt = lambda: self.all_prompt_styles[
-            self.prompt_style
-        ].in_prompt()
-
-        self.get_output_prompt = lambda: self.all_prompt_styles[
-            self.prompt_style
-        ].out_prompt()
-
         #: Load styles.
         self.code_styles: dict[str, BaseStyle] = get_all_code_styles()
         self.ui_styles = get_all_ui_styles()
@@ -424,6 +416,12 @@ class PythonInput:
                 self.app.editing_mode = EditingMode.VI
         else:
             self._app = None
+
+    def get_input_prompt(self) -> AnyFormattedText:
+        return self.all_prompt_styles[self.prompt_style].in_prompt()
+
+    def get_output_prompt(self) -> AnyFormattedText:
+        return self.all_prompt_styles[self.prompt_style].out_prompt()
 
     def _accept_handler(self, buff: Buffer) -> bool:
         app = get_app()
