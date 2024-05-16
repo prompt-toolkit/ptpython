@@ -4,6 +4,7 @@ Utility to easily select lines from the history and execute them again.
 `create_history_application` creates an `Application` instance that runs will
 run as a sub application of the Repl/PythonInput.
 """
+
 from __future__ import annotations
 
 from functools import partial

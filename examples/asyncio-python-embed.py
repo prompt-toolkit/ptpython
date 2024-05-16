@@ -11,6 +11,7 @@ The ``patch_stdout`` option makes sure that when another coroutine is writing
 to stdout, it won't break the input line, but instead writes nicely above the
 prompt.
 """
+
 import asyncio
 
 from ptpython.repl import embed

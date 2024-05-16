@@ -5,6 +5,7 @@ Example of running ptpython in another thread.
 (For testing whether it's working fine if it's not embedded in the main
 thread.)
 """
+
 import threading
 
 from ptpython.repl import embed

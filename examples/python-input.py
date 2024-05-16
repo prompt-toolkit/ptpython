@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""
-"""
+""" """
+
 from ptpython.python_input import PythonInput
 
 

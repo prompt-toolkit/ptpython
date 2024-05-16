@@ -1,6 +1,7 @@
 """
 Creation of the `Layout` instance for the Python input/REPL.
 """
+
 from __future__ import annotations
 
 import platform

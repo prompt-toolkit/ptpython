@@ -1,6 +1,6 @@
 #!/usr/bin/env python
-"""
-"""
+""" """
+
 from ptpython.repl import embed
 
 

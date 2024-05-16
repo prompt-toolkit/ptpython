@@ -6,6 +6,7 @@ Note that the code in this file is Python 3 only. However, we
 should make sure not to use Python 3-only syntax, because this
 package should be installable in Python 2 as well!
 """
+
 from __future__ import annotations
 
 import asyncio

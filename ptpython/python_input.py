@@ -2,6 +2,7 @@
 Application for reading Python input.
 This can be used for creation of Python REPLs.
 """
+
 from __future__ import annotations
 
 from asyncio import get_running_loop
@@ -98,8 +99,7 @@ if TYPE_CHECKING:
     class _SupportsLessThan(Protocol):
         # Taken from typeshed. _T_lt is used by "sorted", which needs anything
         # sortable.
-        def __lt__(self, __other: Any) -> bool:
-            ...
+        def __lt__(self, __other: Any) -> bool: ...
 
 
 _T_lt = TypeVar("_T_lt", bound="_SupportsLessThan")

@@ -2,6 +2,7 @@
 """
 Example of embedding a Python REPL, and setting a custom prompt.
 """
+
 from prompt_toolkit.formatted_text import HTML, AnyFormattedText
 
 from ptpython.prompt_style import PromptStyle

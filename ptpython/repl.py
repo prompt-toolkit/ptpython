@@ -7,6 +7,7 @@ Utility for creating a Python repl.
     embed(globals(), locals(), vi_mode=False)
 
 """
+
 from __future__ import annotations
 
 import asyncio

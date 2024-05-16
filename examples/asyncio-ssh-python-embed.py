@@ -5,6 +5,7 @@ This requires Python 3, asyncio and asyncssh.
 
 Run this example and then SSH to localhost, port 8222.
 """
+
 import asyncio
 import logging
 
