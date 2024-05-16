@@ -132,7 +132,7 @@ def python_sidebar(python_input: PythonInput) -> Window:
             tokens.append(("class:sidebar" + sel, " >" if selected else "  "))
             tokens.append(("class:sidebar.label" + sel, "%-24s" % label, select_item))
             tokens.append(("class:sidebar.status" + sel, " ", select_item))
-            tokens.append(("class:sidebar.status" + sel, "%s" % status, goto_next))
+            tokens.append(("class:sidebar.status" + sel, f"{status}", goto_next))
 
             if selected:
                 tokens.append(("[SetCursorPosition]", ""))
@@ -529,7 +529,7 @@ def create_exit_confirmation(
     def get_text_fragments() -> StyleAndTextTuples:
         # Show "Do you really want to exit?"
         return [
-            (style, "\n %s ([y]/n) " % python_input.exit_message),
+            (style, f"\n {python_input.exit_message} ([y]/n) "),
             ("[SetCursorPosition]", ""),
             (style, "  \n"),
         ]

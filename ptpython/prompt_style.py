@@ -48,7 +48,7 @@ class IPythonPrompt(PromptStyle):
     def in_prompt(self) -> AnyFormattedText:
         return [
             ("class:in", "In ["),
-            ("class:in.number", "%s" % self.python_input.current_statement_index),
+            ("class:in.number", f"{self.python_input.current_statement_index}"),
             ("class:in", "]: "),
         ]
 
@@ -58,7 +58,7 @@ class IPythonPrompt(PromptStyle):
     def out_prompt(self) -> AnyFormattedText:
         return [
             ("class:out", "Out["),
-            ("class:out.number", "%s" % self.python_input.current_statement_index),
+            ("class:out.number", f"{self.python_input.current_statement_index}"),
             ("class:out", "]:"),
             ("", " "),
         ]
