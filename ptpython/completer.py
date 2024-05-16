@@ -6,6 +6,7 @@ import inspect
 import keyword
 import re
 from enum import Enum
+from itertools import islice
 from typing import TYPE_CHECKING, Any, Callable, Iterable
 
 from prompt_toolkit.completion import (
@@ -617,7 +618,10 @@ class HidePrivateCompleter(Completer):
     def get_completions(
         self, document: Document, complete_event: CompleteEvent
     ) -> Iterable[Completion]:
-        completions = list(self.completer.get_completions(document, complete_event))
+        completions = list(
+            # Limit at 5k completions for performance.
+            islice(self.completer.get_completions(document, complete_event), 0, 5000)
+        )
         complete_private_attributes = self.complete_private_attributes()
         hide_private = False
 
