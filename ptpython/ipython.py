@@ -157,7 +157,7 @@ class MagicsCompleter(Completer):
 
         for m in sorted(self.magics_manager.magics["line"]):
             if m.startswith(text):
-                yield Completion("%s" % m, -len(text))
+                yield Completion(f"{m}", -len(text))
 
 
 class AliasCompleter(Completer):
@@ -173,7 +173,7 @@ class AliasCompleter(Completer):
 
         for a, cmd in sorted(aliases, key=lambda a: a[0]):
             if a.startswith(text):
-                yield Completion("%s" % a, -len(text), display_meta=cmd)
+                yield Completion(f"{a}", -len(text), display_meta=cmd)
 
 
 class IPythonInput(PythonInput):
@@ -280,9 +280,8 @@ def initialize_extensions(shell, extensions):
                 shell.extension_manager.load_extension(ext)
             except:
                 warn(
-                    "Error in loading extension: %s" % ext
-                    + "\nCheck your config files in %s"
-                    % ipy_utils.path.get_ipython_dir()
+                    f"Error in loading extension: {ext}"
+                    + f"\nCheck your config files in {ipy_utils.path.get_ipython_dir()}"
                 )
                 shell.showtraceback()
 

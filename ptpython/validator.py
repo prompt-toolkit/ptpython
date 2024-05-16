@@ -59,4 +59,4 @@ class PythonValidator(Validator):
         except ValueError as e:
             # In Python 2, compiling "\x9" (an invalid escape sequence) raises
             # ValueError instead of SyntaxError.
-            raise ValidationError(0, "Syntax Error: %s" % e)
+            raise ValidationError(0, f"Syntax Error: {e}")

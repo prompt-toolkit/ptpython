@@ -411,7 +411,7 @@ class HistoryMapping:
 
         if len(history_strings) > HISTORY_COUNT:
             history_lines[0] = (
-                "# *** History has been truncated to %s lines ***" % HISTORY_COUNT
+                f"# *** History has been truncated to {HISTORY_COUNT} lines ***"
             )
 
         self.history_lines = history_lines

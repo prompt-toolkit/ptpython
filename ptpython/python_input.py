@@ -880,18 +880,18 @@ class PythonInput:
                     Option(
                         title="Min brightness",
                         description="Minimum brightness for the color scheme (default=0.0).",
-                        get_current_value=lambda: "%.2f" % self.min_brightness,
+                        get_current_value=lambda: f"{self.min_brightness:.2f}",
                         get_values=lambda: {
-                            "%.2f" % value: partial(self._set_min_brightness, value)
+                            f"{value:.2f}": partial(self._set_min_brightness, value)
                             for value in brightness_values
                         },
                     ),
                     Option(
                         title="Max brightness",
                         description="Maximum brightness for the color scheme (default=1.0).",
-                        get_current_value=lambda: "%.2f" % self.max_brightness,
+                        get_current_value=lambda: f"{self.max_brightness:.2f}",
                         get_values=lambda: {
-                            "%.2f" % value: partial(self._set_max_brightness, value)
+                            f"{value:.2f}": partial(self._set_max_brightness, value)
                             for value in brightness_values
                         },
                     ),
