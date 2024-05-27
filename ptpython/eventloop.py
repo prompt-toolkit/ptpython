@@ -24,9 +24,8 @@ def _inputhook_tk(inputhook_context: InputHookContext) -> None:
     Run the Tk eventloop until prompt-toolkit needs to process the next input.
     """
     # Get the current TK application.
-    import tkinter
-
     import _tkinter  # Keep this imports inline!
+    import tkinter
 
     root = tkinter._default_root  # type: ignore
 
