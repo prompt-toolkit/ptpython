@@ -90,10 +90,13 @@ class Signature:
     ) -> Signature:
         parameters = []
 
-        def get_annotation_name(annotation: object) -> str:
+        def get_annotation_name(annotation: object) -> None:
             """
             Get annotation as string from inspect signature.
             """
+            if annotation == inspect.Parameter.empty:
+                return None
+
             try:
                 # In case the annotation is a class like "int", "float", ...
                 return str(annotation.__name__)  # type: ignore
