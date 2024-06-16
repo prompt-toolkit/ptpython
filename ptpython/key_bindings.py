@@ -217,6 +217,14 @@ def load_python_bindings(python_input: PythonInput) -> KeyBindings:
         "Abort when Control-C has been pressed."
         event.app.exit(exception=KeyboardInterrupt, style="class:aborting")
 
+    @handle("backspace", filter=(vi_insert_mode | emacs_insert_mode))
+    def _(event: E) -> None:
+        """
+        Display autocomplete menu on backspace
+        """
+        get_by_name("backward-delete-char").call(event)
+        event.current_buffer.start_completion(select_first=False)
+
     return bindings
 
 
