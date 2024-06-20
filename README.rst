@@ -28,6 +28,19 @@ Install it using pip:
 
     pip install ptpython
 
+Install it on Fedora:
+
+::
+
+    dnf install ptpython
+
+Install it on RHEL/CentOS:
+
+::
+
+    yum install https://dl.fedoraproject.org/pub/epel/epel-release-latest-$(rpm --eval %rhel).noarch.rpm
+    yum install ptpython
+
 Start it by typing ``ptpython``.
 
 
