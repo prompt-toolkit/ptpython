@@ -1116,4 +1116,5 @@ class PythonInput:
                     return result
             except KeyboardInterrupt:
                 # Abort - try again.
+                self.signatures = []
                 self.default_buffer.document = Document()
