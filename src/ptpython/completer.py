@@ -286,7 +286,9 @@ class JediCompleter(Completer):
                         suffix = "..."
 
                     style = _get_style_for_jedi_completion(jc)
-                    display_meta = jc.type if style == "" else [(style, jc.type)]
+                    display_meta = (
+                        jc.type if style == "" else [(f"{style}-meta", jc.type)]
+                    )
 
                     yield Completion(
                         jc.name_with_symbols,
