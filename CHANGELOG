@@ -1,6 +1,13 @@
 CHANGELOG
 =========
 
+3.0.29: 2024-07-22
+------------------
+
+Fixes:
+- Further improve performance of dictionary completions.
+
+
 3.0.28: 2024-07-22
 ------------------
 
