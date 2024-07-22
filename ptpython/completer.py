@@ -476,20 +476,34 @@ class DictionaryCompleter(Completer):
         Complete dictionary keys.
         """
 
-        def meta_repr(value: object) -> Callable[[], str]:
+        def meta_repr(obj: object, key: object) -> Callable[[], str]:
             "Abbreviate meta text, make sure it fits on one line."
+            cached_result: str | None = None
 
             # We return a function, so that it gets computed when it's needed.
             # When there are many completions, that improves the performance
             # quite a bit (for the multi-column completion menu, we only need
             # to display one meta text).
+            # Note that we also do the lookup itself in here (`obj[key]`),
+            # because this part can also be slow for some mapping
+            # implementations.
             def get_value_repr() -> str:
-                text = self._do_repr(value)
+                nonlocal cached_result
+                if cached_result is not None:
+                    return cached_result
+
+                try:
+                    value = obj[key]  # type: ignore
+
+                    text = self._do_repr(value)
+                except BaseException:
+                    return "-"
 
                 # Take first line, if multiple lines.
                 if "\n" in text:
                     text = text.split("\n", 1)[0] + "..."
 
+                cached_result = text
                 return text
 
             return get_value_repr
@@ -504,24 +518,24 @@ class DictionaryCompleter(Completer):
             # If this object is a dictionary, complete the keys.
             if isinstance(result, (dict, collections_abc.Mapping)):
                 # Try to evaluate the key.
-                key_obj = key
+                key_obj_str = str(key)
                 for k in [key, key + '"', key + "'"]:
                     try:
-                        key_obj = ast.literal_eval(k)
+                        key_obj_str = str(ast.literal_eval(k))
                     except (SyntaxError, ValueError):
                         continue
                     else:
                         break
 
-                for k, v in result.items():
-                    if str(k).startswith(str(key_obj)):
+                for k in result:
+                    if str(k).startswith(key_obj_str):
                         try:
                             k_repr = self._do_repr(k)
                             yield Completion(
                                 k_repr + "]",
                                 -len(key),
                                 display=f"[{k_repr}]",
-                                display_meta=meta_repr(v),
+                                display_meta=meta_repr(result, k),
                             )
                         except ReprFailedError:
                             pass
@@ -537,7 +551,7 @@ class DictionaryCompleter(Completer):
                                     k_repr + "]",
                                     -len(key),
                                     display=f"[{k_repr}]",
-                                    display_meta=meta_repr(result[k]),
+                                    display_meta=meta_repr(result, k),
                                 )
                             except KeyError:
                                 # `result[k]` lookup failed. Trying to complete
