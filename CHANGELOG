@@ -1,6 +1,19 @@
 CHANGELOG
 =========
 
+3.0.28: 2024-07-22
+------------------
+
+New features:
+- Custom 'exit' function to return from REPL that
+  * doesn't terminate `sys.stdin` when `exit` is called (important for
+    `embed()`).
+  * doesn't require to be called with parentheses.
+
+Fixes:
+- Clean up signatures on control-c.
+
+
 3.0.27: 2024-05-27
 ------------------
 
