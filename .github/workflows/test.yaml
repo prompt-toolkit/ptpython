@@ -27,7 +27,7 @@ jobs:
       - name: Type Checker
         run: |
           mypy ptpython
-          ruff .
+          ruff check .
           ruff format --check .
       - name: Run Tests
         run: |
