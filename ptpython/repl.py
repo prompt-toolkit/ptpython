@@ -20,7 +20,7 @@ import types
 import warnings
 from dis import COMPILER_FLAG_NAMES
 from pathlib import Path
-from typing import Any, Callable, ContextManager, Iterable, Sequence
+from typing import Any, Callable, ContextManager, Iterable, NoReturn, Sequence
 
 from prompt_toolkit.formatted_text import OneStyleAndTextTuple
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
@@ -40,7 +40,15 @@ try:
 except ImportError:
     PyCF_ALLOW_TOP_LEVEL_AWAIT = 0
 
-__all__ = ["PythonRepl", "enable_deprecation_warnings", "run_config", "embed"]
+
+__all__ = [
+    "PythonRepl",
+    "enable_deprecation_warnings",
+    "run_config",
+    "embed",
+    "exit",
+    "ReplExit",
+]
 
 
 def _get_coroutine_flag() -> int | None:
@@ -91,9 +99,16 @@ class PythonRepl(PythonInput):
                 raise
             except SystemExit:
                 raise
+            except ReplExit:
+                raise
             except BaseException as e:
                 self._handle_exception(e)
             else:
+                if isinstance(result, exit):
+                    # When `exit` is evaluated without parentheses.
+                    # Automatically trigger the `ReplExit` exception.
+                    raise ReplExit
+
                 # Print.
                 if result is not None:
                     self._show_result(result)
@@ -155,7 +170,10 @@ class PythonRepl(PythonInput):
                     continue
 
                 # Run it; display the result (or errors if applicable).
-                self.run_and_show_expression(text)
+                try:
+                    self.run_and_show_expression(text)
+                except ReplExit:
+                    return
         finally:
             if self.terminal_title:
                 clear_title()
@@ -383,6 +401,7 @@ class PythonRepl(PythonInput):
             return self
 
         globals["get_ptpython"] = get_ptpython
+        globals["exit"] = exit()
 
     def _remove_from_namespace(self) -> None:
         """
@@ -457,6 +476,29 @@ def run_config(repl: PythonInput, config_file: str | None = None) -> None:
     except Exception:
         traceback.print_exc()
         enter_to_continue()
+
+
+class exit:
+    """
+    Exit the ptpython REPL.
+    """
+
+    # This custom exit function ensures that the `embed` function returns from
+    # where we are embedded, and Python doesn't close `sys.stdin` like
+    # the default `exit` from `_sitebuiltins.Quitter` does.
+
+    def __call__(self) -> NoReturn:
+        raise ReplExit
+
+    def __repr__(self) -> str:
+        # (Same message as the built-in Python REPL.)
+        return "Use exit() or Ctrl-D (i.e. EOF) to exit"
+
+
+class ReplExit(Exception):
+    """
+    Exception raised by ptpython's exit function.
+    """
 
 
 def embed(
