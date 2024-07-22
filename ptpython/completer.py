@@ -285,12 +285,17 @@ class JediCompleter(Completer):
                     if jc.type == "param":
                         suffix = "..."
 
+                    style = _get_style_for_jedi_completion(jc)
+                    display_meta = (
+                        jc.type if style == "" else [(f"{style}-meta", jc.type)]
+                    )
+
                     yield Completion(
                         jc.name_with_symbols,
                         len(jc.complete) - len(jc.name_with_symbols),
                         display=jc.name_with_symbols + suffix,
-                        display_meta=jc.type,
-                        style=_get_style_for_jedi_completion(jc),
+                        display_meta=display_meta,
+                        style=style,
                     )
 
 
