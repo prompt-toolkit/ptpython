@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import sys
 from abc import ABCMeta, abstractmethod
 from typing import TYPE_CHECKING
 
@@ -14,7 +15,12 @@ __all__ = ["PromptStyle", "IPythonPrompt", "ClassicPrompt"]
 class PromptStyle(metaclass=ABCMeta):
     """
     Base class for all prompts.
+
+    It will set `sys.ps1` to let some programs know they are run in a REPL.
+    See: https://github.com/TylerYep/torchinfo/issues/216
     """
+    def __init__(self) -> None:
+        sys.ps1 = getattr(sys, "ps1", ">>> ")
 
     @abstractmethod
     def in_prompt(self) -> AnyFormattedText:
@@ -43,6 +49,7 @@ class IPythonPrompt(PromptStyle):
     """
 
     def __init__(self, python_input: PythonInput) -> None:
+        super().__init__()
         self.python_input = python_input
 
     def in_prompt(self) -> AnyFormattedText:
