@@ -1,3 +1,50 @@
+[project]
+name = "ptpython"
+version = "3.0.29"
+description = "Python REPL build on top of prompt_toolkit"
+readme = "README.rst"
+authors = [{ name = "Jonathan Slenders" }]
+classifiers = [
+    "License :: OSI Approved :: BSD License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "appdirs",
+    "importlib_metadata;python_version<'3.8'",
+    "jedi>=0.16.0",
+    # Use prompt_toolkit 3.0.43, because of `OneStyleAndTextTuple` import.
+    "prompt_toolkit>=3.0.43,<3.1.0",
+    "pygments",
+]
+dynamic = ["scripts"]
+
+[project.urls]
+Homepage = "https://github.com/prompt-toolkit/ptpython"
+Changelog = "https://github.com/prompt-toolkit/ptpython/blob/master/CHANGELOG"
+"Bug Tracker" = "https://github.com/prompt-toolkit/ptpython/issues"
+"Source Code" = "https://github.com/prompt-toolkit/ptpython"
+
+[project.optional-dependencies]
+ptipython = ["ipython"] # For ptipython, we need to have IPython
+all = ["black"]         # Black not always possible on PyPy
+
+[tool.mypy]
+ignore_missing_imports = true
+no_implicit_optional = true
+platform = "win32"
+strict_equality = true
+strict_optional = true
+
 [tool.ruff]
 target-version = "py37"
 lint.select = [
@@ -33,3 +80,7 @@ lint.ignore = [
 [tool.ruff.lint.isort]
 known-first-party = ["ptpython"]
 known-third-party = ["prompt_toolkit", "pygments", "asyncssh"]
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
