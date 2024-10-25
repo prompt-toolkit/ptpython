@@ -27,7 +27,7 @@ lint.ignore = [
 "ptpython/ipython.py" = ["T100"]  # Import usage.
 "ptpython/repl.py" = ["T201"]  # Print usage.
 "ptpython/printer.py" = ["T201"]  # Print usage.
-"tests/run_tests.py" = ["F401"]  # Unused imports.
+"tests/test_todo.py" = ["F401"]  # Unused imports.
 
 
 [tool.ruff.lint.isort]

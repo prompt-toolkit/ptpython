@@ -1,7 +1,4 @@
-#!/usr/bin/env python
 from __future__ import annotations
-
-import unittest
 
 import ptpython.completer
 import ptpython.eventloop
@@ -16,9 +13,9 @@ import ptpython.utils
 import ptpython.validator
 
 # For now there are no tests here.
-# However this is sufficient for Travis to do at least a syntax check.
+# However this is sufficient to do at least a syntax check.
 # That way we are at least sure to restrict to the Python 2.6 syntax.
 
 
-if __name__ == "__main__":
-    unittest.main()
+def test_todo():
+    pass
