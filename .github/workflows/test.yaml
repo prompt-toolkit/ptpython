@@ -22,7 +22,7 @@ jobs:
         run: |
           sudo apt remove python3-pip
           python -m pip install --upgrade pip
-          python -m pip install . ruff mypy pytest readme_renderer
+          python -m pip install .[dev]
           pip list
       - name: Type Checker
         run: |

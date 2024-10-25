@@ -37,6 +37,7 @@ Changelog = "https://github.com/prompt-toolkit/ptpython/blob/master/CHANGELOG"
 [project.optional-dependencies]
 ptipython = ["ipython"] # For ptipython, we need to have IPython
 all = ["black"]         # Black not always possible on PyPy
+dev = ["mypy", "readme_renderer", "ruff", "pytest"]
 
 [tool.mypy]
 ignore_missing_imports = true
