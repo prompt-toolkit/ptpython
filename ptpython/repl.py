@@ -362,7 +362,7 @@ class PythonRepl(PythonInput):
 
     def _store_eval_result(self, result: object) -> None:
         locals: dict[str, Any] = self.get_locals()
-        locals["_"] = locals["_%i" % self.current_statement_index] = result
+        locals["_"] = locals[f"_{self.current_statement_index}"] = result
 
     def get_compiler_flags(self) -> int:
         return super().get_compiler_flags() | PyCF_ALLOW_TOP_LEVEL_AWAIT
