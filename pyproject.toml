@@ -85,6 +85,10 @@ lint.ignore = [
 known-first-party = ["ptpython"]
 known-third-party = ["prompt_toolkit", "pygments", "asyncssh"]
 
+[tool.typos.default]
+extend-ignore-re = [
+    "impotr" # Intentional typo in: ./examples/ptpython_config/config.py
+]
 
 [build-system]
 requires = ["setuptools>=68"]

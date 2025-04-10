@@ -21,13 +21,19 @@ jobs:
         run: |
           uvx --with . mypy src/ptpython
       - name: Code formatting
+        if: ${{ matrix.python-version == '3.13' }}
         run: |
           uvx ruff check .
           uvx ruff format --check .
+      - name: Typos
+        if: ${{ matrix.python-version == '3.13' }}
+        run: |
+          uvx typos .
       - name: Unit test
         run: |
           uvx --with . pytest tests/
       - name: Validate README.md
+        if: ${{ matrix.python-version == '3.13' }}
         # Ensure that the README renders correctly (required for uploading to PyPI).
         run: |
           uv pip install readme_renderer
