@@ -22,6 +22,8 @@ from prompt_toolkit.keys import Keys
 from .utils import document_is_multiline_python
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from .python_input import PythonInput
 
 __all__ = [
@@ -30,7 +32,7 @@ __all__ = [
     "load_confirm_exit_bindings",
 ]
 
-E = KeyPressEvent
+E: TypeAlias = KeyPressEvent
 
 
 @Condition
