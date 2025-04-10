@@ -19,7 +19,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Type Checking
         run: |
-          uvx --with . mypy src/ptpython
+          uvx --with . mypy src/ptpython/
+          uvx --with . mypy examples/
       - name: Code formatting
         if: ${{ matrix.python-version == '3.13' }}
         run: |

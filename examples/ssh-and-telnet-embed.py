@@ -6,6 +6,8 @@ Thanks to Vincent Michel for this!
 https://gist.github.com/vxgmichel/7685685b3e5ead04ada4a3ba75a48eef
 """
 
+from __future__ import annotations
+
 import asyncio
 import pathlib
 
@@ -15,7 +17,7 @@ from prompt_toolkit.contrib.ssh.server import (
     PromptToolkitSSHServer,
     PromptToolkitSSHSession,
 )
-from prompt_toolkit.contrib.telnet.server import TelnetServer
+from prompt_toolkit.contrib.telnet.server import TelnetConnection, TelnetServer
 
 from ptpython.repl import embed
 
@@ -28,7 +30,7 @@ def ensure_key(filename: str = "ssh_host_key") -> str:
     return str(path)
 
 
-async def interact(connection: PromptToolkitSSHSession) -> None:
+async def interact(connection: PromptToolkitSSHSession | TelnetConnection) -> None:
     global_dict = {**globals(), "print": print_formatted_text}
     await embed(return_asyncio_coroutine=True, globals=global_dict)
 
