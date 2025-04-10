@@ -58,13 +58,15 @@ from ptpython.layout import get_inputmode_fragments
 from .utils import if_mousedown
 
 if TYPE_CHECKING:
+    from typing_extensions import TypeAlias
+
     from .python_input import PythonInput
 
 HISTORY_COUNT = 2000
 
 __all__ = ["HistoryLayout", "PythonHistory"]
 
-E = KeyPressEvent
+E: TypeAlias = KeyPressEvent
 
 HELP_TEXT = """
 This interface is meant to select multiple lines from the
