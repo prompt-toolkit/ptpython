@@ -29,7 +29,7 @@ jobs:
           ruff format --check .
       - name: Run Tests
         run: |
-          ./tests/run_tests.py
+          pytest tests/
       - name: Validate README.md
         # Ensure that the README renders correctly (required for uploading to PyPI).
         run: |
