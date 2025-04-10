@@ -20,7 +20,17 @@ import types
 import warnings
 from dis import COMPILER_FLAG_NAMES
 from pathlib import Path
-from typing import Any, Callable, ContextManager, Iterable, NoReturn, Sequence
+from typing import (
+    Any,
+    Callable,
+    ContextManager,
+    Coroutine,
+    Iterable,
+    Literal,
+    NoReturn,
+    Sequence,
+    overload,
+)
 
 from prompt_toolkit.formatted_text import OneStyleAndTextTuple
 from prompt_toolkit.patch_stdout import patch_stdout as patch_stdout_context
@@ -505,6 +515,34 @@ class ReplExit(Exception):
     """
 
 
+@overload
+def embed(
+    globals: dict[str, Any] | None = ...,
+    locals: dict[str, Any] | None = ...,
+    configure: Callable[[PythonRepl], None] | None = ...,
+    vi_mode: bool = ...,
+    history_filename: str | None = ...,
+    title: str | None = ...,
+    startup_paths: Sequence[str | Path] | None = ...,
+    patch_stdout: bool = ...,
+    return_asyncio_coroutine: Literal[False] = ...,
+) -> None: ...
+
+
+@overload
+def embed(
+    globals: dict[str, Any] | None = ...,
+    locals: dict[str, Any] | None = ...,
+    configure: Callable[[PythonRepl], None] | None = ...,
+    vi_mode: bool = ...,
+    history_filename: str | None = ...,
+    title: str | None = ...,
+    startup_paths: Sequence[str | Path] | None = ...,
+    patch_stdout: bool = ...,
+    return_asyncio_coroutine: Literal[True] = ...,
+) -> Coroutine[Any, Any, None]: ...
+
+
 def embed(
     globals: dict[str, Any] | None = None,
     locals: dict[str, Any] | None = None,
@@ -515,7 +553,7 @@ def embed(
     startup_paths: Sequence[str | Path] | None = None,
     patch_stdout: bool = False,
     return_asyncio_coroutine: bool = False,
-) -> None:
+) -> None | Coroutine[Any, Any, None]:
     """
     Call this to embed  Python shell at the current point in your program.
     It's similar to `IPython.embed` and `bpython.embed`. ::
@@ -577,3 +615,4 @@ def embed(
     else:
         with patch_context:
             repl.run()
+        return None
