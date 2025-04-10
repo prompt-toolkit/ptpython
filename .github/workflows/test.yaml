@@ -10,20 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.8, 3.9, "3.10", "3.11", "3.12", "3.13"]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13"]
 
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v4
+
+      - uses: astral-sh/setup-uv@v5
         with:
           python-version: ${{ matrix.python-version }}
       - name: Install Dependencies
         run: |
-          sudo apt remove python3-pip
-          python -m pip install --upgrade pip
-          python -m pip install . ruff mypy pytest readme_renderer
-          pip list
+          uv pip install . ruff mypy pytest readme_renderer
+          uv pip list
       - name: Type Checker
         run: |
           mypy ptpython
