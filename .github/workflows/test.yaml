@@ -19,7 +19,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Type Checking
         run: |
-          uvx --with . mypy ptpython
+          uvx --with . mypy src/ptpython
       - name: Code formatting
         run: |
           uvx ruff check .
