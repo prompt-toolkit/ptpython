@@ -44,8 +44,8 @@ async def main(port: int = 8222) -> None:
     def create_server() -> MySSHServer:
         return MySSHServer(lambda: environ)
 
-    print("Listening on :%i" % port)
-    print('To connect, do "ssh localhost -p %i"' % port)
+    print(f"Listening on: {port}")
+    print(f'To connect, do "ssh localhost -p {port}"')
 
     await asyncssh.create_server(
         create_server, "", port, server_host_keys=["/etc/ssh/ssh_host_dsa_key"]

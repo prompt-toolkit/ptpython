@@ -108,7 +108,7 @@ def python_sidebar(python_input: PythonInput) -> Window:
             tokens.extend(
                 [
                     ("class:sidebar", "  "),
-                    ("class:sidebar.title", "   %-36s" % category.title),
+                    ("class:sidebar.title", f"   {category.title:36}"),
                     ("class:sidebar", "\n"),
                 ]
             )
@@ -130,7 +130,7 @@ def python_sidebar(python_input: PythonInput) -> Window:
             sel = ",selected" if selected else ""
 
             tokens.append(("class:sidebar" + sel, " >" if selected else "  "))
-            tokens.append(("class:sidebar.label" + sel, "%-24s" % label, select_item))
+            tokens.append(("class:sidebar.label" + sel, f"{label:24}", select_item))
             tokens.append(("class:sidebar.status" + sel, " ", select_item))
             tokens.append(("class:sidebar.status" + sel, f"{status}", goto_next))
 
@@ -332,7 +332,7 @@ class PythonPromptMargin(PromptMargin):
             width: int, line_number: int, is_soft_wrap: bool
         ) -> StyleAndTextTuples:
             if python_input.show_line_numbers and not is_soft_wrap:
-                text = ("%i " % (line_number + 1)).rjust(width)
+                text = f"{line_number + 1} ".rjust(width)
                 return [("class:line-number", text)]
             else:
                 return to_formatted_text(get_prompt_style().in2_prompt(width))
@@ -368,8 +368,7 @@ def status_bar(python_input: PythonInput) -> Container:
         append(
             (
                 TB,
-                "%i/%i "
-                % (python_buffer.working_index + 1, len(python_buffer._working_lines)),
+                f"{python_buffer.working_index + 1}/{len(python_buffer._working_lines)} ",
             )
         )
 
@@ -492,8 +491,7 @@ def show_sidebar_button_info(python_input: PythonInput) -> Container:
         ("class:status-toolbar", " - "),
         (
             "class:status-toolbar.python-version",
-            "%s %i.%i.%i"
-            % (platform.python_implementation(), version[0], version[1], version[2]),
+            f"{platform.python_implementation()} {version[0]}.{version[1]}.{version[2]}",
         ),
         ("class:status-toolbar", " "),
     ]

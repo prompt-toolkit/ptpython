@@ -25,7 +25,7 @@ async def print_counter() -> None:
     Coroutine that prints counters and saves it in a global variable.
     """
     while True:
-        print("Counter: %i" % counter[0])
+        print(f"Counter: {counter[0]}")
         counter[0] += 1
         await asyncio.sleep(3)
 
