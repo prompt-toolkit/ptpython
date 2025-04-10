@@ -30,8 +30,9 @@ import asyncio
 import os
 import pathlib
 import sys
+from importlib import metadata
 from textwrap import dedent
-from typing import IO
+from typing import Protocol
 
 import appdirs
 from prompt_toolkit.formatted_text import HTML
@@ -39,17 +40,15 @@ from prompt_toolkit.shortcuts import print_formatted_text
 
 from ptpython.repl import PythonRepl, embed, enable_deprecation_warnings, run_config
 
-try:
-    from importlib import metadata  # type: ignore
-except ImportError:
-    import importlib_metadata as metadata  # type: ignore
-
-
 __all__ = ["create_parser", "get_config_and_history_file", "run"]
 
 
+class _SupportsWrite(Protocol):
+    def write(self, s: str, /) -> object: ...
+
+
 class _Parser(argparse.ArgumentParser):
-    def print_help(self, file: IO[str] | None = None) -> None:
+    def print_help(self, file: _SupportsWrite | None = None) -> None:
         super().print_help()
         print(
             dedent(
