@@ -254,8 +254,7 @@ class OutputPrinter:
                     columns_in_buffer += width
                     current_line.append((style, c))
 
-            if len(current_line) > 0:
-                yield current_line
+            yield current_line
 
     def _print_paginated_formatted_text(
         self, lines: Iterable[StyleAndTextTuples]
@@ -323,14 +322,20 @@ class OutputPrinter:
     def _format_exception_output(
         self, e: BaseException, highlight: bool
     ) -> Generator[OneStyleAndTextTuple, None, None]:
-        # Instead of just calling ``traceback.format_exc``, we take the
-        # traceback and skip the bottom calls of this framework.
-        t, v, tb = sys.exc_info()
+        if e.__cause__:
+            yield from self._format_exception_output(e.__cause__, highlight=highlight)
+            yield (
+                "",
+                "\nThe above exception was the direct cause of the following exception:\n\n",
+            )
+        elif e.__context__:
+            yield from self._format_exception_output(e.__context__, highlight=highlight)
+            yield (
+                "",
+                "\nDuring handling of the above exception, another exception occurred:\n\n",
+            )
 
-        # Required for pdb.post_mortem() to work.
-        sys.last_type, sys.last_value, sys.last_traceback = t, v, tb
-
-        tblist = list(traceback.extract_tb(tb))
+        tblist = list(traceback.extract_tb(e.__traceback__))
 
         for line_nr, tb_tuple in enumerate(tblist):
             if tb_tuple[0] == "<stdin>":
@@ -340,7 +345,7 @@ class OutputPrinter:
         tb_list = traceback.format_list(tblist)
         if tb_list:
             tb_list.insert(0, "Traceback (most recent call last):\n")
-        tb_list.extend(traceback.format_exception_only(t, v))
+        tb_list.extend(traceback.format_exception_only(type(e), e))
 
         tb_str = "".join(tb_list)
 
