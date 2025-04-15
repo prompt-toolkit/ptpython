@@ -1,6 +1,6 @@
 [project]
 name = "ptpython"
-version = "3.0.29"
+version = "3.0.30"
 description = "Python REPL build on top of prompt_toolkit"
 readme = "README.rst"
 authors = [{ name = "Jonathan Slenders" }]

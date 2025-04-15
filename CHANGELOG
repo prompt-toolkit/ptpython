@@ -1,6 +1,17 @@
 CHANGELOG
 =========
 
+3.0.30: 2025-04-15
+------------------
+
+New features:
+- Show exception cause/context when printing chained exceptions.
+- Reworked project layout and use pyproject.toml instead of setup.py.
+
+Breaking changes:
+- Drop Python 3.7 support.
+
+
 3.0.29: 2024-07-22
 ------------------
 
