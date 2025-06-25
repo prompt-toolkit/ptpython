@@ -643,6 +643,7 @@ class PythonHistory:
             layout=self.history_layout.layout,
             full_screen=True,
             style=python_input._current_style,
+            style_transformation=python_input.style_transformation,
             mouse_support=Condition(lambda: python_input.enable_mouse_support),
             key_bindings=create_key_bindings(self, python_input, history_mapping),
         )
