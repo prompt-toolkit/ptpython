@@ -525,6 +525,7 @@ def embed(
     title: str | None = ...,
     startup_paths: Sequence[str | Path] | None = ...,
     patch_stdout: bool = ...,
+    patch_stdout_raw: bool = ...,
     return_asyncio_coroutine: Literal[False] = ...,
 ) -> None: ...
 
@@ -539,6 +540,7 @@ def embed(
     title: str | None = ...,
     startup_paths: Sequence[str | Path] | None = ...,
     patch_stdout: bool = ...,
+    patch_stdout_raw: bool = ...,
     return_asyncio_coroutine: Literal[True] = ...,
 ) -> Coroutine[Any, Any, None]: ...
 
@@ -552,6 +554,7 @@ def embed(
     title: str | None = None,
     startup_paths: Sequence[str | Path] | None = None,
     patch_stdout: bool = False,
+    patch_stdout_raw: bool = False,
     return_asyncio_coroutine: bool = False,
 ) -> None | Coroutine[Any, Any, None]:
     """
@@ -567,6 +570,7 @@ def embed(
     :param title: Title to be displayed in the terminal titlebar. (None or string.)
     :param patch_stdout:  When true, patch `sys.stdout` so that background
         threads that are printing will print nicely above the prompt.
+    :param patch_stdout_raw:  When true, patch_stdout will not escape/remove vt100 terminal escape sequences.
     """
     # Default globals/locals
     if globals is None:
@@ -602,7 +606,7 @@ def embed(
 
     # Start repl.
     patch_context: ContextManager[None] = (
-        patch_stdout_context() if patch_stdout else DummyContext()
+        patch_stdout_context(raw=patch_stdout_raw) if patch_stdout else DummyContext()
     )
 
     if return_asyncio_coroutine:
