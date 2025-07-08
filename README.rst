@@ -9,7 +9,7 @@ ptpython
 
     pip install ptpython
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/example1.png
+.. image :: ./docs/images/example1.png
 
 Ptpython is an advanced Python REPL. It should work on all
 Python versions from 2.6 up to 3.11 and work cross platform (Linux,
@@ -109,15 +109,15 @@ More screenshots
 
 The configuration menu:
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ptpython-menu.png
+.. image :: ./docs/images/ptpython-menu.png
 
 The history page and its help:
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ptpython-history-help.png
+.. image :: ./docs/images/ptpython-history-help.png
 
 Autocompletion:
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/file-completion.png
+.. image :: ./docs/images/file-completion.png
 
 
 Embedding the REPL
@@ -159,7 +159,7 @@ terminal, you have to check the "Use option as meta key" checkbox in your
 terminal settings. For iTerm2, you have to check "Left option acts as +Esc" in
 the options.)
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/multiline.png
+.. image :: ./docs/images/multiline.png
 
 
 Syntax validation
@@ -169,7 +169,7 @@ Before execution, ``ptpython`` will see whether the input is syntactically
 correct Python code. If not, it will show a warning, and move the cursor to the
 error.
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/validation.png
+.. image :: ./docs/images/validation.png
 
 
 Asyncio REPL and top level await
@@ -208,7 +208,7 @@ variable, if set, can also be used to explicitly override where configuration
 is looked for.
 
 Have a look at this example to see what is possible:
-`config.py <https://github.com/jonathanslenders/ptpython/blob/master/examples/ptpython_config/config.py>`_
+`config.py <https://github.com/prompt-toolkit/ptpython/blob/master/examples/ptpython_config/config.py>`_
 
 Note config file support currently only works when invoking `ptpython` directly.
 That it, the config file will be ignored when embedding ptpython in an application.
@@ -222,7 +222,7 @@ with all the power that IPython has to offer, like magic functions and shell
 integration. Make sure that IPython has been installed. (``pip install
 ipython``)
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/ipython.png
+.. image :: ./docs/images/ipython.png
 
 This is also available for embedding:
 
@@ -253,7 +253,7 @@ Windows support
 ``prompt_toolkit`` and ``ptpython`` works better on Linux and OS X than on
 Windows. Some things might not work, but it is usable:
 
-.. image :: https://github.com/jonathanslenders/ptpython/raw/master/docs/images/windows.png
+.. image :: ./docs/images/windows.png
 
 Windows terminal integration
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
