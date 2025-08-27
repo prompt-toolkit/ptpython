@@ -694,7 +694,8 @@ class PtPythonLayout:
                                         ),
                                         Float(
                                             left=2,
-                                            bottom=1,
+                                            top=2,
+                                            height=3,
                                             content=self.exit_confirmation,
                                         ),
                                         Float(
