@@ -51,7 +51,7 @@ strict_optional = true
 
 
 [tool.ruff]
-target-version = "py37"
+target-version = "py38"
 lint.select = [
     "E",  # pycodestyle errors
     "W",  # pycodestyle warnings
