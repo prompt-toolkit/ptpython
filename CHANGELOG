@@ -1,6 +1,15 @@
 CHANGELOG
 =========
 
+3.0.31: 2025-08-27
+------------------
+
+Fixes:
+- Add `patch_stdout_raw` parameter to `embed()`.
+- Fix repl.min_brightness and repl.max_brightness config in history.
+- Fix positioning of exit confirmation (compatibilitiy with latest prompt_toolkit).
+
+
 3.0.30: 2025-04-15
 ------------------
 
