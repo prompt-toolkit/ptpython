@@ -4,6 +4,7 @@ Configuration example for ``ptpython``.
 Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
 On Linux, this is: ~/.config/ptpython/config.py
 On macOS, this is: ~/Library/Application Support/ptpython/config.py
+On Windows, this is: ~\AppData\Local\prompt_toolkit\ptpython\config.py
 """
 
 from prompt_toolkit.filters import ViInsertMode
