@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import builtins
+import inspect
 import os
 import signal
 import sys
@@ -192,6 +193,7 @@ class PythonRepl(PythonInput):
     async def run_and_show_expression_async(self, text: str) -> Any:
         loop = asyncio.get_running_loop()
         system_exit: SystemExit | None = None
+        is_signal_handled = False
 
         try:
             try:
@@ -208,7 +210,10 @@ class PythonRepl(PythonInput):
                         system_exit = e
 
                 task = asyncio.create_task(eval())
-                loop.add_signal_handler(signal.SIGINT, lambda *_: task.cancel())
+                f = loop.add_signal_handler
+                if "raise NotImplementedError" not in inspect.getsource(f):
+                    f(signal.SIGINT, lambda *_: task.cancel())
+                    is_signal_handled = True
                 result = await task
 
                 if system_exit is not None:
@@ -231,7 +236,8 @@ class PythonRepl(PythonInput):
                 # Return the result for future consumers.
                 return result
             finally:
-                loop.remove_signal_handler(signal.SIGINT)
+                if is_signal_handled:
+                    loop.remove_signal_handler(signal.SIGINT)
 
         except KeyboardInterrupt as e:
             # Handle all possible `KeyboardInterrupt` errors. This can
