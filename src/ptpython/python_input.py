@@ -350,7 +350,7 @@ class PythonInput:
         #: Load styles.
         self.code_styles: dict[str, BaseStyle] = get_all_code_styles()
         self.ui_styles = get_all_ui_styles()
-        self._current_code_style_name: str = "default"
+        self._current_code_style_name: str = "default-ansi"
         self._current_ui_style_name: str = "default"
 
         if is_windows():

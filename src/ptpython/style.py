@@ -17,6 +17,7 @@ def get_all_code_styles() -> dict[str, BaseStyle]:
         for name in get_all_styles()
     }
     result["win32"] = Style.from_dict(win32_code_style)
+    result["default-ansi"] = Style.from_dict(default_ansi_code_style)
     return result
 
 
@@ -37,6 +38,63 @@ def generate_style(python_style: BaseStyle, ui_style: BaseStyle) -> BaseStyle:
     """
     return merge_styles([python_style, ui_style])
 
+
+# Use ANSI colors for the default theme.
+# This is `DefaultStyle` from Pygments, modified to use ANSI colors instead of
+# RGB. This adapts better to light/dark mode, because the built-in themes from
+# a terminal are typically designed for whatever background is used. All the
+# other Pygments themes use RGB, which is fine, because the user consciously
+# chooses what works for them.
+
+# To convert, do:
+# from prompt_toolkit.output import ColorDepth
+# from prompt_toolkit.output.vt100 import _EscapeCodeCache, _get_closest_ansi_color
+# print(_get_closest_ansi_color(
+#    *_EscapeCodeCache(ColorDepth.DEPTH_8_BIT)._color_name_to_rgb('bbbbbb'))
+# )
+
+default_ansi_code_style = {
+    "pygments.whitespace": "ansigray",  # "#bbbbbb",
+    "pygments.comment": "italic ansibrightblack",  # "italic #3d7b7b",
+    "pygments.comment.preproc": "noitalic ansired",  # "noitalic #9c6500",
+    "pygments.keyword": "bold ansigreen",  # "bold #008000",
+    "pygments.keyword.pseudo": "nobold",
+    "pygments.keyword.type": "nobold ansired",  # "nobold #b00040",
+    "pygments.operator": "ansibrightblack",  # "#666666",
+    "pygments.operator.word": "bold ansimagenta",  # "bold #aa22ff",
+    "pygments.name.builtin": "ansigreen",  # "#008000",
+    "pygments.name.function": "ansibrightblue",  # "#0000ff",
+    "pygments.name.class": "bold ansibrightblue",  # "bold #0000ff",
+    "pygments.name.namespace": "bold ansibrightblack",  # "bold #0000ff",
+    "pygments.name.exception": "bold ansired",  # "bold #cb3f38",
+    "pygments.name.variable": "ansiblue",  # "#19177c",
+    "pygments.name.constant": "ansired",  # "#880000",
+    "pygments.name.label": "ansiyellow",  # "#767600",
+    "pygments.name.entity": "bold ansibrightblack",  # "bold #717171",
+    "pygments.name.attribute": "ansibrightblack",  # "#687822",
+    "pygments.name.tag": "bold ansigreen",  # "bold #008000",
+    "pygments.name.decorator": "ansimagenta",  # "#aa22ff",
+    "pygments.literal.string": "ansired",  # "#ba2121",
+    "pygments.literal.string.doc": "italic",
+    "pygments.literal.string.interpol": "bold ansibrightblack",  # "bold #a45a77",
+    "pygments.literal.string.escape": "bold ansired",  # "bold #aa5d1f",
+    "pygments.literal.string.regex": "ansibrightblack",  # "#a45a77",
+    "pygments.literal.string.symbol": "ansiblue",  # "#19177c",
+    "pygments.literal.string.other": "ansigreen",  # "#008000",
+    "pygments.literal.number": "ansibrightblack",  # "#666666",
+    "pygments.generic.heading": "bold ansiblue",  # "bold #000080",
+    "pygments.generic.subheading": "bold ansimagenta",  # "bold #800080",
+    "pygments.generic.deleted": "ansired",  # "#a00000",
+    "pygments.generic.inserted": "ansigreen",  # "#008400",
+    "pygments.generic.error": "ansigreen",  # "#e40000",
+    "pygments.generic.emph": "italic",
+    "pygments.generic.strong": "bold",
+    "pygments.generic.emphstrong": "bold italic",
+    "pygments.generic.prompt": "bold ansiblue",  # "bold #000080",
+    "pygments.generic.output": "ansibrightblack",  # "#717171",
+    "pygments.generic.traceback": "ansiblue",  # "#04d",
+    "pygments.error": "",  # "border:#ff0000",
+}
 
 # Code style for Windows consoles. They support only 16 colors,
 # so we choose a combination that displays nicely.
