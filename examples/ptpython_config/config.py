@@ -1,4 +1,4 @@
-"""
+r"""
 Configuration example for ``ptpython``.
 
 Copy this file to $XDG_CONFIG_HOME/ptpython/config.py
