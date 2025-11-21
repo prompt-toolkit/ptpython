@@ -137,6 +137,14 @@ default_ui_style = {
     "completion.keyword": "fg:#008800",
     "completion.keyword fuzzymatch.inside": "fg:#008800",
     "completion.keyword fuzzymatch.outside": "fg:#44aa44",
+    # Styling for the meta completion menu that displays the type of each
+    # completion, e.g. param, builtin, keyword to the right of the item.
+    "completion.param-meta": "fg:ansiblue",
+    "completion.param-meta fuzzymatch.inside.character": "fg:ansiblue",
+    "completion.builtin-meta": "fg:ansigreen",
+    "completion.builtin-meta fuzzymatch.inside.character": "fg:ansigreen",
+    "completion.keyword-meta": "fg:ansired",
+    "completion.keyword-meta fuzzymatch.inside.character": "fg:ansired",
     # Separator between windows. (Used above docstring.)
     "separator": "#bbbbbb",
     # System toolbar
