@@ -741,6 +741,7 @@ class PtPythonLayout:
                                             # lexer=PythonLexer,
                                         ),
                                         height=D(max=12),
+                                        wrap_lines=True,
                                     ),
                                     filter=HasSignature(python_input)
                                     & ShowDocstring(python_input)
