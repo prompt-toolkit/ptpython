@@ -327,7 +327,7 @@ class OutputPrinter:
                 "",
                 "\nThe above exception was the direct cause of the following exception:\n\n",
             )
-        elif e.__context__:
+        elif e.__context__ and not e.__suppress_context__:
             yield from self._format_exception_output(e.__context__, highlight=highlight)
             yield (
                 "",
