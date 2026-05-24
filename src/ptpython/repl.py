@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import asyncio
 import builtins
-import inspect
+import contextlib
 import os
 import signal
 import sys
@@ -210,9 +210,9 @@ class PythonRepl(PythonInput):
                         system_exit = e
 
                 task = asyncio.create_task(eval())
-                f = loop.add_signal_handler
-                if "raise NotImplementedError" not in inspect.getsource(f):
-                    f(signal.SIGINT, lambda *_: task.cancel())
+                with contextlib.suppress(NotImplementedError):
+                    # Some event loops, notably on Windows, don't support add_signal_handler().
+                    loop.add_signal_handler(signal.SIGINT, lambda *_: task.cancel())
                     is_signal_handled = True
                 result = await task
 
