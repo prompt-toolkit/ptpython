@@ -1,13 +1,23 @@
 CHANGELOG
 =========
 
+3.0.32: 2025-11-20
+------------------
+
+Fixes:
+- Use ANSI colors (instead of RGB colors) for the default code theme. This
+  improves the chances of having a better contrast with the background color,
+  because we now use what is configured in the terminal emulator. The theme is
+  called 'default-ansi' and exists alongside 'default'.
+
+
 3.0.31: 2025-08-27
 ------------------
 
 Fixes:
 - Add `patch_stdout_raw` parameter to `embed()`.
 - Fix repl.min_brightness and repl.max_brightness config in history.
-- Fix positioning of exit confirmation (compatibilitiy with latest prompt_toolkit).
+- Fix positioning of exit confirmation (compatibility with latest prompt_toolkit).
 
 
 3.0.30: 2025-04-15
