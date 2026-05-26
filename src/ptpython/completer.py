@@ -130,10 +130,10 @@ class PythonCompleter(Completer):
         )
 
     def _complete_path_while_typing(self, document: Document) -> bool:
-        char_before_cursor = document.char_before_cursor
+        text = document.text_before_cursor
+        char_before_cursor = text[-1:]
         return bool(
-            document.text
-            and (char_before_cursor.isalnum() or char_before_cursor in "/.~")
+            text and (char_before_cursor.isalnum() or char_before_cursor in "/.~")
         )
 
     def _complete_python_while_typing(self, document: Document) -> bool:

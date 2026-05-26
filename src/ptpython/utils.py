@@ -59,7 +59,7 @@ def has_unclosed_brackets(text: str) -> bool:
 
 def get_jedi_script_from_document(
     document: Document, locals: dict[str, Any], globals: dict[str, Any]
-) -> Interpreter:
+) -> Interpreter | None:
     import jedi  # We keep this import in-line, to improve start-up time.
 
     # Importing Jedi is 'slow'.
