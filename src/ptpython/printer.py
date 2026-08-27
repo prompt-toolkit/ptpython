@@ -152,8 +152,19 @@ class OutputPrinter:
                 formatted_result_repr = to_formatted_text(
                     getattr(result, "__pt_repr__")()
                 )
-                yield from formatted_result_repr
-                return
+                # Only trust the result if every fragment is a well-formed
+                # ``(style, text)`` tuple. A `unittest.mock.MagicMock` (and
+                # similar auto-attribute objects) fabricates a `__pt_repr__`
+                # that resolves to more mocks, so `to_formatted_text` can yield
+                # malformed fragments such as an empty tuple, which would later
+                # crash `split_lines` with a "not enough values to unpack"
+                # `ValueError`. Fall back to the normal `repr()` path instead.
+                if all(
+                    isinstance(fragment, tuple) and len(fragment) >= 2
+                    for fragment in formatted_result_repr
+                ):
+                    yield from formatted_result_repr
+                    return
         except (GeneratorExit, KeyboardInterrupt):
             raise  # Don't catch here.
         except:
