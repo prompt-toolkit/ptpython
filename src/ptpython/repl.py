@@ -152,6 +152,7 @@ class PythonRepl(PythonInput):
             result=result,
             out_prompt=self.get_output_prompt(),
             reformat=self.enable_output_formatting,
+            formatter=self.output_formatter,
             highlight=self.enable_syntax_highlighting,
             paginate=self.enable_pager,
         )

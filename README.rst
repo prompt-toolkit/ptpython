@@ -214,6 +214,27 @@ Note config file support currently only works when invoking `ptpython` directly.
 That it, the config file will be ignored when embedding ptpython in an application.
 
 
+Output formatting
+~~~~~~~~~~~~~~~~~
+
+To format displayed results with Ruff, install it in the same Python environment
+as ptpython (``python -m pip install ruff``), then add this to ``configure(repl)``
+in your ``config.py``:
+
+.. code:: python
+
+    repl.enable_output_formatting = True
+    repl.output_formatter = "ruff"
+
+You can also enable ``Reformat output`` and select ``Output formatter`` in the
+sidebar. Black remains the default formatter; install ``black`` to use it.
+Formatting only applies to results whose representation is valid Python, not to
+input code or objects with a custom ``__pt_repr__``. Ruff uses an isolated
+configuration and the terminal width, so project Ruff settings do not affect
+displayed results. If Ruff is unavailable or returns an error, the original
+representation is displayed.
+
+
 IPython support
 ***************
 

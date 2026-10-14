@@ -32,7 +32,7 @@ jobs:
           uvx typos .
       - name: Unit test
         run: |
-          uvx --with . pytest tests/
+          uvx --with . --with black --with ruff pytest tests/
       - name: Validate README.md
         if: ${{ matrix.python-version == '3.13' }}
         # Ensure that the README renders correctly (required for uploading to PyPI).
