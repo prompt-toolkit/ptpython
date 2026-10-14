@@ -7,7 +7,17 @@ from __future__ import annotations
 
 from asyncio import get_running_loop
 from functools import partial
-from typing import TYPE_CHECKING, Any, Callable, Dict, Generic, Mapping, TypeVar, Union
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    Callable,
+    Dict,
+    Generic,
+    Literal,
+    Mapping,
+    TypeVar,
+    Union,
+)
 
 from prompt_toolkit.application import Application, get_app
 from prompt_toolkit.auto_suggest import (
@@ -306,6 +316,7 @@ class PythonInput:
 
         # Pager.
         self.enable_output_formatting: bool = False
+        self.output_formatter: Literal["black", "ruff"] = "black"
         self.enable_pager: bool = False
 
         # When the sidebar is visible, also show the help text.
@@ -823,9 +834,18 @@ class PythonInput:
                         field_name="highlight_matching_parenthesis",
                     ),
                     simple_option(
-                        title="Reformat output (black)",
-                        description="Reformat outputs using Black, if possible (experimental).",
+                        title="Reformat output",
+                        description="Reformat outputs using the selected formatter, if possible (experimental).",
                         field_name="enable_output_formatting",
+                    ),
+                    Option(
+                        title="Output formatter",
+                        description="Select Black or Ruff (installed in this Python environment).",
+                        get_current_value=lambda: self.output_formatter,
+                        get_values=lambda: {
+                            "black": partial(enable, "output_formatter", "black"),
+                            "ruff": partial(enable, "output_formatter", "ruff"),
+                        },
                     ),
                     simple_option(
                         title="Enable pager for output",

@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import subprocess
+import sys
 import traceback
 from dataclasses import dataclass
 from enum import Enum
-from typing import Generator, Iterable
+from typing import Generator, Iterable, Literal
 
 from prompt_toolkit.formatted_text import (
     HTML,
@@ -57,12 +59,14 @@ class OutputPrinter:
         reformat: bool,
         highlight: bool,
         paginate: bool,
+        formatter: Literal["black", "ruff"] = "black",
     ) -> None:
         """
         Show __repr__ (or `__pt_repr__`) for an `eval` result and print to output.
 
-        :param reformat: Reformat result using 'black' before printing if the
+        :param reformat: Reformat result before printing if the
             result is parsable as Python code.
+        :param formatter: Optional formatter to use: 'black' or 'ruff'.
         :param highlight: Syntax highlight the result.
         :param paginate: Show paginator when the result does not fit on the
             screen.
@@ -77,6 +81,7 @@ class OutputPrinter:
                 highlight=highlight,
                 line_length=self.output.get_size().columns - out_prompt_width,
                 paginate=paginate,
+                formatter=formatter,
             ),
             out_prompt=out_prompt,
         )
@@ -137,12 +142,13 @@ class OutputPrinter:
         highlight: bool,
         line_length: int,
         paginate: bool,
+        formatter: Literal["black", "ruff"] = "black",
     ) -> Generator[OneStyleAndTextTuple, None, None]:
         """
         Format __repr__ for an `eval` result.
 
         Note: this can raise `KeyboardInterrupt` if either calling `__repr__`,
-              `__pt_repr__` or formatting the output with "Black" takes to long
+              `__pt_repr__` or formatting the output takes too long
               and the user presses Control-C.
         """
         # If __pt_repr__ is present, take this. This can return prompt_toolkit
@@ -183,7 +189,30 @@ class OutputPrinter:
         else:
             valid_python = False
 
-        if valid_python and reformat:
+        if valid_python and reformat and formatter == "ruff":
+            try:
+                completed = subprocess.run(
+                    [
+                        sys.executable,
+                        "-m",
+                        "ruff",
+                        "format",
+                        "--isolated",
+                        "--line-length",
+                        str(max(1, min(65535, line_length))),
+                        "-",
+                    ],
+                    input=result_repr,
+                    encoding="utf-8",
+                    capture_output=True,
+                    check=True,
+                )
+            except (OSError, subprocess.CalledProcessError):
+                pass  # Ruff is unavailable or could not format this result.
+            else:
+                result_repr = completed.stdout
+
+        if valid_python and reformat and formatter == "black":
             # Inline import. Slightly speed up start-up time if black is
             # not used.
             try:

@@ -58,6 +58,10 @@ def configure(repl):
     # Line wrapping. (Instead of horizontal scrolling.)
     repl.wrap_lines = True
 
+    # Reformat output with an optional formatter installed in this environment.
+    repl.enable_output_formatting = False
+    repl.output_formatter = "black"  # Or "ruff".
+
     # Mouse support.
     repl.enable_mouse_support = True
 
